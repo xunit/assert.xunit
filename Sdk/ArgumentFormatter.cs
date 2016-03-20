@@ -63,6 +63,14 @@ namespace Xunit.Sdk
             if (value is char)
             {
                 var charValue = (char)value;
+                
+                if (charValue == '\'')
+                    return @"'\''";
+                if (charValue == '\t')
+                    return @"'\t'";
+                if (charValue == '\n')
+                    return @"'\n'";
+                
                 if (char.IsLetterOrDigit(charValue) || char.IsPunctuation(charValue) || char.IsSymbol(charValue) || charValue == ' ')
                     return string.Format("'{0}'", new object[] { value });
 
@@ -75,6 +83,7 @@ namespace Xunit.Sdk
             var stringParameter = value as string;
             if (stringParameter != null)
             {
+                stringParameter = stringParameter.Replace(@"""", @"\""");
                 if (stringParameter.Length > MAX_STRING_LENGTH)
                     return string.Format("\"{0}\"...", new object[] { stringParameter.Substring(0, MAX_STRING_LENGTH) });
 
