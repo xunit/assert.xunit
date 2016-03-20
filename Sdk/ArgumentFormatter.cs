@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Xunit.Sdk
@@ -63,6 +64,14 @@ namespace Xunit.Sdk
             if (value is char)
             {
                 var charValue = (char)value;
+                
+                if (charValue == '\'')
+                    return @"'\''";
+                if (charValue == '\t')
+                    return @"'\t'";
+                if (charValue == '\n')
+                    return @"'\n'";
+                
                 if (char.IsLetterOrDigit(charValue) || char.IsPunctuation(charValue) || char.IsSymbol(charValue) || charValue == ' ')
                     return string.Format("'{0}'", new object[] { value });
 
@@ -75,6 +84,8 @@ namespace Xunit.Sdk
             var stringParameter = value as string;
             if (stringParameter != null)
             {
+                stringParameter = EscapeHexChars(stringParameter);
+                stringParameter = stringParameter.Replace(@"""", @"\""");
                 if (stringParameter.Length > MAX_STRING_LENGTH)
                     return string.Format("\"{0}\"...", new object[] { stringParameter.Substring(0, MAX_STRING_LENGTH) });
 
@@ -216,6 +227,31 @@ namespace Xunit.Sdk
 
                 ex = tiex.InnerException;
             }
+        }
+        
+        static string EscapeHexChars(string s)
+        {
+            var builder = new StringBuilder(s.Length);
+            for (int i = 0; i < s.Length; i++)
+            {
+                char ch = s[i];
+                if (ch < 32) // C0 control char
+                    builder.AppendFormat(@"\x{0}", (+ch).ToString("x2"));
+                else if (char.IsSurrogatePair(s, i)) // should handle the case of ch being the last one
+                {
+                    // For valid surrogates, append like normal
+                    builder.Append(ch);
+                    builder.Append(s[++i]);
+                }
+                // Check for stray surrogates/other invalid chars
+                else if (char.IsSurrogate(ch) || ch == '\uFFFE' || ch == '\uFFFF')
+                {
+                    builder.AppendFormat(@"\x{0}", (+ch).ToString("x4"));
+                }
+                else
+                    builder.Append(ch); // Append the char like normal
+            }
+            return builder.ToString();
         }
     }
 }
