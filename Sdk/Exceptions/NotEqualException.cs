@@ -3,7 +3,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when two values are unexpectedly equal.
     /// </summary>
-    public class NotEqualException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class NotEqualException : AssertActualExpectedException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="NotEqualException"/> class.

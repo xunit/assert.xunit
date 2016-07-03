@@ -3,7 +3,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a collection unexpectedly contains the expected value.
     /// </summary>
-    public class DoesNotContainException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class DoesNotContainException : AssertActualExpectedException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="DoesNotContainException"/> class.

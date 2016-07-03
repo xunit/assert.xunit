@@ -5,7 +5,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a value is unexpectedly not in the given range.
     /// </summary>
-    public class InRangeException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class InRangeException : XunitException
     {
         readonly string actual;
         readonly string high;

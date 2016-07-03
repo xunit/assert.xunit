@@ -9,7 +9,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Base class for exceptions that have actual and expected values
     /// </summary>
-    public class AssertActualExpectedException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class AssertActualExpectedException : XunitException
     {
         /// <summary>
         /// Creates a new instance of the <see href="AssertActualExpectedException"/> class.

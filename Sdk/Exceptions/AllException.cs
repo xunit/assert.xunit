@@ -8,7 +8,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when an All assertion has one or more items fail an assertion.
     /// </summary>
-    public class AllException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class AllException : XunitException
     {
         readonly IReadOnlyList<Tuple<int, Exception>> errors;
         readonly int totalItems;

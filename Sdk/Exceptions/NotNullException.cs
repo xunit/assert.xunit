@@ -3,7 +3,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when an object is unexpectedly null.
     /// </summary>
-    public class NotNullException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class NotNullException : XunitException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="NotNullException"/> class.

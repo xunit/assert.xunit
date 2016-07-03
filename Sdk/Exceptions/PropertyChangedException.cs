@@ -5,7 +5,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when code unexpectedly fails change a property.
     /// </summary>
-    public class PropertyChangedException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class PropertyChangedException : XunitException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="PropertyChangedException"/> class. Call this constructor

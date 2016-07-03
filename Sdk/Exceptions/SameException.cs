@@ -3,7 +3,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when two object references are unexpectedly not the same instance.
     /// </summary>
-    public class SameException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class SameException : AssertActualExpectedException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="SameException"/> class.

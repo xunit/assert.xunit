@@ -6,7 +6,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a string does not start with the expected value.
     /// </summary>
-    public class StartsWithException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class StartsWithException : XunitException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="StartsWithException"/> class.

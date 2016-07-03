@@ -2,7 +2,12 @@
 
 namespace Xunit
 {
-    public partial class Assert
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    partial class Assert
     {
         /// <summary/>
         internal static void GuardArgumentNotNull(string argName, object argValue)

@@ -3,7 +3,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when the value is unexpectedly not of the exact given type.
     /// </summary>
-    public class IsTypeException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class IsTypeException : AssertActualExpectedException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="IsTypeException"/> class.

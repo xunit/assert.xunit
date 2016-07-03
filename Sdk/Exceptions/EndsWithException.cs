@@ -6,7 +6,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a string does not end with the expected value.
     /// </summary>
-    public class EndsWithException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class EndsWithException : XunitException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="EndsWithException"/> class.

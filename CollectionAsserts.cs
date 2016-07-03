@@ -6,7 +6,12 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-    public partial class Assert
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    partial class Assert
     {
         /// <summary>
         /// Verifies that all items in the collection pass when executed against

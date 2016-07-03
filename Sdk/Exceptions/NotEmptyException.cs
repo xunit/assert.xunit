@@ -3,7 +3,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a collection is unexpectedly empty.
     /// </summary>
-    public class NotEmptyException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class NotEmptyException : XunitException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="NotEmptyException"/> class.

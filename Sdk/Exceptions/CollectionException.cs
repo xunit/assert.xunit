@@ -7,7 +7,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when Assert.Collection fails.
     /// </summary>
-    public class CollectionException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class CollectionException : XunitException
     {
         readonly string innerException;
         readonly string innerStackTrace;

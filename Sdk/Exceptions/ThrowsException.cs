@@ -5,7 +5,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when code unexpectedly fails to throw an exception.
     /// </summary>
-    public class ThrowsException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class ThrowsException : AssertActualExpectedException
     {
         readonly string stackTrace = null;
 
