@@ -23,7 +23,7 @@ namespace Xunit
 
             bool propertyChangeHappened = false;
 
-            PropertyChangedEventHandler handler = (sender, args) => propertyChangeHappened |= propertyName.Equals(args.PropertyName, StringComparison.OrdinalIgnoreCase);
+            PropertyChangedEventHandler handler = (sender, args) => propertyChangeHappened |= string.IsNullOrEmpty(args.PropertyName) || propertyName.Equals(args.PropertyName, StringComparison.OrdinalIgnoreCase);
 
             @object.PropertyChanged += handler;
 
@@ -60,7 +60,7 @@ namespace Xunit
 
             bool propertyChangeHappened = false;
 
-            PropertyChangedEventHandler handler = (sender, args) => propertyChangeHappened |= propertyName.Equals(args.PropertyName, StringComparison.OrdinalIgnoreCase);
+            PropertyChangedEventHandler handler = (sender, args) => propertyChangeHappened |= string.IsNullOrEmpty(args.PropertyName) || propertyName.Equals(args.PropertyName, StringComparison.OrdinalIgnoreCase);
 
             @object.PropertyChanged += handler;
 
