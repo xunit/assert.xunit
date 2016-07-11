@@ -5,7 +5,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a set is not a superset of another set.
     /// </summary>
-    public class SupersetException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class SupersetException : AssertActualExpectedException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="SupersetException"/> class.

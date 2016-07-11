@@ -3,7 +3,12 @@
     /// <summary>
     /// Exception thrown when the collection did not contain exactly one element.
     /// </summary>
-    public class SingleException : AssertCollectionCountException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class SingleException : AssertCollectionCountException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SingleException"/> class.

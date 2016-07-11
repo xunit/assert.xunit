@@ -5,7 +5,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when the collection did not contain exactly the given number element.
     /// </summary>
-    public class AssertCollectionCountException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class AssertCollectionCountException : XunitException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="SingleException"/> class.

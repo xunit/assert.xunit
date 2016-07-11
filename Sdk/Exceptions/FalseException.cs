@@ -3,7 +3,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a value is unexpectedly true.
     /// </summary>
-    public class FalseException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class FalseException : AssertActualExpectedException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="FalseException"/> class.

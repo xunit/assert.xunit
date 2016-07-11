@@ -6,7 +6,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a string does not match a regular expression.
     /// </summary>
-    public class MatchesException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class MatchesException : XunitException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="MatchesException"/> class.

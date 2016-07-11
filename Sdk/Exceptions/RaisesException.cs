@@ -9,7 +9,12 @@
     /// <summary>
     /// Exception thrown when code unexpectedly fails to raise an event.
     /// </summary>
-    public class RaisesException : XunitException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class RaisesException : XunitException
     {
         readonly string stackTrace = null;
 

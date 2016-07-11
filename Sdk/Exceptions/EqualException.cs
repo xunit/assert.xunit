@@ -8,7 +8,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when two values are unexpectedly not equal.
     /// </summary>
-    public class EqualException : AssertActualExpectedException
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class EqualException : AssertActualExpectedException
     {
         static readonly Dictionary<char, string> Encodings = new Dictionary<char, string>
         {

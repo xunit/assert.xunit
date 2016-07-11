@@ -5,7 +5,12 @@ namespace Xunit.Sdk
     /// <summary>
     /// The base assert exception class
     /// </summary>
-    public class XunitException : Exception
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    class XunitException : Exception
     {
         readonly string stackTrace;
 

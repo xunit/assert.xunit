@@ -4,7 +4,12 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-    public partial class Assert
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    partial class Assert
     {
         /// <summary>
         /// Verifies that an object is of the given type or a derived type.

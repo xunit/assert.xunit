@@ -3,7 +3,12 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-    public partial class Assert
+#if XUNIT_VISIBILITY_INTERNAL 
+    internal
+#else
+    public
+#endif
+    partial class Assert
     {
         /// <summary>
         /// Verifies that a set is a proper subset of another set.
