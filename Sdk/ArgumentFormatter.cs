@@ -61,80 +61,89 @@ namespace Xunit.Sdk
             if (valueAsType != null)
                 return $"typeof({FormatTypeName(valueAsType)})";
 
-            if (value is char)
-            {
-                var charValue = (char)value;
-                
-                if (charValue == '\'')
-                    return @"'\''";
-                
-                // Take care of all of the escape sequences
-                string escapeSequence;
-                if (TryGetEscapeSequence(charValue, out escapeSequence))
-                {
-                    return $"'{escapeSequence}'";
-                }
-                
-                if (char.IsLetterOrDigit(charValue) || char.IsPunctuation(charValue) || char.IsSymbol(charValue) || charValue == ' ')
-                    return $"'{charValue}'";
-
-                // Fallback to hex
-                return $"0x{(int)charValue:x4}";
-            }
-
-            if (value is DateTime || value is DateTimeOffset)
-                return $"{value:o}";
-
-            var stringParameter = value as string;
-            if (stringParameter != null)
-            {
-                stringParameter = EscapeHexChars(stringParameter);
-                stringParameter = stringParameter.Replace(@"""", @"\"""); // escape double quotes
-                if (stringParameter.Length > MAX_STRING_LENGTH)
-                {
-                    string displayed = stringParameter.Substring(0, MAX_STRING_LENGTH);
-                    return $"\"{displayed}\"...";
-                }
-
-                return $"\"{stringParameter}\"";
-            }
-
             try
             {
-                var enumerable = value as IEnumerable;
-                if (enumerable != null)
-                    return FormatEnumerable(enumerable.Cast<object>(), depth);
-            }
-            catch
-            {
-                // Sometimes enumerables cannot be enumerated when being, and instead thrown an exception.
-                // This could be, for example, because they require state that is not provided by Xunit.
-                // In these cases, just continue formatting. 
-            }
+                if (value is char)
+                {
+                    var charValue = (char)value;
+                
+                    if (charValue == '\'')
+                        return @"'\''";
+                
+                    // Take care of all of the escape sequences
+                    string escapeSequence;
+                    if (TryGetEscapeSequence(charValue, out escapeSequence))
+                    {
+                        return $"'{escapeSequence}'";
+                    }
+                
+                    if (char.IsLetterOrDigit(charValue) || char.IsPunctuation(charValue) || char.IsSymbol(charValue) || charValue == ' ')
+                        return $"'{charValue}'";
 
-            var type = value.GetType();
-            var typeInfo = type.GetTypeInfo();
-            if (typeInfo.IsValueType)
-                return Convert.ToString(value, CultureInfo.CurrentCulture);
+                    // Fallback to hex
+                    return $"0x{(int)charValue:x4}";
+                }
 
-            var task = value as Task;
-            if (task != null)
-            {
-                var typeParameters = typeInfo.GenericTypeArguments;
-                var typeName = typeParameters.Length == 0 ? "Task" : $"Task<{string.Join(",", typeParameters.Select(FormatTypeName))}>";
-                return $"{typeName} {{ Status = {task.Status} }}";
-            }
+                if (value is DateTime || value is DateTimeOffset)
+                    return $"{value:o}";
 
-#if PLATFORM_DOTNET
-            var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
-#else
-            var toString = type.GetMethod("ToString", EmptyTypes);
-#endif
+                var stringParameter = value as string;
+                if (stringParameter != null)
+                {
+                    stringParameter = EscapeHexChars(stringParameter);
+                    stringParameter = stringParameter.Replace(@"""", @"\"""); // escape double quotes
+                    if (stringParameter.Length > MAX_STRING_LENGTH)
+                    {
+                        string displayed = stringParameter.Substring(0, MAX_STRING_LENGTH);
+                        return $"\"{displayed}\"...";
+                    }
 
-            if (toString != null && toString.DeclaringType != typeof(object))
-                return (string)toString.Invoke(value, EmptyObjects);
+                    return $"\"{stringParameter}\"";
+                }
 
-            return FormatComplexValue(value, depth, type);
+                try
+                {
+                    var enumerable = value as IEnumerable;
+                    if (enumerable != null)
+                        return FormatEnumerable(enumerable.Cast<object>(), depth);
+                }
+                catch
+                {
+                    // Sometimes enumerables cannot be enumerated when being, and instead thrown an exception.
+                    // This could be, for example, because they require state that is not provided by Xunit.
+                    // In these cases, just continue formatting. 
+                }
+
+                var type = value.GetType();
+                var typeInfo = type.GetTypeInfo();
+                if (typeInfo.IsValueType)
+                    return Convert.ToString(value, CultureInfo.CurrentCulture);
+
+                var task = value as Task;
+                if (task != null)
+                {
+                    var typeParameters = typeInfo.GenericTypeArguments;
+                    var typeName = typeParameters.Length == 0 ? "Task" : $"Task<{string.Join(",", typeParameters.Select(FormatTypeName))}>";
+                    return $"{typeName} {{ Status = {task.Status} }}";
+                }
+
+    #if PLATFORM_DOTNET
+                var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
+    #else
+                var toString = type.GetMethod("ToString", EmptyTypes);
+    #endif
+
+                if (toString != null && toString.DeclaringType != typeof(object))
+                    return (string)toString.Invoke(value, EmptyObjects);
+
+                return FormatComplexValue(value, depth, type);
+        	}
+        	catch (Exception ex)
+        	{
+                // Sometimes an exception is thrown when formatting an argument, such as in ToString.
+                // In these cases, we don't want xunit to crash, as tests may have passed despite this.
+                return $"{ex.GetType().Name} was thrown formatting an object of type \"{value.GetType()}\"";
+        	}
         }
 
         static string FormatComplexValue(object value, int depth, Type type)
