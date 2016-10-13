@@ -99,9 +99,18 @@ namespace Xunit.Sdk
                 return $"\"{stringParameter}\"";
             }
 
-            var enumerable = value as IEnumerable;
-            if (enumerable != null)
-                return FormatEnumerable(enumerable.Cast<object>(), depth);
+            try
+            {
+                var enumerable = value as IEnumerable;
+                if (enumerable != null)
+                    return FormatEnumerable(enumerable.Cast<object>(), depth);
+            }
+            catch
+            {
+                // Sometimes enumerables cannot be enumerated when being, and instead thrown an exception.
+                // This could be, for example, because they require state that is not provided by Xunit.
+                // In these cases, just continue formatting. 
+            }
 
             var type = value.GetType();
             var typeInfo = type.GetTypeInfo();
