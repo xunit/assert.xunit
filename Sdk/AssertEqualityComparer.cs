@@ -48,23 +48,27 @@ namespace Xunit.Sdk
             }
 
             // Same type?
+            bool sameType = true;
             if (!skipTypeCheck && x.GetType() != y.GetType())
-                return false;
+                sameType = false;
 
-            // Implements IEquatable<T>?
-            var equatable = x as IEquatable<T>;
-            if (equatable != null)
-                return equatable.Equals(y);
+            if (sameType)
+            {
+                // Implements IEquatable<T>?
+                var equatable = x as IEquatable<T>;
+                if (equatable != null)
+                    return equatable.Equals(y);
 
-            // Implements IComparable<T>?
-            var comparableGeneric = x as IComparable<T>;
-            if (comparableGeneric != null)
-                return comparableGeneric.CompareTo(y) == 0;
+                // Implements IComparable<T>?
+                var comparableGeneric = x as IComparable<T>;
+                if (comparableGeneric != null)
+                    return comparableGeneric.CompareTo(y) == 0;
 
-            // Implements IComparable?
-            var comparable = x as IComparable;
-            if (comparable != null)
-                return comparable.CompareTo(y) == 0;
+                // Implements IComparable?
+                var comparable = x as IComparable;
+                if (comparable != null)
+                    return comparable.CompareTo(y) == 0;
+            }
 
             // Dictionaries?
             var dictionariesEqual = CheckIfDictionariesAreEqual(x, y);
