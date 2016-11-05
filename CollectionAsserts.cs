@@ -26,7 +26,7 @@ namespace Xunit
             Assert.GuardArgumentNotNull("collection", collection);
             Assert.GuardArgumentNotNull("action", action);
 
-            var errors = new Stack<Tuple<int, Exception>>();
+            var errors = new Stack<Tuple<int, object, Exception>>();
             var array = collection.ToArray();
 
             for (var idx = 0; idx < array.Length; ++idx)
@@ -37,7 +37,7 @@ namespace Xunit
                 }
                 catch (Exception ex)
                 {
-                    errors.Push(new Tuple<int, Exception>(idx, ex));
+                    errors.Push(new Tuple<int, object, Exception>(idx, array[idx], ex));
                 }
             }
 
