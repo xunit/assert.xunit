@@ -15,7 +15,7 @@ namespace Xunit.Sdk
 #endif
     class AllException : XunitException
     {
-        readonly IReadOnlyList<Tuple<int, Exception>> errors;
+        readonly IReadOnlyList<Tuple<int, object, Exception>> errors;
         readonly int totalItems;
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Xunit.Sdk
         /// </summary>
         /// <param name="totalItems">The total number of items that were in the collection.</param>
         /// <param name="errors">The list of errors that occurred during the test pass.</param>
-        public AllException(int totalItems, Tuple<int, Exception>[] errors)
+        public AllException(int totalItems, Tuple<int, object, Exception>[] errors)
             : base("Assert.All() Failure")
         {
             this.errors = errors;
@@ -33,7 +33,7 @@ namespace Xunit.Sdk
         /// <summary>
         /// The errors that occurred during execution of the test.
         /// </summary>
-        public IReadOnlyList<Exception> Failures { get { return errors.Select(t => t.Item2).ToList(); } }
+        public IReadOnlyList<Exception> Failures { get { return errors.Select(t => t.Item3).ToList(); } }
 
         /// <inheritdoc/>
         public override string Message
@@ -45,7 +45,12 @@ namespace Xunit.Sdk
                     var indexString = string.Format(CultureInfo.CurrentCulture, "[{0}]: ", error.Item1);
                     var spaces = Environment.NewLine + "".PadRight(indexString.Length);
 
-                    return indexString + error.Item2.ToString().Replace(Environment.NewLine, spaces);
+                    return string.Format(CultureInfo.CurrentCulture,
+                                         "{0}Item: {1}{2}{3}",
+                                         indexString,
+                                         error.Item2.ToString().Replace(Environment.NewLine, spaces),
+                                         spaces,
+                                         error.Item3.ToString().Replace(Environment.NewLine, spaces));
                 });
 
                 return string.Format(CultureInfo.CurrentCulture,
