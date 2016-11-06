@@ -83,7 +83,34 @@ namespace Xunit.Sdk
             // Enumerable?
             var enumerablesEqual = CheckIfEnumerablesAreEqual(x, y);
             if (enumerablesEqual.HasValue)
-                return enumerablesEqual.GetValueOrDefault();
+            {
+                if (!enumerablesEqual.GetValueOrDefault())
+                {
+                    return false;
+                }
+
+                // Array.GetEnumerator() flattens out the array, ignoring array ranks and lengths
+                Array xArray = x as Array;
+                Array yArray = y as Array;
+                if (xArray != null && yArray != null)
+                {
+                    // new object[2,1] != new object[2]
+                    if (xArray.Rank != yArray.Rank)
+                    {
+                        return false;
+                    }
+
+                    // new object[2,1] != new object[1,2]
+                    for (int i = 0; i < xArray.Rank; i++)
+                    {
+                        if (xArray.GetLength(i) != yArray.GetLength(i))
+                        {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
 
             // Last case, rely on object.Equals
             return object.Equals(x, y);
