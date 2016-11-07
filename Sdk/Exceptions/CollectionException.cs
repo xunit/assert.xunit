@@ -20,19 +20,26 @@ namespace Xunit.Sdk
         /// <summary>
         /// Creates a new instance of the <see cref="CollectionException"/> class.
         /// </summary>
+        /// <param name="collection">The collection that failed the test.</param>
         /// <param name="expectedCount">The expected number of items in the collection.</param>
         /// <param name="actualCount">The actual number of items in the collection.</param>
         /// <param name="indexFailurePoint">The index of the position where the first comparison failure occurred.</param>
         /// <param name="innerException">The exception that was thrown during the comparison failure.</param>
-        public CollectionException(int expectedCount, int actualCount, int indexFailurePoint = -1, Exception innerException = null)
+        public CollectionException(object collection, int expectedCount, int actualCount, int indexFailurePoint = -1, Exception innerException = null)
             : base("Assert.Collection() Failure")
         {
+            Collection = collection;
             ExpectedCount = expectedCount;
             ActualCount = actualCount;
             IndexFailurePoint = indexFailurePoint;
             this.innerException = FormatInnerException(innerException);
             innerStackTrace = innerException == null ? null : innerException.StackTrace;
         }
+
+        /// <summary>
+        /// The collection that failed the test.
+        /// </summary>
+        public object Collection { get; set; }
 
         /// <summary>
         /// The actual number of items in the collection.
@@ -57,15 +64,17 @@ namespace Xunit.Sdk
             {
                 if (IndexFailurePoint >= 0)
                     return string.Format(CultureInfo.CurrentCulture,
-                                         "{0}{3}Error during comparison of item at index {1}{3}Inner exception: {2}",
+                                         "{0}{4}Collection: {1}{4}Error during comparison of item at index {2}{4}Inner exception: {3}",
                                          base.Message,
+                                         ArgumentFormatter.Format(Collection),
                                          IndexFailurePoint,
                                          innerException,
                                          Environment.NewLine);
 
                 return string.Format(CultureInfo.CurrentCulture,
-                                     "{0}{3}Expected item count: {1}{3}Actual item count:   {2}",
+                                     "{0}{4}Collection: {1}{4}Expected item count: {2}{4}Actual item count:   {3}",
                                      base.Message,
+                                     ArgumentFormatter.Format(Collection),
                                      ExpectedCount,
                                      ActualCount,
                                      Environment.NewLine);
