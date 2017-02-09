@@ -63,6 +63,9 @@ namespace Xunit.Sdk
 
             try
             {
+                if (value.GetType().GetTypeInfo().IsEnum)
+                    return value.ToString().Replace(", ", " | ");
+
                 if (value is char)
                 {
                     var charValue = (char)value;
