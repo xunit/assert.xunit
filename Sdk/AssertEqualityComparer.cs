@@ -63,11 +63,22 @@ namespace Xunit.Sdk
                 var comparableGeneric = x as IComparable<T>;
                 if (comparableGeneric != null)
                     return comparableGeneric.CompareTo(y) == 0;
+            }
 
-                // Implements IComparable?
-                var comparable = x as IComparable;
-                if (comparable != null)
+            // Implements IComparable?
+            var comparable = x as IComparable;
+            if (comparable != null)
+            {
+                try
+                {
                     return comparable.CompareTo(y) == 0;
+                }
+                catch
+                {
+                    // Some implementations of IComparable.CompareTo throw exceptions in
+                    // certain situations, such as if x can't compare against y.
+                    // If this happens, just swallow up the exception and continue comparing.
+                }
             }
 
             // Dictionaries?
