@@ -183,8 +183,16 @@ namespace Xunit
         {
             Assert.GuardArgumentNotNull("collection", collection);
 
-            if (collection.GetEnumerator().MoveNext())
-                throw new EmptyException();
+            var enumerator = collection.GetEnumerator();
+            try
+            {
+                if (enumerator.MoveNext())
+                    throw new EmptyException();
+            }
+            finally
+            {
+                (enumerator as IDisposable)?.Dispose();
+            }
         }
 
         /// <summary>
@@ -222,8 +230,16 @@ namespace Xunit
         {
             Assert.GuardArgumentNotNull("collection", collection);
 
-            if (!collection.GetEnumerator().MoveNext())
-                throw new NotEmptyException();
+            var enumerator = collection.GetEnumerator();
+            try
+            {
+                if (!enumerator.MoveNext())
+                    throw new NotEmptyException();
+            }
+            finally
+            {
+                (enumerator as IDisposable)?.Dispose();
+            }
         }
 
         /// <summary>
