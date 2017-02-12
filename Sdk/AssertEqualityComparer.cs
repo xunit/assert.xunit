@@ -195,8 +195,13 @@ namespace Xunit.Sdk
             if (enumX == null || enumY == null)
                 return null;
 
-            var elementType = typeof(T).GenericTypeArguments[0];
-            MethodInfo method = GetType().GetTypeInfo().GetDeclaredMethod("CompareTypedSets");
+            Type elementType;
+            if (typeof(T).GenericTypeArguments.Length != 1)
+                elementType = typeof(object);
+            else
+                elementType = typeof(T).GenericTypeArguments[0];
+            
+            MethodInfo method = GetType().GetTypeInfo().GetDeclaredMethod(nameof(CompareTypedSets));
             method = method.MakeGenericMethod(new Type[] { elementType });
             return (bool)method.Invoke(this, new object[] { enumX, enumY });
         }
