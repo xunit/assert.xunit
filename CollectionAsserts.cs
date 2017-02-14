@@ -204,7 +204,7 @@ namespace Xunit
         /// <exception cref="EqualException">Thrown when the objects are not equal</exception>
         public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual)
         {
-            Equal<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>(true));
+            Equal<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>());
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace Xunit
         /// <exception cref="EqualException">Thrown when the objects are not equal</exception>
         public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer)
         {
-            Equal<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>(true, new AssertEqualityComparerAdapter<T>(comparer)));
+            Equal<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Xunit
         /// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
         public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
         {
-            NotEqual<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>(true));
+            NotEqual<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>());
         }
 
         /// <summary>
@@ -264,7 +264,7 @@ namespace Xunit
         /// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
         public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer)
         {
-            NotEqual<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>(true, new AssertEqualityComparerAdapter<T>(comparer)));
+            NotEqual<IEnumerable<T>>(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
         }
 
         /// <summary>
