@@ -17,9 +17,9 @@ namespace Xunit
             return new AssertComparer<T>();
         }
 
-        static IEqualityComparer<T> GetEqualityComparer<T>(bool skipTypeCheck = false, IEqualityComparer innerComparer = null)
+        static IEqualityComparer<T> GetEqualityComparer<T>(IEqualityComparer innerComparer = null)
         {
-            return new AssertEqualityComparer<T>(skipTypeCheck, innerComparer);
+            return new AssertEqualityComparer<T>(innerComparer);
         }
     }
 }

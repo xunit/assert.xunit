@@ -17,17 +17,13 @@ namespace Xunit.Sdk
         static readonly TypeInfo NullableTypeInfo = typeof(Nullable<>).GetTypeInfo();
 
         readonly Func<IEqualityComparer> innerComparerFactory;
-        readonly bool skipTypeCheck;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AssertEqualityComparer{T}" /> class.
         /// </summary>
-        /// <param name="skipTypeCheck">Set to <c>true</c> to skip type equality checks.</param>
         /// <param name="innerComparer">The inner comparer to be used when the compared objects are enumerable.</param>
-        public AssertEqualityComparer(bool skipTypeCheck = false, IEqualityComparer innerComparer = null)
+        public AssertEqualityComparer(IEqualityComparer innerComparer = null)
         {
-            this.skipTypeCheck = skipTypeCheck;
-
             // Use a thunk to delay evaluation of DefaultInnerComparer
             innerComparerFactory = () => innerComparer ?? DefaultInnerComparer;
         }
@@ -47,23 +43,15 @@ namespace Xunit.Sdk
                     return false;
             }
 
-            // Same type?
-            bool sameType = true;
-            if (!skipTypeCheck && x.GetType() != y.GetType())
-                sameType = false;
+            // Implements IEquatable<T>?
+            var equatable = x as IEquatable<T>;
+            if (equatable != null)
+                return equatable.Equals(y);
 
-            if (sameType)
-            {
-                // Implements IEquatable<T>?
-                var equatable = x as IEquatable<T>;
-                if (equatable != null)
-                    return equatable.Equals(y);
-
-                // Implements IComparable<T>?
-                var comparableGeneric = x as IComparable<T>;
-                if (comparableGeneric != null)
-                    return comparableGeneric.CompareTo(y) == 0;
-            }
+            // Implements IComparable<T>?
+            var comparableGeneric = x as IComparable<T>;
+            if (comparableGeneric != null)
+                return comparableGeneric.CompareTo(y) == 0;
 
             // Implements IComparable?
             var comparable = x as IComparable;
@@ -211,7 +199,7 @@ namespace Xunit.Sdk
                 elementType = typeof(object);
             else
                 elementType = typeof(T).GenericTypeArguments[0];
-            
+
             MethodInfo method = GetType().GetTypeInfo().GetDeclaredMethod(nameof(CompareTypedSets));
             method = method.MakeGenericMethod(new Type[] { elementType });
             return (bool)method.Invoke(this, new object[] { enumX, enumY });
