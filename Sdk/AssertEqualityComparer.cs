@@ -121,6 +121,12 @@ namespace Xunit.Sdk
                 }
                 return true;
             }
+            
+            // Implements IStructuralEquatable?
+            var structuralEquatable = x as IStructuralEquatable;
+            if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparerFactory())))
+                return true;
+
 
             // Last case, rely on object.Equals
             return object.Equals(x, y);
@@ -237,6 +243,48 @@ namespace Xunit.Sdk
         public int GetHashCode(T obj)
         {
             throw new NotImplementedException();
+        }
+
+        private class TypeErasedEqualityComparer : IEqualityComparer
+        {
+            private readonly IEqualityComparer innerComparer;
+
+            public TypeErasedEqualityComparer(IEqualityComparer innerComparer)
+            {
+                this.innerComparer = innerComparer;
+            }
+
+            private static MethodInfo s_equalsMethod;
+
+            public new bool Equals(object x, object y)
+            {
+                if (x == null)
+                    return y == null;
+                if (y == null)
+                    return false;
+
+                // Delegate checking of whether two objects are equal to AssertEqualityComparer.
+                // To get the best result out of AssertEqualityComparer, we attempt to specialize the
+                // comparer for the objects that we are checking.
+                // If the objects are the same, great! If not, assume they are objects.
+                // This is more naive than the C# compiler which tries to see if they share any interfaces
+                // etc. but that's likely overkill here as AssertEqualityComparer<object> is smart enough.
+                Type objectType = x.GetType() == y.GetType() ? x.GetType() : typeof(object);
+
+                // Lazily initialize and cache the EqualsGeneric<U> method.
+                if (s_equalsMethod == null)
+                    s_equalsMethod = typeof(TypeErasedEqualityComparer).GetTypeInfo().GetDeclaredMethod(nameof(EqualsGeneric));
+
+                return (bool)s_equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y });
+            }
+
+            private bool EqualsGeneric<U>(U x, U y) => new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
+
+            [SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This class is not intended to be used in a hased container")]
+            public int GetHashCode(object obj)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
