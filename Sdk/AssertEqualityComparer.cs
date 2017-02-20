@@ -127,6 +127,13 @@ namespace Xunit.Sdk
             if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparerFactory())))
                 return true;
 
+            // Implements IEquatable<typeof(y)>?
+            TypeInfo iequatableY = typeof(IEquatable<>).MakeGenericType(y.GetType()).GetTypeInfo();
+            if (iequatableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
+            {
+                MethodInfo equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+                return (bool)equalsMethod.Invoke(x, new object[] { y });
+            }
 
             // Last case, rely on object.Equals
             return object.Equals(x, y);
