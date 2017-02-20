@@ -201,6 +201,8 @@ namespace Xunit.Sdk
             return dictionaryYKeys.Count == 0;
         }
 
+        private static MethodInfo s_compareTypedSetsMethod;
+
         bool? CheckIfSetsAreEqual(T x, T y, TypeInfo typeInfo)
         {
             if (!IsSet(typeInfo))
@@ -217,8 +219,10 @@ namespace Xunit.Sdk
             else
                 elementType = typeof(T).GenericTypeArguments[0];
 
-            MethodInfo method = GetType().GetTypeInfo().GetDeclaredMethod(nameof(CompareTypedSets));
-            method = method.MakeGenericMethod(new Type[] { elementType });
+            if (s_compareTypedSetsMethod == null)
+                s_compareTypedSetsMethod = GetType().GetTypeInfo().GetDeclaredMethod(nameof(CompareTypedSets));
+
+            MethodInfo method = s_compareTypedSetsMethod.MakeGenericMethod(new Type[] { elementType });
             return (bool)method.Invoke(this, new object[] { enumX, enumY });
         }
 
