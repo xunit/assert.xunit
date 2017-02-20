@@ -187,7 +187,7 @@ namespace Xunit
             try
             {
                 if (enumerator.MoveNext())
-                    throw new EmptyException();
+                    throw new EmptyException(collection);
             }
             finally
             {
