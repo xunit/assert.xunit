@@ -135,6 +135,23 @@ namespace Xunit.Sdk
                 return (bool)equalsMethod.Invoke(x, new object[] { y });
             }
 
+            // Implements IComparable<typeof(y)>?
+            TypeInfo icomparableY = typeof(IComparable<>).MakeGenericType(y.GetType()).GetTypeInfo();
+            if (icomparableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
+            {
+                MethodInfo compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
+                try
+                {
+                    return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
+                }
+                catch
+                {
+                    // Some implementations of IComparable.CompareTo throw exceptions in
+                    // certain situations, such as if x can't compare against y.
+                    // If this happens, just swallow up the exception and continue comparing.
+                }
+            }
+
             // Last case, rely on object.Equals
             return object.Equals(x, y);
         }
