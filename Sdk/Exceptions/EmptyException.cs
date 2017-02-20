@@ -1,3 +1,6 @@
+using System;
+using System.Collections;
+
 namespace Xunit.Sdk
 {
     /// <summary>
@@ -13,8 +16,24 @@ namespace Xunit.Sdk
         /// <summary>
         /// Creates a new instance of the <see cref="EmptyException"/> class.
         /// </summary>
-        public EmptyException()
+        public EmptyException(IEnumerable collection)
             : base("Assert.Empty() Failure")
-        { }
+        {
+            Collection = collection;
+        }
+
+        /// <summary>
+        /// The collection that failed the test.
+        /// </summary>
+        public IEnumerable Collection { get; }
+
+        /// <inheritdoc/>
+        public override string Message
+        {
+            get
+            {
+                return $"{base.Message}{Environment.NewLine}Collection: {ArgumentFormatter.Format(Collection)}";
+            }
+        }
     }
 }
