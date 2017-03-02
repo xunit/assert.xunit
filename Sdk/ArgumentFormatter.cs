@@ -130,11 +130,7 @@ namespace Xunit.Sdk
                     return $"{typeName} {{ Status = {task.Status} }}";
                 }
 
-    #if PLATFORM_DOTNET
                 var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
-    #else
-                var toString = type.GetMethod("ToString", EmptyTypes);
-    #endif
 
                 if (toString != null && toString.DeclaringType != typeof(object))
                     return (string)toString.Invoke(value, EmptyObjects);
