@@ -31,7 +31,7 @@ namespace Xunit.Sdk
         public bool Equals(T x, T y)
         {
             // Null?
-            if (typeof(T).IsReferenceOrNullableType())
+            if (typeof(T).IsReferenceTypeOrNullable())
             {
                 if (x == null)
                     return y == null;
@@ -86,10 +86,16 @@ namespace Xunit.Sdk
             }
 
             // object.Equals is either supplied by the user or not overridden.
-            // - If it's supplied by the user, then whatever it returns is definitive.
-            // - If it's not overridden, then it is definitive if it returns true (that means the objects are reference-equal),
-            //   but undefinitive if it returns false (two different arrays having the same contents are considered equal).
-            // So we only pay attention to the result if it's true.
+            // - If it returns true, either Equals wasn't overridden and the objects are reference-equal
+            //   (in which case they'll be equal by all other standards) or the user says they are equal
+            //   (in which case we will agree with the user).
+            // - If it returns false, it's indecisive because there's a broad category of potential reasons
+            //   why the other object wasn't considered equal, and there's a chance it could compare as
+            //   equal by some other criteria.
+            //   - For example, two arrays (which don't override Equals) can be in different memory locations but store the same contents.
+            //   - Even if the user has overridden Equals and returns false, (s)he may not have taken all possible criteria into account.
+            //     For example, new ArraySegment<T>(Array.Empty<T>()).Equals(new List<T>()) is false because the types do not match up, but
+            //     the contents of the collections are equal.
             if (object.Equals(x, y))
             {
                 return true;
@@ -317,7 +323,7 @@ namespace Xunit.Sdk
                 if (s_equalsMethod == null)
                     s_equalsMethod = typeof(TypeErasedEqualityComparer).GetTypeInfo().GetDeclaredMethod(nameof(EqualsGeneric));
 
-                return (bool)s_equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y });
+                return s_equalsMethod.MakeGenericMethod(objectType).Invoke<bool>(this, x, y);
             }
 
             private bool EqualsGeneric<U>(U x, U y) => new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);

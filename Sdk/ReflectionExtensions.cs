@@ -19,11 +19,15 @@ namespace Xunit.Sdk
             return type.GetTypeInfo().IsAssignableFrom(otherType.GetTypeInfo());
         }
 
-        public static bool IsReferenceOrNullableType(this Type type)
+        public static bool IsNullable(this Type type)
         {
             var typeInfo = type.GetTypeInfo();
-            return !typeInfo.IsValueType ||
-                (typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition().GetTypeInfo().IsAssignableFrom(NullableTypeInfo));
+            return typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition().GetTypeInfo().IsAssignableFrom(NullableTypeInfo);
+        }
+
+        public static bool IsReferenceTypeOrNullable(this Type type)
+        {
+            return !type.GetTypeInfo().IsValueType || type.IsNullable();
         }
 
         public static bool IsSet(this Type type)
