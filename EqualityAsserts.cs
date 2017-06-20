@@ -66,7 +66,7 @@ namespace Xunit
         /// </summary>
         /// <param name="expected">The expected value</param>
         /// <param name="actual">The value to be compared against</param>
-        /// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+        /// <param name="precision">The number of decimal places (valid values: 0-28)</param>
         /// <exception cref="EqualException">Thrown when the values are not equal</exception>
         public static void Equal(decimal expected, decimal actual, int precision)
         {
@@ -146,7 +146,7 @@ namespace Xunit
         /// </summary>
         /// <param name="expected">The expected value</param>
         /// <param name="actual">The value to be compared against</param>
-        /// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+        /// <param name="precision">The number of decimal places (valid values: 0-28)</param>
         /// <exception cref="EqualException">Thrown when the values are equal</exception>
         public static void NotEqual(decimal expected, decimal actual, int precision)
         {
