@@ -14,7 +14,6 @@ namespace Xunit.Sdk
     class AssertEqualityComparer<T> : IEqualityComparer<T>
     {
         static readonly IEqualityComparer DefaultInnerComparer = new AssertEqualityComparerAdapter<object>(new AssertEqualityComparer<object>());
-        static readonly TypeInfo NullableTypeInfo = typeof(Nullable<>).GetTypeInfo();
 
         readonly Func<IEqualityComparer> innerComparerFactory;
 
@@ -31,17 +30,23 @@ namespace Xunit.Sdk
         /// <inheritdoc/>
         public bool Equals(T x, T y)
         {
-            var typeInfo = typeof(T).GetTypeInfo();
-
             // Null?
-            if (!typeInfo.IsValueType || (typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition().GetTypeInfo().IsAssignableFrom(NullableTypeInfo)))
+            if (typeof(T).IsReferenceTypeOrNullable())
             {
-                if (object.Equals(x, default(T)))
-                    return object.Equals(y, default(T));
+                if (x == null)
+                    return y == null;
 
-                if (object.Equals(y, default(T)))
+                if (y == null)
                     return false;
             }
+
+            // IMPORTANT: The user's notion of equality takes priority over xUnit's notion of equality.
+            // All methods the user can use to signal that (s)he thinks two objects are/aren't equal, e.g.
+            // by implementing equatable/comparable interfaces, or overriding object.Equals, should be
+            // picked up on first before comparing the objects in ways the user can't control.
+            // For example, if x and y are two collections with contents [1, 2] and [3, 4] but the user
+            // has overridden Equals on them to say that they are equal, then we will agree with the user
+            // although the collections have different contents.
 
             // Implements IEquatable<T>?
             var equatable = x as IEquatable<T>;
@@ -80,13 +85,59 @@ namespace Xunit.Sdk
                 }
             }
 
+            // object.Equals is either supplied by the user or not overridden.
+            // - If it returns true, either Equals wasn't overridden and the objects are reference-equal
+            //   (in which case they'll be equal by all other standards) or the user says they are equal
+            //   (in which case we will agree with the user).
+            // - If it returns false, it's indecisive because there's a broad category of potential reasons
+            //   why the other object wasn't considered equal, and there's a chance it could compare as
+            //   equal by some other criteria.
+            //   - For example, two arrays (which don't override Equals) can be in different memory locations but store the same contents.
+            //   - Even if the user has overridden Equals and returns false, (s)he may not have taken all possible criteria into account.
+            //     For example, new ArraySegment<T>(Array.Empty<T>()).Equals(new List<T>()) is false because the types do not match up, but
+            //     the contents of the collections are equal.
+            if (object.Equals(x, y))
+            {
+                return true;
+            }
+            
+            // Implements IStructuralEquatable?
+            var structuralEquatable = x as IStructuralEquatable;
+            if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparerFactory())))
+                return true;
+
+            // Implements IEquatable<typeof(y)>?
+            Type iequatableY = y.GetType().MakeEquatableType();
+            if (iequatableY.IsAssignableFrom(x.GetType()))
+            {
+                MethodInfo equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+                return equalsMethod.Invoke<bool>(x, y);
+            }
+
+            // Implements IComparable<typeof(y)>?
+            Type icomparableY = y.GetType().MakeComparableType();
+            if (icomparableY.IsAssignableFrom(x.GetType()))
+            {
+                MethodInfo compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
+                try
+                {
+                    return compareToMethod.Invoke<int>(x, y) == 0;
+                }
+                catch
+                {
+                    // Some implementations of IComparable.CompareTo throw exceptions in
+                    // certain situations, such as if x can't compare against y.
+                    // If this happens, just swallow up the exception and continue comparing.
+                }
+            }
+
             // Dictionaries?
             var dictionariesEqual = CheckIfDictionariesAreEqual(x, y);
             if (dictionariesEqual.HasValue)
                 return dictionariesEqual.GetValueOrDefault();
 
             // Sets?
-            var setsEqual = CheckIfSetsAreEqual(x, y, typeInfo);
+            var setsEqual = CheckIfSetsAreEqual(x, y);
             if (setsEqual.HasValue)
                 return setsEqual.GetValueOrDefault();
 
@@ -99,61 +150,39 @@ namespace Xunit.Sdk
                     return false;
                 }
 
-                // Array.GetEnumerator() flattens out the array, ignoring array ranks and lengths
-                Array xArray = x as Array;
-                Array yArray = y as Array;
-                if (xArray != null && yArray != null)
+                // Array.GetEnumerator() flattens out the array, ignoring array ranks and lengths.
+                // Arrays with different shapes could have been compared as equal when they aren't.
+                return CheckIfArrayShapesAreEqual(x, y) ?? true;
+            }
+            
+            return false;
+        }
+
+        bool? CheckIfArrayShapesAreEqual(T x, T y)
+        {
+            Array xArray = x as Array;
+            Array yArray = y as Array;
+            if (xArray != null && yArray != null)
+            {
+                // new object[2,1] != new object[2]
+                if (xArray.Rank != yArray.Rank)
                 {
-                    // new object[2,1] != new object[2]
-                    if (xArray.Rank != yArray.Rank)
+                    return false;
+                }
+
+                // new object[2,1] != new object[1,2]
+                for (int i = 0; i < xArray.Rank; i++)
+                {
+                    if (xArray.GetLength(i) != yArray.GetLength(i))
                     {
                         return false;
                     }
-
-                    // new object[2,1] != new object[1,2]
-                    for (int i = 0; i < xArray.Rank; i++)
-                    {
-                        if (xArray.GetLength(i) != yArray.GetLength(i))
-                        {
-                            return false;
-                        }
-                    }
                 }
+
                 return true;
             }
-            
-            // Implements IStructuralEquatable?
-            var structuralEquatable = x as IStructuralEquatable;
-            if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparerFactory())))
-                return true;
 
-            // Implements IEquatable<typeof(y)>?
-            TypeInfo iequatableY = typeof(IEquatable<>).MakeGenericType(y.GetType()).GetTypeInfo();
-            if (iequatableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
-            {
-                MethodInfo equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
-                return (bool)equalsMethod.Invoke(x, new object[] { y });
-            }
-
-            // Implements IComparable<typeof(y)>?
-            TypeInfo icomparableY = typeof(IComparable<>).MakeGenericType(y.GetType()).GetTypeInfo();
-            if (icomparableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
-            {
-                MethodInfo compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
-                try
-                {
-                    return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
-                }
-                catch
-                {
-                    // Some implementations of IComparable.CompareTo throw exceptions in
-                    // certain situations, such as if x can't compare against y.
-                    // If this happens, just swallow up the exception and continue comparing.
-                }
-            }
-
-            // Last case, rely on object.Equals
-            return object.Equals(x, y);
+            return null;
         }
 
         bool? CheckIfEnumerablesAreEqual(T x, T y)
@@ -227,9 +256,9 @@ namespace Xunit.Sdk
 
         private static MethodInfo s_compareTypedSetsMethod;
 
-        bool? CheckIfSetsAreEqual(T x, T y, TypeInfo typeInfo)
+        bool? CheckIfSetsAreEqual(T x, T y)
         {
-            if (!IsSet(typeInfo))
+            if (!typeof(T).IsSet())
                 return null;
 
             var enumX = x as IEnumerable;
@@ -247,7 +276,7 @@ namespace Xunit.Sdk
                 s_compareTypedSetsMethod = GetType().GetTypeInfo().GetDeclaredMethod(nameof(CompareTypedSets));
 
             MethodInfo method = s_compareTypedSetsMethod.MakeGenericMethod(new Type[] { elementType });
-            return (bool)method.Invoke(this, new object[] { enumX, enumY });
+            return method.Invoke<bool>(this, enumX, enumY);
         }
 
         bool CompareTypedSets<R>(IEnumerable enumX, IEnumerable enumY)
@@ -255,15 +284,6 @@ namespace Xunit.Sdk
             var setX = new HashSet<R>(enumX.Cast<R>());
             var setY = new HashSet<R>(enumY.Cast<R>());
             return setX.SetEquals(setY);
-        }
-
-        bool IsSet(TypeInfo typeInfo)
-        {
-            return typeInfo.ImplementedInterfaces
-                .Select(i => i.GetTypeInfo())
-                .Where(ti => ti.IsGenericType)
-                .Select(ti => ti.GetGenericTypeDefinition())
-                .Contains(typeof(ISet<>).GetGenericTypeDefinition());
         }
 
         /// <inheritdoc/>
@@ -303,7 +323,7 @@ namespace Xunit.Sdk
                 if (s_equalsMethod == null)
                     s_equalsMethod = typeof(TypeErasedEqualityComparer).GetTypeInfo().GetDeclaredMethod(nameof(EqualsGeneric));
 
-                return (bool)s_equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y });
+                return s_equalsMethod.MakeGenericMethod(objectType).Invoke<bool>(this, x, y);
             }
 
             private bool EqualsGeneric<U>(U x, U y) => new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
