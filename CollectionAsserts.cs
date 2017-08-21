@@ -84,6 +84,14 @@ namespace Xunit
         /// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
         public static void Contains<T>(T expected, IEnumerable<T> collection)
         {
+            // If an equality comparer is not explicitly provided, call into ICollection<T>.Contains which may
+            // use the collection's equality comparer for types like HashSet and Dictionary.
+            var icollection = collection as ICollection<T>;
+            if (icollection != null && icollection.Contains(expected))
+                return;
+
+            // We don't throw if either ICollection<T>.Contains or our custom equality comparer says the collection
+            // has the item.
             Contains(expected, collection, GetEqualityComparer<T>());
         }
 
@@ -99,10 +107,9 @@ namespace Xunit
         {
             Assert.GuardArgumentNotNull("comparer", comparer);
             Assert.GuardArgumentNotNull("collection", collection);
-
-            foreach (var item in collection)
-                if (comparer.Equals(expected, item))
-                    return;
+            
+            if (collection.Contains(expected, comparer))
+                return;
 
             throw new ContainsException(expected, collection);
         }
@@ -135,6 +142,14 @@ namespace Xunit
         /// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
         public static void DoesNotContain<T>(T expected, IEnumerable<T> collection)
         {
+            // If an equality comparer is not explicitly provided, call into ICollection<T>.Contains which may
+            // use the collection's equality comparer for types like HashSet and Dictionary.
+            var icollection = collection as ICollection<T>;
+            if (icollection != null && icollection.Contains(expected))
+                throw new DoesNotContainException(expected, collection);
+
+            // We don't throw only if both ICollection<T>.Contains and our custom equality comparer say the collection
+            // doesn't have the item.
             DoesNotContain(expected, collection, GetEqualityComparer<T>());
         }
 
@@ -151,9 +166,10 @@ namespace Xunit
             Assert.GuardArgumentNotNull("collection", collection);
             Assert.GuardArgumentNotNull("comparer", comparer);
 
-            foreach (var item in collection)
-                if (comparer.Equals(expected, item))
-                    throw new DoesNotContainException(expected, collection);
+            if (!collection.Contains(expected, comparer))
+                return;
+
+            throw new DoesNotContainException(expected, collection);
         }
 
         /// <summary>
