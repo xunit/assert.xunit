@@ -48,7 +48,7 @@ namespace Xunit.Sdk
                     return string.Format(CultureInfo.CurrentCulture,
                                          "{0}Item: {1}{2}{3}",
                                          indexString,
-                                         error.Item2 == null ? "null" : error.Item2.ToString().Replace(Environment.NewLine, spaces),
+                                         error.Item2?.ToString().Replace(Environment.NewLine, spaces),
                                          spaces,
                                          error.Item3.ToString().Replace(Environment.NewLine, spaces));
                 });
