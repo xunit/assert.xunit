@@ -345,12 +345,26 @@ namespace Xunit
             int count = 0;
             T result = default(T);
 
-            foreach (T item in collection)
-                if (predicate(item))
+            T item;
+            var enumerator = collection.GetEnumerator();
+            try
+            {
+                while(enumerator.MoveNext())
                 {
-                    result = item;
-                    ++count;
+                    item = enumerator.Current;
+                    if (predicate(item))
+                    {
+                        ++count;
+                        if (count > 1)
+                            break;
+                        result = item;
+                    }
                 }
+            }
+            finally
+            {
+                (enumerator as IDisposable)?.Dispose();
+            }
 
             if (count != 1)
                 throw new SingleException(count);
