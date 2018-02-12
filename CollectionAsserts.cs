@@ -6,7 +6,7 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public
@@ -107,7 +107,7 @@ namespace Xunit
         {
             Assert.GuardArgumentNotNull("comparer", comparer);
             Assert.GuardArgumentNotNull("collection", collection);
-            
+
             if (collection.Contains(expected, comparer))
                 return;
 
@@ -131,6 +131,46 @@ namespace Xunit
                     return;
 
             throw new ContainsException("(filter expression)", collection);
+        }
+
+        /// <summary>
+        /// Verifies that a dictionary contains a given key.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
+        /// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
+        /// <param name="expected">The object expected to be in the collection.</param>
+        /// <param name="collection">The collection to be inspected.</param>
+        /// <returns>The value associated with <paramref name="expected"/>.</returns>
+        /// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
+        public static TValue Contains<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection)
+        {
+            Assert.GuardArgumentNotNull("expected", expected);
+            Assert.GuardArgumentNotNull("collection", collection);
+
+            if (!collection.TryGetValue(expected, out var value))
+                throw new ContainsException(expected, collection.Keys);
+
+            return value;
+        }
+
+        /// <summary>
+        /// Verifies that a dictionary contains a given key.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
+        /// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
+        /// <param name="expected">The object expected to be in the collection.</param>
+        /// <param name="collection">The collection to be inspected.</param>
+        /// <returns>The value associated with <paramref name="expected"/>.</returns>
+        /// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
+        public static TValue Contains<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection)
+        {
+            Assert.GuardArgumentNotNull("expected", expected);
+            Assert.GuardArgumentNotNull("collection", collection);
+
+            if (!collection.TryGetValue(expected, out var value))
+                throw new ContainsException(expected, collection.Keys);
+
+            return value;
         }
 
         /// <summary>
@@ -187,6 +227,38 @@ namespace Xunit
             foreach (var item in collection)
                 if (filter(item))
                     throw new DoesNotContainException("(filter expression)", collection);
+        }
+
+        /// <summary>
+        /// Verifies that a dictionary does not contain a given key.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
+        /// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
+        /// <param name="expected">The object expected to be in the collection.</param>
+        /// <param name="collection">The collection to be inspected.</param>
+        /// <exception cref="DoesNotContainException">Thrown when the object is present in the collection</exception>
+        public static void DoesNotContain<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection)
+        {
+            Assert.GuardArgumentNotNull("expected", expected);
+            Assert.GuardArgumentNotNull("collection", collection);
+
+            DoesNotContain(expected, collection.Keys);
+        }
+
+        /// <summary>
+        /// Verifies that a dictionary does not contain a given key.
+        /// </summary>
+        /// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
+        /// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
+        /// <param name="expected">The object expected to be in the collection.</param>
+        /// <param name="collection">The collection to be inspected.</param>
+        /// <exception cref="DoesNotContainException">Thrown when the object is present in the collection</exception>
+        public static void DoesNotContain<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection)
+        {
+            Assert.GuardArgumentNotNull("expected", expected);
+            Assert.GuardArgumentNotNull("collection", collection);
+
+            DoesNotContain(expected, collection.Keys);
         }
 
         /// <summary>
