@@ -81,6 +81,29 @@ namespace Xunit
         }
 
         /// <summary>
+        /// Verifies that two <see cref="DateTime"/> values are equal, within the precision 
+        /// given by <paramref name="precision"/>.
+        /// </summary>
+        /// <param name="expected">The expected value</param>
+        /// <param name="actual">The value to be compared against</param>
+        /// <param name="precision">The allowed difference in time where the two dates are considered equal</param>
+        /// <exception cref="EqualException">Thrown when the values are not equal</exception>        
+        public static void Equal(DateTime expected, DateTime actual, TimeSpan precision)
+        {
+            var difference = (expected - actual).Duration();
+            if (difference > precision)
+            {
+                throw new EqualException(
+                    string.Format(CultureInfo.CurrentCulture, "{0} ", expected), 
+                    string.Format(CultureInfo.CurrentCulture, "{0} difference {1} is larger than {2}", 
+                        actual,
+                        difference.ToString(),
+                        precision.ToString()
+                    ));
+            }
+        }
+
+        /// <summary>
         /// Verifies that two objects are strictly equal, using the type's default comparer.
         /// </summary>
         /// <typeparam name="T">The type of the objects to be compared</typeparam>
