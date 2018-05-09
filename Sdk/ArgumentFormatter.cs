@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -136,13 +136,13 @@ namespace Xunit.Sdk
                     return (string)toString.Invoke(value, EmptyObjects);
 
                 return FormatComplexValue(value, depth, type);
-        	}
-        	catch (Exception ex)
-        	{
+            }
+            catch (Exception ex)
+            {
                 // Sometimes an exception is thrown when formatting an argument, such as in ToString.
                 // In these cases, we don't want xunit to crash, as tests may have passed despite this.
                 return $"{ex.GetType().Name} was thrown formatting an object of type \"{value.GetType()}\"";
-        	}
+            }
         }
 
         static string FormatComplexValue(object value, int depth, Type type)
