@@ -366,8 +366,12 @@ namespace Xunit
                 (enumerator as IDisposable)?.Dispose();
             }
 
-            if (count != 1)
-                throw new SingleException(count);
+            switch (count)
+            {
+                case 0: throw SingleException.Empty();
+                case 1: break;
+                default: throw SingleException.MoreThanOne();
+            }
 
             return result;
         }
