@@ -13,7 +13,7 @@ namespace Xunit.Sdk
     class AssertCollectionCountException : XunitException
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="SingleException"/> class.
+        /// Initializes a new instance of the <see cref="AssertCollectionCountException"/> class.
         /// </summary>
         /// <param name="expectedCount">The expected number of items in the collection.</param>
         /// <param name="actualCount">The actual number of items in the collection.</param>
