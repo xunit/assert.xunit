@@ -420,12 +420,17 @@ namespace Xunit
             foreach (T item in collection)
                 if (predicate(item))
                 {
+                    if (++count > 1)
+                        break;
                     result = item;
-                    ++count;
                 }
 
-            if (count != 1)
-                throw new SingleException(count);
+            switch (count)
+            {
+                case 0: throw SingleException.Empty();
+                case 1: break;
+                default: throw SingleException.MoreThanOne();
+            }
 
             return result;
         }
