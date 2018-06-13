@@ -5,7 +5,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when code unexpectedly fails to throw an exception.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public
@@ -20,7 +20,7 @@ namespace Xunit.Sdk
         /// </summary>
         /// <param name="expectedType">The type of the exception that was expected</param>
         public ThrowsException(Type expectedType)
-            : this(expectedType, "(No exception was thrown)", null, null)
+            : this(expectedType, "(No exception was thrown)", null, null, null)
         { }
 
         /// <summary>
@@ -30,16 +30,19 @@ namespace Xunit.Sdk
         /// <param name="expectedType">The type of the exception that was expected</param>
         /// <param name="actual">The actual exception that was thrown</param>
         public ThrowsException(Type expectedType, Exception actual)
-            : this(expectedType, ArgumentFormatter.Format(actual.GetType()), actual.Message, actual.StackTrace)
+            : this(expectedType, ArgumentFormatter.Format(actual.GetType()), actual.Message, actual.StackTrace, actual)
         { }
 
         /// <summary>
         /// THIS CONSTRUCTOR IS FOR UNIT TESTING PURPOSES ONLY.
         /// </summary>
-        protected ThrowsException(Type expected, string actual, string actualMessage, string stackTrace)
+        protected ThrowsException(Type expected, string actual, string actualMessage, string stackTrace, Exception innerException)
             : base(expected,
                    actual + (actualMessage == null ? "" : ": " + actualMessage),
-                   "Assert.Throws() Failure")
+                   "Assert.Throws() Failure",
+                   null,
+                   null,
+                   innerException)
         {
             this.stackTrace = stackTrace;
         }
