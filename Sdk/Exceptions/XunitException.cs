@@ -5,7 +5,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// The base assert exception class
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public
@@ -24,9 +24,8 @@ namespace Xunit.Sdk
         /// </summary>
         /// <param name="userMessage">The user message to be displayed</param>
         public XunitException(string userMessage)
-            : base(userMessage)
+            : this(userMessage, (Exception)null)
         {
-            UserMessage = userMessage;
         }
 
         /// <summary>
@@ -36,7 +35,9 @@ namespace Xunit.Sdk
         /// <param name="innerException">The inner exception</param>
         protected XunitException(string userMessage, Exception innerException)
             : base(userMessage, innerException)
-        { }
+        {
+            UserMessage = userMessage;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XunitException"/> class.
@@ -44,7 +45,7 @@ namespace Xunit.Sdk
         /// <param name="userMessage">The user message to be displayed</param>
         /// <param name="stackTrace">The stack trace to be displayed</param>
         protected XunitException(string userMessage, string stackTrace)
-            : base(userMessage)
+            : this(userMessage)
         {
             this.stackTrace = stackTrace;
         }

@@ -9,7 +9,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Base class for exceptions that have actual and expected values
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public
@@ -25,7 +25,21 @@ namespace Xunit.Sdk
         /// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
         /// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
         public AssertActualExpectedException(object expected, object actual, string userMessage, string expectedTitle = null, string actualTitle = null)
-            : base(userMessage)
+            : this(expected, actual, userMessage, expectedTitle, actualTitle, null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of the <see href="AssertActualExpectedException"/> class.
+        /// </summary>
+        /// <param name="expected">The expected value</param>
+        /// <param name="actual">The actual value</param>
+        /// <param name="userMessage">The user message to be shown</param>
+        /// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
+        /// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
+        /// <param name="innerException">The inner exception.</param>
+        public AssertActualExpectedException(object expected, object actual, string userMessage, string expectedTitle, string actualTitle, Exception innerException)
+            : base(userMessage, innerException)
         {
             Actual = actual == null ? null : ConvertToString(actual);
             ActualTitle = actualTitle ?? "Actual";
