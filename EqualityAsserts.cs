@@ -42,7 +42,7 @@ namespace Xunit
 
         /// <summary>
         /// Verifies that two <see cref="double"/> values are equal, within the number of decimal
-        /// places given by <paramref name="precision"/>.
+        /// places given by <paramref name="precision"/>. The values are rounded before comparison.
         /// </summary>
         /// <param name="expected">The expected value</param>
         /// <param name="actual">The value to be compared against</param>
@@ -62,7 +62,7 @@ namespace Xunit
 
         /// <summary>
         /// Verifies that two <see cref="decimal"/> values are equal, within the number of decimal
-        /// places given by <paramref name="precision"/>.
+        /// places given by <paramref name="precision"/>. The values are rounded before comparison.
         /// </summary>
         /// <param name="expected">The expected value</param>
         /// <param name="actual">The value to be compared against</param>
