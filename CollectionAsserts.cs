@@ -380,7 +380,14 @@ namespace Xunit
         /// exactly one element.</exception>
         public static void Single(IEnumerable collection, object expected)
         {
-            Single(collection.Cast<object>(), item => object.Equals(item, expected));
+            Assert.GuardArgumentNotNull("collection", collection);
+
+            GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter.Format(expected), out Exception toThrow);
+
+            if (toThrow != null)
+            {
+                throw toThrow;
+            }
         }
 
         /// <summary>
@@ -394,7 +401,16 @@ namespace Xunit
         /// exactly one element.</exception>
         public static T Single<T>(IEnumerable<T> collection)
         {
-            return Single(collection, item => true);
+            Assert.GuardArgumentNotNull("collection", collection);
+
+            T result = GetSingleResult(collection, null, null, out Exception toThrow);
+
+            if (toThrow != null)
+            {
+                throw toThrow;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -414,22 +430,38 @@ namespace Xunit
             Assert.GuardArgumentNotNull("collection", collection);
             Assert.GuardArgumentNotNull("predicate", predicate);
 
+            T result = GetSingleResult(collection, predicate, "(filter expression)", out Exception toThrow);
+
+            if (toThrow != null)
+            {
+                throw toThrow;
+            }
+
+            return result;
+        }
+
+        private static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T> predicate, string expectedArgument, out Exception exptionToThrow)
+        {
             int count = 0;
             T result = default(T);
-
             foreach (T item in collection)
-                if (predicate(item))
+                if (predicate == null || predicate(item))
                 {
-                    if (++count > 1)
-                        break;
-                    result = item;
+                    if (++count == 1)
+                        result = item;
                 }
 
             switch (count)
             {
-                case 0: throw SingleException.Empty();
-                case 1: break;
-                default: throw SingleException.MoreThanOne();
+                case 0:
+                    exptionToThrow = SingleException.Empty(expectedArgument);
+                    break;
+                case 1:
+                    exptionToThrow = null;
+                    break;
+                default:
+                    exptionToThrow = SingleException.MoreThanOne(count, expectedArgument);
+                    break;
             }
 
             return result;

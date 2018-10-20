@@ -1,4 +1,6 @@
-﻿namespace Xunit.Sdk
+﻿using System;
+
+namespace Xunit.Sdk
 {
     /// <summary>
     /// Exception thrown when the collection did not contain exactly one element.
@@ -16,16 +18,23 @@
         private SingleException(string errorMessage) : base(errorMessage) { }
 
         /// <summary>
-        /// Creates an instance of <see cref="SingleException"/> for when the collection was empty.
+        /// Creates an instance of <see cref="SingleException"/> for when the collection didn't contain any of the expected value.
         /// </summary>
-        public static SingleException Empty() =>
-            new SingleException("The collection was expected to contain a single element, but it was empty.");
+        public static Exception Empty(string expected) =>
+            new SingleException("The collection was expected to contain a single element" +
+                (expected == null ? "" : " matching " + expected) +
+                ", but it " +
+                (expected == null ? "was empty." : "contained no matching elements."));
 
         /// <summary>
-        /// Creates an instance of <see cref="SingleException"/> for when the collection had too many items.
+        /// Creates an instance of <see cref="SingleException"/> for when the collection had too many of the expected items.
         /// </summary>
         /// <returns></returns>
-        public static SingleException MoreThanOne() =>
-            new SingleException("The collection was expected to contain a single element, but it contained more than one element.");
+        public static Exception MoreThanOne(int count, string expected) =>
+            new SingleException("The collection was expected to contain a single element" +
+                (expected == null ? "" : " matching " + expected) +
+                ", but it contained " + count + " " +
+                (expected == null ? "" : "matching ") + 
+                "elements.");
     }
 }
