@@ -5,7 +5,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when the value is unexpectedly not of the given type or a derived type.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public

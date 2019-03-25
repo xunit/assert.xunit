@@ -5,7 +5,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a set is not a proper subset of another set.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public

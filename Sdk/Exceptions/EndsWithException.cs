@@ -6,7 +6,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a string does not end with the expected value.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public

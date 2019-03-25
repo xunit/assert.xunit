@@ -427,9 +427,12 @@ namespace Xunit
 
             switch (count)
             {
-                case 0: throw SingleException.Empty();
-                case 1: break;
-                default: throw SingleException.MoreThanOne();
+                case 0:
+                    throw SingleException.Empty();
+                case 1:
+                    break;
+                default:
+                    throw SingleException.MoreThanOne();
             }
 
             return result;

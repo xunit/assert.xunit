@@ -94,8 +94,8 @@ namespace Xunit
             if (difference > precision)
             {
                 throw new EqualException(
-                    string.Format(CultureInfo.CurrentCulture, "{0} ", expected), 
-                    string.Format(CultureInfo.CurrentCulture, "{0} difference {1} is larger than {2}", 
+                    string.Format(CultureInfo.CurrentCulture, "{0} ", expected),
+                    string.Format(CultureInfo.CurrentCulture, "{0} difference {1} is larger than {2}",
                         actual,
                         difference.ToString(),
                         precision.ToString()

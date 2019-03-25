@@ -5,7 +5,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when code unexpectedly fails change a property.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public
