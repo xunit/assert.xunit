@@ -47,13 +47,24 @@ namespace Xunit.Sdk
         /// </summary>
         /// <param name="value">The value to be formatted.</param>
         /// <returns>The formatted value.</returns>
-        public static string Format(object value)
+        public static string Format(object value, out int? pointerPosition, int? errorIndex = null)
         {
-            return Format(value, 1);
+            return Format(value, 1, out pointerPosition, errorIndex);
         }
 
-        static string Format(object value, int depth)
+        public static string Format(object value, int? errorIndex = null)
         {
+            return Format(value, 1, out int? pointerPosition, errorIndex);
+        }
+
+        static string FormatInner(object value, int depth)
+        {
+            return Format(value, depth, out int? pointerPosition, null);
+        }
+
+        static string Format(object value, int depth, out int? pointerPostion, int? errorIndex = null)
+        {
+            pointerPostion = null;
             if (value == null)
                 return "null";
 
@@ -108,7 +119,7 @@ namespace Xunit.Sdk
                 {
                     var enumerable = value as IEnumerable;
                     if (enumerable != null)
-                        return FormatEnumerable(enumerable.Cast<object>(), depth);
+                        return FormatEnumerable(enumerable.Cast<object>(), depth, errorIndex, out pointerPostion);
                 }
                 catch
                 {
@@ -173,17 +184,55 @@ namespace Xunit.Sdk
             return $"{type.Name} {{ {formattedParameters} }}";
         }
 
-        static string FormatEnumerable(IEnumerable<object> enumerableValues, int depth)
+        static string FormatEnumerable(IEnumerable<object> enumerableValues, int depth, int? neededIndex, out int? pointerPostion)
         {
+            pointerPostion = null;
             if (depth == MAX_DEPTH)
                 return "[...]";
-
-            var values = enumerableValues.Take(MAX_ENUMERABLE_LENGTH + 1).ToList();
-            var printedValues = string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => Format(x, depth + 1)));
-
-            if (values.Count > MAX_ENUMERABLE_LENGTH)
-                printedValues += ", ...";
-
+            string printedValues = string.Empty;
+            if (neededIndex.HasValue)
+            {
+                pointerPostion = 1;
+                int half = (int)Math.Floor(MAX_ENUMERABLE_LENGTH / 2m);
+                int countToTake = half;
+                int startIndex = neededIndex.Value - half;
+                if (startIndex < 0)//handles indexes near the start of the enumerable
+                {
+                    countToTake = half + startIndex;
+                    startIndex = 0;
+                }
+                if (startIndex > half)
+                    printedValues += "..., ";
+                if (enumerableValues.Count() - neededIndex < half)//handle indexes near the end of the enumerable
+                {
+                    int bigHalf = (int)Math.Ceiling(MAX_ENUMERABLE_LENGTH / 2m);
+                    countToTake += bigHalf - (enumerableValues.Count() - neededIndex.Value);
+                    startIndex = enumerableValues.Count() - countToTake - 1;
+                    if (startIndex < 0)//handle going over the end
+                    {
+                        countToTake = countToTake + startIndex;
+                        startIndex = 0;
+                    }
+                }
+                var beforeValues = enumerableValues.Skip(startIndex).Take(countToTake);//values that we want before the failed index
+                if (beforeValues.Count() > 0)
+                {
+                    printedValues += string.Join(", ", beforeValues.Select(x => FormatInner(x, depth + 1)));
+                    printedValues += ", ";
+                    pointerPostion = printedValues.Length + 1;
+                }
+                var itemAndAfterValues = enumerableValues.Skip(startIndex + countToTake).Take(MAX_ENUMERABLE_LENGTH - countToTake + 1);//values including the item we want, and after it
+                printedValues += string.Join(", ", itemAndAfterValues.Take(MAX_ENUMERABLE_LENGTH - countToTake).Select(x => FormatInner(x, depth + 1)));
+                if ((beforeValues.Count() + itemAndAfterValues.Count()) > MAX_ENUMERABLE_LENGTH)
+                    printedValues += ", ...";
+            }
+            else
+            {
+                var values = enumerableValues.Take(MAX_ENUMERABLE_LENGTH + 1).ToList();
+                printedValues += string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => FormatInner(x, depth + 1)));
+                if (values.Count() > MAX_ENUMERABLE_LENGTH)
+                    printedValues += ", ...";
+            }
             return $"[{printedValues}]";
         }
 
@@ -229,11 +278,11 @@ namespace Xunit.Sdk
             return name + arraySuffix;
         }
 
-        static string WrapAndGetFormattedValue(Func<object> getter, int depth)
+        static string WrapAndGetFormattedValue(Func<object> getter, int depth, int? errorIndex = null)
         {
             try
-            {
-                return Format(getter(), depth + 1);
+            {//TODO JPL fix this
+                return Format(getter(), depth + 1, out int? pointerPosition, errorIndex);
             }
             catch (Exception ex)
             {

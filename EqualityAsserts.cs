@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Xunit.Sdk;
@@ -35,7 +36,20 @@ namespace Xunit
         public static void Equal<T>(T expected, T actual, IEqualityComparer<T> comparer)
         {
             Assert.GuardArgumentNotNull("comparer", comparer);
-
+            IEnumerable expectedAsIEnum = expected as IEnumerable;
+            IEnumerable actualAsIEnum = actual as IEnumerable;
+            if ((expectedAsIEnum != null && (actual == null || actualAsIEnum != null) ||//expected is ienum, and actual is either null or ienum
+                (actualAsIEnum != null && expected == null)))//actual is ienum and expected is null
+            {
+                AssertEqualityComparer<T> aec = comparer as AssertEqualityComparer<T>;
+                if (aec != null && !aec.Equals(expected, actual, out int? mismatchedIndex))
+                {
+                    if (mismatchedIndex.HasValue)
+                        throw new EqualException(expectedAsIEnum, actualAsIEnum, mismatchedIndex.Value);
+                    else
+                        throw new EqualException(expected, actual);
+                }
+            }
             if (!comparer.Equals(expected, actual))
                 throw new EqualException(expected, actual);
         }

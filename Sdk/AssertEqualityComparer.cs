@@ -31,6 +31,13 @@ namespace Xunit.Sdk
         /// <inheritdoc/>
         public bool Equals(T x, T y)
         {
+            return Equals(x, y, out int? mismatchIndex);
+        }
+
+        /// <inheritdoc/>
+        public bool Equals(T x, T y, out int? mismatchIndex)
+        {
+            mismatchIndex = null;
             var typeInfo = typeof(T).GetTypeInfo();
 
             // Null?
@@ -91,7 +98,7 @@ namespace Xunit.Sdk
                 return setsEqual.GetValueOrDefault();
 
             // Enumerable?
-            var enumerablesEqual = CheckIfEnumerablesAreEqual(x, y);
+            var enumerablesEqual = CheckIfEnumerablesAreEqual(x, y, out mismatchIndex);
             if (enumerablesEqual.HasValue)
             {
                 if (!enumerablesEqual.GetValueOrDefault())
@@ -156,8 +163,9 @@ namespace Xunit.Sdk
             return object.Equals(x, y);
         }
 
-        bool? CheckIfEnumerablesAreEqual(T x, T y)
+        bool? CheckIfEnumerablesAreEqual(T x, T y, out int? mismatchIndex)
         {
+            mismatchIndex = null;
             var enumerableX = x as IEnumerable;
             var enumerableY = y as IEnumerable;
 
@@ -170,17 +178,25 @@ namespace Xunit.Sdk
                 enumeratorX = enumerableX.GetEnumerator();
                 enumeratorY = enumerableY.GetEnumerator();
                 var equalityComparer = innerComparerFactory();
-
+                mismatchIndex = 0;
                 while (true)
                 {
                     var hasNextX = enumeratorX.MoveNext();
                     var hasNextY = enumeratorY.MoveNext();
 
                     if (!hasNextX || !hasNextY)
-                        return hasNextX == hasNextY;
+                    {
+                        if (hasNextX == hasNextY)
+                        {
+                            mismatchIndex = null;
+                            return true;
+                        }
+                        return false;
+                    }
 
                     if (!equalityComparer.Equals(enumeratorX.Current, enumeratorY.Current))
                         return false;
+                    mismatchIndex++;
                 }
             }
             finally
