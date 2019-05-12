@@ -19,6 +19,11 @@ namespace Xunit.Sdk
         readonly Func<IEqualityComparer> innerComparerFactory;
 
         /// <summary>
+        /// Index of compared object in enumerable comparison
+        /// </summary>
+        public int Index { get; private set; } = -1;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="AssertEqualityComparer{T}" /> class.
         /// </summary>
         /// <param name="innerComparer">The inner comparer to be used when the compared objects are enumerable.</param>
@@ -175,6 +180,7 @@ namespace Xunit.Sdk
                 {
                     var hasNextX = enumeratorX.MoveNext();
                     var hasNextY = enumeratorY.MoveNext();
+                    Index++;
 
                     if (!hasNextX || !hasNextY)
                         return hasNextX == hasNextY;

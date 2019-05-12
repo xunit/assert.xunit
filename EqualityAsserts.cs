@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Xunit.Sdk;
@@ -36,8 +37,19 @@ namespace Xunit
         {
             Assert.GuardArgumentNotNull("comparer", comparer);
 
+            var expectedEnumerable = expected as IEnumerable;
+            var actualEnumerable = actual as IEnumerable;
+
             if (!comparer.Equals(expected, actual))
+            {
+                if (comparer is AssertEqualityComparer<T> equalityComparer &&
+                    (expectedEnumerable != null || actualEnumerable != null))
+                {
+                    throw new EqualException(expectedEnumerable, actualEnumerable, equalityComparer.Index);
+                }
+
                 throw new EqualException(expected, actual);
+            }
         }
 
         /// <summary>
