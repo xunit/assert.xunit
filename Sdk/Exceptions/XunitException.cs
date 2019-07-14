@@ -33,7 +33,7 @@ namespace Xunit.Sdk
         /// </summary>
         /// <param name="userMessage">The user message to be displayed</param>
         /// <param name="innerException">The inner exception</param>
-        protected XunitException(string userMessage, Exception innerException)
+        public XunitException(string userMessage, Exception innerException)
             : base(userMessage, innerException)
         {
             UserMessage = userMessage;
