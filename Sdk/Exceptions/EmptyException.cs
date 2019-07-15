@@ -11,29 +11,14 @@ namespace Xunit.Sdk
 #else
     public
 #endif
-    class EmptyException : XunitException
+    class EmptyException : AssertActualExpectedException
     {
         /// <summary>
         /// Creates a new instance of the <see cref="EmptyException"/> class.
         /// </summary>
         public EmptyException(IEnumerable collection)
-            : base("Assert.Empty() Failure")
+            : base("<empty>", ArgumentFormatter.Format(collection), "Assert.Empty() Failure")
         {
-            Collection = collection;
-        }
-
-        /// <summary>
-        /// The collection that failed the test.
-        /// </summary>
-        public IEnumerable Collection { get; }
-
-        /// <inheritdoc/>
-        public override string Message
-        {
-            get
-            {
-                return $"{base.Message}{Environment.NewLine}Collection: {ArgumentFormatter.Format(Collection)}";
-            }
         }
     }
 }
