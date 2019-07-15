@@ -385,9 +385,7 @@ namespace Xunit
             GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter.Format(expected), out Exception toThrow);
 
             if (toThrow != null)
-            {
                 throw toThrow;
-            }
         }
 
         /// <summary>
@@ -406,9 +404,7 @@ namespace Xunit
             T result = GetSingleResult(collection, null, null, out Exception toThrow);
 
             if (toThrow != null)
-            {
                 throw toThrow;
-            }
 
             return result;
         }
