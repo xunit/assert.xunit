@@ -121,7 +121,7 @@ namespace Xunit.Sdk
                 }
                 return true;
             }
-            
+
             // Implements IStructuralEquatable?
             var structuralEquatable = x as IStructuralEquatable;
             if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparerFactory())))

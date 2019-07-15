@@ -9,7 +9,7 @@
     /// <summary>
     /// Exception thrown when code unexpectedly fails to raise an event.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public

@@ -3,7 +3,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when a collection is unexpectedly empty.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public

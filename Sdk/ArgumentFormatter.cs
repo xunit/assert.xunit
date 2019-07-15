@@ -69,17 +69,17 @@ namespace Xunit.Sdk
                 if (value is char)
                 {
                     var charValue = (char)value;
-                
+
                     if (charValue == '\'')
                         return @"'\''";
-                
+
                     // Take care of all of the escape sequences
                     string escapeSequence;
                     if (TryGetEscapeSequence(charValue, out escapeSequence))
                     {
                         return $"'{escapeSequence}'";
                     }
-                
+
                     if (char.IsLetterOrDigit(charValue) || char.IsPunctuation(charValue) || char.IsSymbol(charValue) || charValue == ' ')
                         return $"'{charValue}'";
 
@@ -252,7 +252,7 @@ namespace Xunit.Sdk
                 ex = tiex.InnerException;
             }
         }
-        
+
         static string EscapeHexChars(string s)
         {
             var builder = new StringBuilder(s.Length);
@@ -280,11 +280,11 @@ namespace Xunit.Sdk
             }
             return builder.ToString();
         }
-        
+
         static bool TryGetEscapeSequence(char ch, out string value)
         {
             value = null;
-            
+
             if (ch == '\t') // tab
                 value = @"\t";
             if (ch == '\n') // newline
@@ -303,7 +303,7 @@ namespace Xunit.Sdk
                 value = @"\0";
             if (ch == '\\') // backslash
                 value = @"\\";
-            
+
             return value != null;
         }
     }

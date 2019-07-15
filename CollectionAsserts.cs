@@ -433,34 +433,31 @@ namespace Xunit
             T result = GetSingleResult(collection, predicate, "(filter expression)", out Exception toThrow);
 
             if (toThrow != null)
-            {
                 throw toThrow;
-            }
 
             return result;
         }
 
-        private static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T> predicate, string expectedArgument, out Exception exptionToThrow)
+        private static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T> predicate, string expectedArgument, out Exception exceptionToThrow)
         {
             int count = 0;
             T result = default(T);
+
             foreach (T item in collection)
                 if (predicate == null || predicate(item))
-                {
                     if (++count == 1)
                         result = item;
-                }
 
             switch (count)
             {
                 case 0:
-                    exptionToThrow = SingleException.Empty(expectedArgument);
+                    exceptionToThrow = SingleException.Empty(expectedArgument);
                     break;
                 case 1:
-                    exptionToThrow = null;
+                    exceptionToThrow = null;
                     break;
                 default:
-                    exptionToThrow = SingleException.MoreThanOne(count, expectedArgument);
+                    exceptionToThrow = SingleException.MoreThanOne(count, expectedArgument);
                     break;
             }
 

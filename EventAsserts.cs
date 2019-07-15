@@ -4,7 +4,7 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public
@@ -101,7 +101,7 @@ namespace Xunit
             where T : EventArgs
         {
             RaisedEvent<T> raisedEvent = null;
-            EventHandler<T> handler = delegate (object s, T args) { raisedEvent = new RaisedEvent<T>(s, args); };
+            EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
             attach(handler);
             testCode();
             detach(handler);
@@ -112,7 +112,7 @@ namespace Xunit
             where T : EventArgs
         {
             RaisedEvent<T> raisedEvent = null;
-            EventHandler<T> handler = delegate (object s, T args) { raisedEvent = new RaisedEvent<T>(s, args); };
+            EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
             attach(handler);
             await testCode();
             detach(handler);

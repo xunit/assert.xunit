@@ -5,7 +5,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when the collection did not contain exactly the given number element.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public

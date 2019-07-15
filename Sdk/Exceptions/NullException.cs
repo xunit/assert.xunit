@@ -3,7 +3,7 @@ namespace Xunit.Sdk
     /// <summary>
     /// Exception thrown when an object reference is unexpectedly not null.
     /// </summary>
-#if XUNIT_VISIBILITY_INTERNAL 
+#if XUNIT_VISIBILITY_INTERNAL
     internal
 #else
     public
