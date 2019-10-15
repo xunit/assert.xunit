@@ -313,6 +313,32 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that a collection contains each object only once.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be compared</typeparam>
+		/// <param name="collection">The collection to be inspected</param>
+		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
+		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
+		public static void Distinct<T>(
+			IEnumerable<T> collection,
+#if XUNIT_NULLABLE
+			IEqualityComparer<T>? comparer = null
+#else
+			IEqualityComparer<T> comparer = null
+#endif		
+		)
+		{
+			Assert.GuardArgumentNotNull(nameof(collection), collection);
+
+			var set = new HashSet<T>(comparer ?? EqualityComparer<T>.Default);
+			foreach (var x in collection)
+			{
+				if (!set.Add(x))
+					throw new ContainsDuplicateException(x, collection);
+			}
+		}
+
+		/// <summary>
 		/// Verifies that a collection does not contain a given object.
 		/// </summary>
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
