@@ -4,6 +4,10 @@ This project contains the xUnit.net assertion library source code, intended to b
 
 To open an issue for this project, please visit the [core xUnit.net project issue tracker](https://github.com/xunit/xunit/issues).
 
+### Annotations
+
+Projects that consume this repository as source, which are compiled using C# 8 and wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
+
 ## About xUnit.net
 
 [<img align="right" width="100px" src="https://dotnetfoundation.org/images/logo_big.svg" />](https://dotnetfoundation.org/projects?type=project&q=xunit)
