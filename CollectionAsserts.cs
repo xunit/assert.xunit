@@ -26,23 +26,41 @@ namespace Xunit
             Assert.GuardArgumentNotNull("collection", collection);
             Assert.GuardArgumentNotNull("action", action);
 
-            var errors = new Stack<Tuple<int, object, Exception>>();
-            var array = collection.ToArray();
+            All(collection, (item, index) => action(item));
+        }
 
-            for (var idx = 0; idx < array.Length; ++idx)
+        /// <summary>
+        /// Verifies that all items in the collection pass when executed against
+        /// action. The item index is provided to the action, in addition to the item.
+        /// </summary>
+        /// <typeparam name="T">The type of the object to be verified</typeparam>
+        /// <param name="collection">The collection</param>
+        /// <param name="action">The action to test each item against</param>
+        /// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+        public static void All<T>(IEnumerable<T> collection, Action<T, int> action)
+        {
+            Assert.GuardArgumentNotNull("collection", collection);
+            Assert.GuardArgumentNotNull("action", action);
+
+            var errors = new Stack<Tuple<int, object, Exception>>();
+            var idx = 0;
+
+            foreach (var item in collection)
             {
                 try
                 {
-                    action(array[idx]);
+                    action(item, idx);
                 }
                 catch (Exception ex)
                 {
-                    errors.Push(new Tuple<int, object, Exception>(idx, array[idx], ex));
+                    errors.Push(new Tuple<int, object, Exception>(idx, item, ex));
                 }
+
+                ++idx;
             }
 
             if (errors.Count > 0)
-                throw new AllException(array.Length, errors.ToArray());
+                throw new AllException(idx, errors.ToArray());
         }
 
         /// <summary>
