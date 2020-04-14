@@ -18,7 +18,7 @@ namespace Xunit
         /// Verifies that an object reference is not null.
         /// </summary>
         /// <param name="object">The object to be validated</param>
-        /// <exception cref="NotNullException">Thrown when the object is not null</exception>
+        /// <exception cref="NotNullException">Thrown when the object reference is null</exception>
 #if XUNIT_NULLABLE
         public static void NotNull([NotNull] object? @object)
 #else
