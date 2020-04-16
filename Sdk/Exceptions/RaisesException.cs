@@ -1,11 +1,10 @@
-﻿namespace Xunit.Sdk
-{
-    using System;
-    using System.Collections;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
+﻿using System;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
 
+namespace Xunit.Sdk
+{
     /// <summary>
     /// Exception thrown when code unexpectedly fails to raise an event.
     /// </summary>
@@ -27,7 +26,7 @@
             : base("(No event was raised)")
         {
             Expected = ConvertToSimpleTypeName(expected.GetTypeInfo());
-            Actual = base.UserMessage;
+            Actual = UserMessage;
         }
 
         /// <summary>
