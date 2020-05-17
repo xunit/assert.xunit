@@ -5,21 +5,21 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-#if XUNIT_VISIBILITY_INTERNAL 
-    internal
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
 #else
-    public
+	public
 #endif
-    partial class Assert
-    {
-        static IComparer<T> GetComparer<T>() where T : IComparable
-        {
-            return new AssertComparer<T>();
-        }
+	partial class Assert
+	{
+		static IComparer<T> GetComparer<T>() where T : IComparable
+		{
+			return new AssertComparer<T>();
+		}
 
-        static IEqualityComparer<T> GetEqualityComparer<T>(IEqualityComparer innerComparer = null)
-        {
-            return new AssertEqualityComparer<T>(innerComparer);
-        }
-    }
+		static IEqualityComparer<T> GetEqualityComparer<T>(IEqualityComparer innerComparer = null)
+		{
+			return new AssertEqualityComparer<T>(innerComparer);
+		}
+	}
 }
