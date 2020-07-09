@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
@@ -23,10 +27,11 @@ namespace Xunit
 		/// <exception cref="PropertyChangedException">Thrown when the notification is not raised</exception>
 		public static void PropertyChanged(INotifyPropertyChanged @object, string propertyName, Action testCode)
 		{
-			Assert.GuardArgumentNotNull("object", @object);
-			Assert.GuardArgumentNotNull("testCode", testCode);
+			GuardArgumentNotNull(nameof(@object), @object);
+			GuardArgumentNotNull(nameof(propertyName), propertyName);
+			GuardArgumentNotNull(nameof(testCode), testCode);
 
-			bool propertyChangeHappened = false;
+			var propertyChangeHappened = false;
 
 			PropertyChangedEventHandler handler = (sender, args) => propertyChangeHappened |= string.IsNullOrEmpty(args.PropertyName) || propertyName.Equals(args.PropertyName, StringComparison.OrdinalIgnoreCase);
 
@@ -60,10 +65,11 @@ namespace Xunit
 		/// <exception cref="PropertyChangedException">Thrown when the notification is not raised</exception>
 		public static async Task PropertyChangedAsync(INotifyPropertyChanged @object, string propertyName, Func<Task> testCode)
 		{
-			Assert.GuardArgumentNotNull("object", @object);
-			Assert.GuardArgumentNotNull("testCode", testCode);
+			GuardArgumentNotNull(nameof(@object), @object);
+			GuardArgumentNotNull(nameof(propertyName), propertyName);
+			GuardArgumentNotNull(nameof(testCode), testCode);
 
-			bool propertyChangeHappened = false;
+			var propertyChangeHappened = false;
 
 			PropertyChangedEventHandler handler = (sender, args) => propertyChangeHappened |= string.IsNullOrEmpty(args.PropertyName) || propertyName.Equals(args.PropertyName, StringComparison.OrdinalIgnoreCase);
 

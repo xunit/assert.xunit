@@ -1,4 +1,9 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
+using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -12,29 +17,44 @@ namespace Xunit.Sdk
 #endif
 	class SingleException : XunitException
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="SingleException"/> class.
-		/// </summary>
-		private SingleException(string errorMessage) : base(errorMessage) { }
+		SingleException(string errorMessage)
+			: base(errorMessage)
+		{ }
 
 		/// <summary>
 		/// Creates an instance of <see cref="SingleException"/> for when the collection didn't contain any of the expected value.
 		/// </summary>
+#if XUNIT_NULLABLE
+		public static Exception Empty(string? expected) =>
+#else
 		public static Exception Empty(string expected) =>
-			new SingleException("The collection was expected to contain a single element" +
-				(expected == null ? "" : " matching " + expected) +
-				", but it " +
-				(expected == null ? "was empty." : "contained no matching elements."));
+#endif
+			new SingleException(
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"The collection was expected to contain a single element{0}, but it {1}",
+					expected == null ? "" : " matching " + expected,
+					expected == null ? "was empty." : "contained no matching elements."
+				)
+			);
 
 		/// <summary>
 		/// Creates an instance of <see cref="SingleException"/> for when the collection had too many of the expected items.
 		/// </summary>
 		/// <returns></returns>
+#if XUNIT_NULLABLE
+		public static Exception MoreThanOne(int count, string? expected) =>
+#else
 		public static Exception MoreThanOne(int count, string expected) =>
-			new SingleException("The collection was expected to contain a single element" +
-				(expected == null ? "" : " matching " + expected) +
-				", but it contained " + count + " " +
-				(expected == null ? "" : "matching ") +
-				"elements.");
+#endif
+			new SingleException(
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"The collection was expected to contain a single element{0}, but it contained {1}{2} elements.",
+					expected == null ? "" : " matching " + expected,
+					count,
+					expected == null ? "" : " matching"
+				)
+			);
 	}
 }

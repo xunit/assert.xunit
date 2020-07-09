@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -15,8 +19,12 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="userMessage">The user message to be display, or null for the default message</param>
 		/// <param name="value">The actual value</param>
+#if XUNIT_NULLABLE
+		public FalseException(string? userMessage, bool? value)
+#else
 		public FalseException(string userMessage, bool? value)
-			: base("False", value == null ? "(null)" : value.ToString(), userMessage ?? "Assert.False() Failure")
+#endif
+			: base("False", value?.ToString() ?? "(null)", userMessage ?? "Assert.False() Failure")
 		{ }
 	}
 }

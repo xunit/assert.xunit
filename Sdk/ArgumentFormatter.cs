@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -47,12 +51,20 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="value">The value to be formatted.</param>
 		/// <returns>The formatted value.</returns>
+#if XUNIT_NULLABLE
+		public static string? Format(object? value)
+#else
 		public static string Format(object value)
+#endif
 		{
 			return Format(value, 1);
 		}
 
+#if XUNIT_NULLABLE
+		static string? Format(object? value, int depth)
+#else
 		static string Format(object value, int depth)
+#endif
 		{
 			if (value == null)
 				return "null";
@@ -64,7 +76,7 @@ namespace Xunit.Sdk
 			try
 			{
 				if (value.GetType().GetTypeInfo().IsEnum)
-					return value.ToString().Replace(", ", " | ");
+					return value.ToString()?.Replace(", ", " | ");
 
 				if (value is char)
 				{
@@ -74,11 +86,13 @@ namespace Xunit.Sdk
 						return @"'\''";
 
 					// Take care of all of the escape sequences
+#if XUNIT_NULLABLE
+					string? escapeSequence;
+#else
 					string escapeSequence;
+#endif
 					if (TryGetEscapeSequence(charValue, out escapeSequence))
-					{
 						return $"'{escapeSequence}'";
-					}
 
 					if (char.IsLetterOrDigit(charValue) || char.IsPunctuation(charValue) || char.IsSymbol(charValue) || charValue == ' ')
 						return $"'{charValue}'";
@@ -133,7 +147,11 @@ namespace Xunit.Sdk
 				var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
 
 				if (toString != null && toString.DeclaringType != typeof(object))
+#if XUNIT_NULLABLE
+					return (string?)toString.Invoke(value, EmptyObjects);
+#else
 					return (string)toString.Invoke(value, EmptyObjects);
+#endif
 
 				return FormatComplexValue(value, depth, type);
 			}
@@ -150,22 +168,29 @@ namespace Xunit.Sdk
 			if (depth == MAX_DEPTH)
 				return $"{type.Name} {{ ... }}";
 
-			var fields = type.GetRuntimeFields()
-							 .Where(f => f.IsPublic && !f.IsStatic)
-							 .Select(f => new { name = f.Name, value = WrapAndGetFormattedValue(() => f.GetValue(value), depth) });
-			var properties = type.GetRuntimeProperties()
-								 .Where(p => p.GetMethod != null && p.GetMethod.IsPublic && !p.GetMethod.IsStatic)
-								 .Select(p => new { name = p.Name, value = WrapAndGetFormattedValue(() => p.GetValue(value), depth) });
-			var parameters = fields.Concat(properties)
-								   .OrderBy(p => p.name)
-								   .Take(MAX_OBJECT_PARAMETER_COUNT + 1)
-								   .ToList();
+			var fields =
+				type
+					.GetRuntimeFields()
+					.Where(f => f.IsPublic && !f.IsStatic)
+					.Select(f => new { name = f.Name, value = WrapAndGetFormattedValue(() => f.GetValue(value), depth) });
+
+			var properties =
+				type
+					.GetRuntimeProperties()
+					.Where(p => p.GetMethod != null && p.GetMethod.IsPublic && !p.GetMethod.IsStatic)
+					.Select(p => new { name = p.Name, value = WrapAndGetFormattedValue(() => p.GetValue(value), depth) });
+
+			var parameters =
+				fields
+					.Concat(properties)
+					.OrderBy(p => p.name)
+					.Take(MAX_OBJECT_PARAMETER_COUNT + 1)
+					.ToList();
 
 			if (parameters.Count == 0)
 				return $"{type.Name} {{ }}";
 
-			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_PARAMETER_COUNT)
-																  .Select(p => $"{p.name} = {p.value}"));
+			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_PARAMETER_COUNT).Select(p => $"{p.name} = {p.value}"));
 
 			if (parameters.Count > MAX_OBJECT_PARAMETER_COUNT)
 				formattedParameters += ", ...";
@@ -197,11 +222,19 @@ namespace Xunit.Sdk
 			{
 				var rank = typeInfo.GetArrayRank();
 				arraySuffix += $"[{new string(',', rank - 1)}]";
+#if XUNIT_NULLABLE
+				typeInfo = typeInfo.GetElementType()!.GetTypeInfo();
+#else
 				typeInfo = typeInfo.GetElementType().GetTypeInfo();
+#endif
 			}
 
 			// Map C# built-in type names
+#if XUNIT_NULLABLE
+			string? result;
+#else
 			string result;
+#endif
 			if (TypeMappings.TryGetValue(typeInfo, out result))
 				return result + arraySuffix;
 
@@ -229,7 +262,11 @@ namespace Xunit.Sdk
 			return name + arraySuffix;
 		}
 
+#if XUNIT_NULLABLE
+		static string? WrapAndGetFormattedValue(Func<object?> getter, int depth)
+#else
 		static string WrapAndGetFormattedValue(Func<object> getter, int depth)
+#endif
 		{
 			try
 			{
@@ -237,11 +274,15 @@ namespace Xunit.Sdk
 			}
 			catch (Exception ex)
 			{
-				return $"(throws {UnwrapException(ex).GetType().Name})";
+				return $"(throws {UnwrapException(ex)?.GetType().Name})";
 			}
 		}
 
+#if XUNIT_NULLABLE
+		static Exception? UnwrapException(Exception? ex)
+#else
 		static Exception UnwrapException(Exception ex)
+#endif
 		{
 			while (true)
 			{
@@ -256,10 +297,14 @@ namespace Xunit.Sdk
 		static string EscapeHexChars(string s)
 		{
 			var builder = new StringBuilder(s.Length);
-			for (int i = 0; i < s.Length; i++)
+			for (var i = 0; i < s.Length; i++)
 			{
-				char ch = s[i];
+				var ch = s[i];
+#if XUNIT_NULLABLE
+				string? escapeSequence;
+#else
 				string escapeSequence;
+#endif
 				if (TryGetEscapeSequence(ch, out escapeSequence))
 					builder.Append(escapeSequence);
 				else if (ch < 32) // C0 control char
@@ -281,7 +326,11 @@ namespace Xunit.Sdk
 			return builder.ToString();
 		}
 
+#if XUNIT_NULLABLE
+		static bool TryGetEscapeSequence(char ch, out string? value)
+#else
 		static bool TryGetEscapeSequence(char ch, out string value)
+#endif
 		{
 			value = null;
 

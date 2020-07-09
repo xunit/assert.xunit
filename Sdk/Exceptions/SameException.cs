@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -15,8 +19,11 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected object reference</param>
 		/// <param name="actual">The actual object reference</param>
-		public SameException(object expected,
-							 object actual)
+#if XUNIT_NULLABLE
+		public SameException(object? expected, object? actual)
+#else
+		public SameException(object expected, object actual)
+#endif
 			: base(expected, actual, "Assert.Same() Failure")
 		{ }
 	}

@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System.Collections.Generic;
 using Xunit.Sdk;
 
 namespace Xunit
@@ -17,9 +21,13 @@ namespace Xunit
 		/// <param name="expectedSuperset">The expected superset</param>
 		/// <param name="actual">The set expected to be a proper subset</param>
 		/// <exception cref="ContainsException">Thrown when the actual set is not a proper subset of the expected set</exception>
+#if XUNIT_NULLABLE
+		public static void ProperSubset<T>(ISet<T> expectedSuperset, ISet<T>? actual)
+#else
 		public static void ProperSubset<T>(ISet<T> expectedSuperset, ISet<T> actual)
+#endif
 		{
-			Assert.GuardArgumentNotNull("expectedSuperset", expectedSuperset);
+			GuardArgumentNotNull(nameof(expectedSuperset), expectedSuperset);
 
 			if (actual == null || !actual.IsProperSubsetOf(expectedSuperset))
 				throw new ProperSubsetException(expectedSuperset, actual);
@@ -32,9 +40,13 @@ namespace Xunit
 		/// <param name="expectedSubset">The expected subset</param>
 		/// <param name="actual">The set expected to be a proper superset</param>
 		/// <exception cref="ContainsException">Thrown when the actual set is not a proper superset of the expected set</exception>
+#if XUNIT_NULLABLE
+		public static void ProperSuperset<T>(ISet<T> expectedSubset, ISet<T>? actual)
+#else
 		public static void ProperSuperset<T>(ISet<T> expectedSubset, ISet<T> actual)
+#endif
 		{
-			Assert.GuardArgumentNotNull("expectedSubset", expectedSubset);
+			GuardArgumentNotNull(nameof(expectedSubset), expectedSubset);
 
 			if (actual == null || !actual.IsProperSupersetOf(expectedSubset))
 				throw new ProperSupersetException(expectedSubset, actual);
@@ -47,9 +59,13 @@ namespace Xunit
 		/// <param name="expectedSuperset">The expected superset</param>
 		/// <param name="actual">The set expected to be a subset</param>
 		/// <exception cref="ContainsException">Thrown when the actual set is not a subset of the expected set</exception>
+#if XUNIT_NULLABLE
+		public static void Subset<T>(ISet<T> expectedSuperset, ISet<T>? actual)
+#else
 		public static void Subset<T>(ISet<T> expectedSuperset, ISet<T> actual)
+#endif
 		{
-			Assert.GuardArgumentNotNull("expectedSuperset", expectedSuperset);
+			GuardArgumentNotNull(nameof(expectedSuperset), expectedSuperset);
 
 			if (actual == null || !actual.IsSubsetOf(expectedSuperset))
 				throw new SubsetException(expectedSuperset, actual);
@@ -62,9 +78,13 @@ namespace Xunit
 		/// <param name="expectedSubset">The expected subset</param>
 		/// <param name="actual">The set expected to be a superset</param>
 		/// <exception cref="ContainsException">Thrown when the actual set is not a superset of the expected set</exception>
+#if XUNIT_NULLABLE
+		public static void Superset<T>(ISet<T> expectedSubset, ISet<T>? actual)
+#else
 		public static void Superset<T>(ISet<T> expectedSubset, ISet<T> actual)
+#endif
 		{
-			Assert.GuardArgumentNotNull("expectedSubset", expectedSubset);
+			GuardArgumentNotNull(nameof(expectedSubset), expectedSubset);
 
 			if (actual == null || !actual.IsSupersetOf(expectedSubset))
 				throw new SupersetException(expectedSubset, actual);

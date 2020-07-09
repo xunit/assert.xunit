@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Xunit.Sdk;
@@ -34,7 +38,7 @@ namespace Xunit
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
 		public static void Equal<T>(T expected, T actual, IEqualityComparer<T> comparer)
 		{
-			Assert.GuardArgumentNotNull("comparer", comparer);
+			GuardArgumentNotNull(nameof(comparer), comparer);
 
 			if (!comparer.Equals(expected, actual))
 				throw new EqualException(expected, actual);
@@ -53,7 +57,7 @@ namespace Xunit
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (!GetEqualityComparer<double>().Equals(expectedRounded, actualRounded))
+			if (expectedRounded != actualRounded)
 				throw new EqualException(
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
@@ -73,7 +77,7 @@ namespace Xunit
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (!GetEqualityComparer<decimal>().Equals(expectedRounded, actualRounded))
+			if (expectedRounded != actualRounded)
 				throw new EqualException(
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
@@ -137,7 +141,7 @@ namespace Xunit
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
 		public static void NotEqual<T>(T expected, T actual, IEqualityComparer<T> comparer)
 		{
-			Assert.GuardArgumentNotNull("comparer", comparer);
+			GuardArgumentNotNull(nameof(comparer), comparer);
 
 			if (comparer.Equals(expected, actual))
 				throw new NotEqualException(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual));
@@ -156,7 +160,7 @@ namespace Xunit
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (GetEqualityComparer<double>().Equals(expectedRounded, actualRounded))
+			if (expectedRounded == actualRounded)
 				throw new NotEqualException(
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
@@ -176,7 +180,7 @@ namespace Xunit
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (GetEqualityComparer<decimal>().Equals(expectedRounded, actualRounded))
+			if (expectedRounded == actualRounded)
 				throw new NotEqualException(
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)

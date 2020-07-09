@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 
 namespace Xunit.Sdk
 {
@@ -17,8 +21,12 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected type</param>
 		/// <param name="actual">The actual object value</param>
+#if XUNIT_NULLABLE
+		public IsAssignableFromException(Type expected, object? actual)
+#else
 		public IsAssignableFromException(Type expected, object actual)
-			: base(expected, actual == null ? null : actual.GetType(), "Assert.IsAssignableFrom() Failure")
+#endif
+			: base(expected, actual?.GetType(), "Assert.IsAssignableFrom() Failure")
 		{ }
 	}
 }

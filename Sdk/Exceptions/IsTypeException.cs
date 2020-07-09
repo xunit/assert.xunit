@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -15,7 +19,11 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expectedTypeName">The expected type name</param>
 		/// <param name="actualTypeName">The actual type name</param>
+#if XUNIT_NULLABLE
+		public IsTypeException(string? expectedTypeName, string? actualTypeName)
+#else
 		public IsTypeException(string expectedTypeName, string actualTypeName)
+#endif
 			: base(expectedTypeName, actualTypeName, "Assert.IsType() Failure")
 		{ }
 	}

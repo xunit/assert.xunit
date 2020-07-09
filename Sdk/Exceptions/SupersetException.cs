@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System.Collections;
 
 namespace Xunit.Sdk
@@ -15,7 +19,11 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="SupersetException"/> class.
 		/// </summary>
+#if XUNIT_NULLABLE
+		public SupersetException(IEnumerable expected, IEnumerable? actual)
+#else
 		public SupersetException(IEnumerable expected, IEnumerable actual)
+#endif
 			: base(expected, actual, "Assert.Superset() Failure")
 		{ }
 	}

@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 
 namespace Xunit.Sdk
@@ -17,8 +21,12 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected type</param>
 		/// <param name="actual">The actual object value</param>
+#if XUNIT_NULLABLE
+		public IsNotTypeException(Type expected, object? actual)
+#else
 		public IsNotTypeException(Type expected, object actual)
-			: base(expected, actual == null ? null : actual.GetType(), "Assert.IsNotType() Failure")
+#endif
+			: base(expected, actual?.GetType(), "Assert.IsNotType() Failure")
 		{ }
 	}
 }

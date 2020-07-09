@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -23,14 +27,22 @@ namespace Xunit.Sdk
 			{ '\0', "\\0" }
 		};
 
+#if XUNIT_NULLABLE
+		string? message;
+#else
 		string message;
+#endif
 
 		/// <summary>
 		/// Creates a new instance of the <see cref="EqualException"/> class.
 		/// </summary>
 		/// <param name="expected">The expected object value</param>
 		/// <param name="actual">The actual object value</param>
+#if XUNIT_NULLABLE
+		public EqualException(object? expected, object? actual)
+#else
 		public EqualException(object expected, object actual)
+#endif
 			: base(expected, actual, "Assert.Equal() Failure")
 		{
 			ActualIndex = -1;
@@ -44,7 +56,11 @@ namespace Xunit.Sdk
 		/// <param name="actual">The actual string value</param>
 		/// <param name="expectedIndex">The first index in the expected string where the strings differ</param>
 		/// <param name="actualIndex">The first index in the actual string where the strings differ</param>
+#if XUNIT_NULLABLE
+		public EqualException(string? expected, string? actual, int expectedIndex, int actualIndex)
+#else
 		public EqualException(string expected, string actual, int expectedIndex, int actualIndex)
+#endif
 			: base(expected, actual, "Assert.Equal() Failure")
 		{
 			ActualIndex = actualIndex;
@@ -55,13 +71,13 @@ namespace Xunit.Sdk
 		/// Gets the index into the actual value where the values first differed.
 		/// Returns -1 if the difference index points were not provided.
 		/// </summary>
-		public int ActualIndex { get; private set; }
+		public int ActualIndex { get; }
 
 		/// <summary>
 		/// Gets the index into the expected value where the values first differed.
 		/// Returns -1 if the difference index points were not provided.
 		/// </summary>
-		public int ExpectedIndex { get; private set; }
+		public int ExpectedIndex { get; }
 
 		/// <inheritdoc/>
 		public override string Message
@@ -80,25 +96,50 @@ namespace Xunit.Sdk
 			if (ExpectedIndex == -1)
 				return base.Message;
 
-			Tuple<string, string> printedExpected = ShortenAndEncode(Expected, ExpectedIndex, '↓');
-			Tuple<string, string> printedActual = ShortenAndEncode(Actual, ActualIndex, '↑');
+			var printedExpected = ShortenAndEncode(Expected, ExpectedIndex, '↓');
+			var printedActual = ShortenAndEncode(Actual, ActualIndex, '↑');
 
-			return string.Format(
+			var sb = new StringBuilder();
+			sb.Append(UserMessage);
+
+			if (printedExpected.Item2 != "")
+				sb.AppendFormat(
+					CultureInfo.CurrentCulture,
+					"{0}          {1}",
+					Environment.NewLine,
+					printedExpected.Item2
+				);
+
+			sb.AppendFormat(
 				CultureInfo.CurrentCulture,
-				"{1}{0}          {2}{0}Expected: {3}{0}Actual:   {4}{0}          {5}",
+				"{0}Expected: {1}{0}Actual:   {2}",
 				Environment.NewLine,
-				UserMessage,
-				printedExpected.Item2,
-				printedExpected.Item1 ?? "(null)",
-				printedActual.Item1 ?? "(null)",
-				printedActual.Item2
+				printedExpected.Item1,
+				printedActual.Item1
 			);
+
+			if (printedActual.Item2 != "")
+				sb.AppendFormat(
+					CultureInfo.CurrentCulture,
+					"{0}          {1}",
+					Environment.NewLine,
+					printedActual.Item2
+				);
+
+			return sb.ToString();
 		}
 
+#if XUNIT_NULLABLE
+		static Tuple<string, string> ShortenAndEncode(string? value, int position, char pointer)
+#else
 		static Tuple<string, string> ShortenAndEncode(string value, int position, char pointer)
+#endif
 		{
-			int start = Math.Max(position - 20, 0);
-			int end = Math.Min(position + 41, value.Length);
+			if (value == null)
+				return Tuple.Create("(null)", "");
+
+			var start = Math.Max(position - 20, 0);
+			var end = Math.Min(position + 41, value.Length);
 			var printedValue = new StringBuilder(100);
 			var printedPointer = new StringBuilder(100);
 
@@ -108,11 +149,16 @@ namespace Xunit.Sdk
 				printedPointer.Append("   ");
 			}
 
-			for (int idx = start; idx < end; ++idx)
+			for (var idx = start; idx < end; ++idx)
 			{
-				char c = value[idx];
+				var c = value[idx];
+				var paddingLength = 1;
+
+#if XUNIT_NULLABLE
+				string? encoding;
+#else
 				string encoding;
-				int paddingLength = 1;
+#endif
 
 				if (Encodings.TryGetValue(c, out encoding))
 				{
@@ -134,7 +180,7 @@ namespace Xunit.Sdk
 			if (end < value.Length)
 				printedValue.Append("···");
 
-			return new Tuple<string, string>(printedValue.ToString(), printedPointer.ToString());
+			return Tuple.Create(printedValue.ToString(), printedPointer.ToString());
 		}
 	}
 }

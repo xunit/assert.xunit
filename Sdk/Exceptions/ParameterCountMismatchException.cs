@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 
 namespace Xunit.Sdk
 {
@@ -12,6 +16,5 @@ namespace Xunit.Sdk
 	public
 #endif
 	class ParameterCountMismatchException : Exception
-	{
-	}
+	{ }
 }

@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -22,26 +26,30 @@ namespace Xunit.Sdk
 		/// Initializes a new instance of the <see cref="AssertEqualityComparer{T}" /> class.
 		/// </summary>
 		/// <param name="innerComparer">The inner comparer to be used when the compared objects are enumerable.</param>
+#if XUNIT_NULLABLE
+		public AssertEqualityComparer(IEqualityComparer? innerComparer = null)
+#else
 		public AssertEqualityComparer(IEqualityComparer innerComparer = null)
+#endif
 		{
 			// Use a thunk to delay evaluation of DefaultInnerComparer
 			innerComparerFactory = () => innerComparer ?? DefaultInnerComparer;
 		}
 
 		/// <inheritdoc/>
+#if XUNIT_NULLABLE
+		public bool Equals([AllowNull] T x, [AllowNull] T y)
+#else
 		public bool Equals(T x, T y)
+#endif
 		{
 			var typeInfo = typeof(T).GetTypeInfo();
 
 			// Null?
-			if (!typeInfo.IsValueType || (typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition().GetTypeInfo().IsAssignableFrom(NullableTypeInfo)))
-			{
-				if (object.Equals(x, default(T)))
-					return object.Equals(y, default(T));
-
-				if (object.Equals(y, default(T)))
-					return false;
-			}
+			if (x == null && y == null)
+				return true;
+			if (x == null || y == null)
+				return false;
 
 			// Implements IEquatable<T>?
 			var equatable = x as IEquatable<T>;
@@ -100,25 +108,20 @@ namespace Xunit.Sdk
 				}
 
 				// Array.GetEnumerator() flattens out the array, ignoring array ranks and lengths
-				Array xArray = x as Array;
-				Array yArray = y as Array;
+				var xArray = x as Array;
+				var yArray = y as Array;
 				if (xArray != null && yArray != null)
 				{
 					// new object[2,1] != new object[2]
 					if (xArray.Rank != yArray.Rank)
-					{
 						return false;
-					}
 
 					// new object[2,1] != new object[1,2]
-					for (int i = 0; i < xArray.Rank; i++)
-					{
+					for (var i = 0; i < xArray.Rank; i++)
 						if (xArray.GetLength(i) != yArray.GetLength(i))
-						{
 							return false;
-						}
-					}
 				}
+
 				return true;
 			}
 
@@ -128,21 +131,35 @@ namespace Xunit.Sdk
 				return true;
 
 			// Implements IEquatable<typeof(y)>?
-			TypeInfo iequatableY = typeof(IEquatable<>).MakeGenericType(y.GetType()).GetTypeInfo();
+			var iequatableY = typeof(IEquatable<>).MakeGenericType(y.GetType()).GetTypeInfo();
 			if (iequatableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
 			{
-				MethodInfo equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+				var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+				if (equalsMethod == null)
+					return false;
+
+#if XUNIT_NULLABLE
+				return equalsMethod.Invoke(x, new object[] { y }) is true;
+#else
 				return (bool)equalsMethod.Invoke(x, new object[] { y });
+#endif
 			}
 
 			// Implements IComparable<typeof(y)>?
-			TypeInfo icomparableY = typeof(IComparable<>).MakeGenericType(y.GetType()).GetTypeInfo();
+			var icomparableY = typeof(IComparable<>).MakeGenericType(y.GetType()).GetTypeInfo();
 			if (icomparableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
 			{
-				MethodInfo compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
+				var compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
+				if (compareToMethod == null)
+					return false;
+
 				try
 				{
+#if XUNIT_NULLABLE
+					return compareToMethod.Invoke(x, new object[] { y }) is 0;
+#else
 					return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
+#endif
 				}
 				catch
 				{
@@ -156,7 +173,11 @@ namespace Xunit.Sdk
 			return object.Equals(x, y);
 		}
 
+#if XUNIT_NULLABLE
+		bool? CheckIfEnumerablesAreEqual([AllowNull] T x, [AllowNull] T y)
+#else
 		bool? CheckIfEnumerablesAreEqual(T x, T y)
+#endif
 		{
 			var enumerableX = x as IEnumerable;
 			var enumerableY = y as IEnumerable;
@@ -164,7 +185,9 @@ namespace Xunit.Sdk
 			if (enumerableX == null || enumerableY == null)
 				return null;
 
-			IEnumerator enumeratorX = null, enumeratorY = null;
+			var enumeratorX = default(IEnumerator);
+			var enumeratorY = default(IEnumerator);
+
 			try
 			{
 				enumeratorX = enumerableX.GetEnumerator();
@@ -194,7 +217,11 @@ namespace Xunit.Sdk
 			}
 		}
 
+#if XUNIT_NULLABLE
+		bool? CheckIfDictionariesAreEqual([AllowNull] T x, [AllowNull] T y)
+#else
 		bool? CheckIfDictionariesAreEqual(T x, T y)
+#endif
 		{
 			var dictionaryX = x as IDictionary;
 			var dictionaryY = y as IDictionary;
@@ -208,7 +235,7 @@ namespace Xunit.Sdk
 			var equalityComparer = innerComparerFactory();
 			var dictionaryYKeys = new HashSet<object>(dictionaryY.Keys.Cast<object>());
 
-			foreach (var key in dictionaryX.Keys)
+			foreach (var key in dictionaryX.Keys.Cast<object>())
 			{
 				if (!dictionaryYKeys.Contains(key))
 					return false;
@@ -225,9 +252,17 @@ namespace Xunit.Sdk
 			return dictionaryYKeys.Count == 0;
 		}
 
-		private static MethodInfo s_compareTypedSetsMethod;
+#if XUNIT_NULLABLE
+		static MethodInfo? s_compareTypedSetsMethod;
+#else
+		static MethodInfo s_compareTypedSetsMethod;
+#endif
 
+#if XUNIT_NULLABLE
+		bool? CheckIfSetsAreEqual([AllowNull] T x, [AllowNull] T y, TypeInfo typeInfo)
+#else
 		bool? CheckIfSetsAreEqual(T x, T y, TypeInfo typeInfo)
+#endif
 		{
 			if (!IsSet(typeInfo))
 				return null;
@@ -244,10 +279,18 @@ namespace Xunit.Sdk
 				elementType = typeof(T).GenericTypeArguments[0];
 
 			if (s_compareTypedSetsMethod == null)
+			{
 				s_compareTypedSetsMethod = GetType().GetTypeInfo().GetDeclaredMethod(nameof(CompareTypedSets));
+				if (s_compareTypedSetsMethod == null)
+					return false;
+			}
 
-			MethodInfo method = s_compareTypedSetsMethod.MakeGenericMethod(new Type[] { elementType });
+			var method = s_compareTypedSetsMethod.MakeGenericMethod(new Type[] { elementType });
+#if XUNIT_NULLABLE
+			return method.Invoke(this, new object[] { enumX, enumY }) is true;
+#else
 			return (bool)method.Invoke(this, new object[] { enumX, enumY });
+#endif
 		}
 
 		bool CompareTypedSets<R>(IEnumerable enumX, IEnumerable enumY)
@@ -275,16 +318,24 @@ namespace Xunit.Sdk
 
 		private class TypeErasedEqualityComparer : IEqualityComparer
 		{
-			private readonly IEqualityComparer innerComparer;
+			readonly IEqualityComparer innerComparer;
 
 			public TypeErasedEqualityComparer(IEqualityComparer innerComparer)
 			{
 				this.innerComparer = innerComparer;
 			}
 
-			private static MethodInfo s_equalsMethod;
+#if XUNIT_NULLABLE
+			static MethodInfo? s_equalsMethod;
+#else
+			static MethodInfo s_equalsMethod;
+#endif
 
+#if XUNIT_NULLABLE
+			public new bool Equals(object? x, object? y)
+#else
 			public new bool Equals(object x, object y)
+#endif
 			{
 				if (x == null)
 					return y == null;
@@ -301,12 +352,21 @@ namespace Xunit.Sdk
 
 				// Lazily initialize and cache the EqualsGeneric<U> method.
 				if (s_equalsMethod == null)
+				{
 					s_equalsMethod = typeof(TypeErasedEqualityComparer).GetTypeInfo().GetDeclaredMethod(nameof(EqualsGeneric));
+					if (s_equalsMethod == null)
+						return false;
+				}
 
+#if XUNIT_NULLABLE
+				return s_equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y }) is true;
+#else
 				return (bool)s_equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y });
+#endif
 			}
 
-			private bool EqualsGeneric<U>(U x, U y) => new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
+			bool EqualsGeneric<U>(U x, U y)
+				=> new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
 
 			[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This class is not intended to be used in a hased container")]
 			public int GetHashCode(object obj)

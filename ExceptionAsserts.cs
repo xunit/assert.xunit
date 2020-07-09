@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
@@ -137,9 +141,13 @@ namespace Xunit
 			return Throws(exceptionType, await RecordExceptionAsync(testCode));
 		}
 
+#if XUNIT_NULLABLE
+		static Exception Throws(Type exceptionType, Exception? exception)
+#else
 		static Exception Throws(Type exceptionType, Exception exception)
+#endif
 		{
-			Assert.GuardArgumentNotNull("exceptionType", exceptionType);
+			GuardArgumentNotNull(nameof(exceptionType), exceptionType);
 
 			if (exception == null)
 				throw new ThrowsException(exceptionType);
@@ -150,9 +158,13 @@ namespace Xunit
 			return exception;
 		}
 
+#if XUNIT_NULLABLE
+		static Exception ThrowsAny(Type exceptionType, Exception? exception)
+#else
 		static Exception ThrowsAny(Type exceptionType, Exception exception)
+#endif
 		{
-			Assert.GuardArgumentNotNull("exceptionType", exceptionType);
+			GuardArgumentNotNull(nameof(exceptionType), exceptionType);
 
 			if (exception == null)
 				throw new ThrowsException(exceptionType);
@@ -174,8 +186,10 @@ namespace Xunit
 		public static T Throws<T>(string paramName, Action testCode)
 			where T : ArgumentException
 		{
-			var ex = Assert.Throws<T>(testCode);
-			Assert.Equal(paramName, ex.ParamName);
+			GuardArgumentNotNull(nameof(paramName), paramName);
+
+			var ex = Throws<T>(testCode);
+			Equal(paramName, ex.ParamName);
 			return ex;
 		}
 
@@ -190,8 +204,10 @@ namespace Xunit
 		public static T Throws<T>(string paramName, Func<object> testCode)
 			where T : ArgumentException
 		{
-			var ex = Assert.Throws<T>(testCode);
-			Assert.Equal(paramName, ex.ParamName);
+			GuardArgumentNotNull(nameof(paramName), paramName);
+
+			var ex = Throws<T>(testCode);
+			Equal(paramName, ex.ParamName);
 			return ex;
 		}
 
@@ -212,8 +228,8 @@ namespace Xunit
 		public static async Task<T> ThrowsAsync<T>(string paramName, Func<Task> testCode)
 			where T : ArgumentException
 		{
-			var ex = await Assert.ThrowsAsync<T>(testCode);
-			Assert.Equal(paramName, ex.ParamName);
+			var ex = await ThrowsAsync<T>(testCode);
+			Equal(paramName, ex.ParamName);
 			return ex;
 		}
 	}

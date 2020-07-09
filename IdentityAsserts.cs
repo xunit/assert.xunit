@@ -1,4 +1,8 @@
-﻿using Xunit.Sdk;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using Xunit.Sdk;
 
 namespace Xunit
 {
@@ -15,7 +19,11 @@ namespace Xunit
 		/// <param name="expected">The expected object instance</param>
 		/// <param name="actual">The actual object instance</param>
 		/// <exception cref="NotSameException">Thrown when the objects are the same instance</exception>
+#if XUNIT_NULLABLE
+		public static void NotSame(object? expected, object? actual)
+#else
 		public static void NotSame(object expected, object actual)
+#endif
 		{
 			if (object.ReferenceEquals(expected, actual))
 				throw new NotSameException();
@@ -27,7 +35,11 @@ namespace Xunit
 		/// <param name="expected">The expected object instance</param>
 		/// <param name="actual">The actual object instance</param>
 		/// <exception cref="SameException">Thrown when the objects are not the same instance</exception>
+#if XUNIT_NULLABLE
+		public static void Same(object? expected, object? actual)
+#else
 		public static void Same(object expected, object actual)
+#endif
 		{
 			if (!object.ReferenceEquals(expected, actual))
 				throw new SameException(expected, actual);

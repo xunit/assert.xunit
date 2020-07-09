@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 using System.Collections;
 using System.Globalization;
@@ -24,10 +28,13 @@ namespace Xunit.Sdk
 		/// <param name="userMessage">The user message to be shown</param>
 		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
+#if XUNIT_NULLABLE
+		public AssertActualExpectedException(object? expected, object? actual, string userMessage, string? expectedTitle = null, string? actualTitle = null)
+#else
 		public AssertActualExpectedException(object expected, object actual, string userMessage, string expectedTitle = null, string actualTitle = null)
+#endif
 			: this(expected, actual, userMessage, expectedTitle, actualTitle, null)
-		{
-		}
+		{ }
 
 		/// <summary>
 		/// Creates a new instance of the <see href="AssertActualExpectedException"/> class.
@@ -38,7 +45,11 @@ namespace Xunit.Sdk
 		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
 		/// <param name="innerException">The inner exception.</param>
+#if XUNIT_NULLABLE
+		public AssertActualExpectedException(object? expected, object? actual, string userMessage, string? expectedTitle, string? actualTitle, Exception? innerException)
+#else
 		public AssertActualExpectedException(object expected, object actual, string userMessage, string expectedTitle, string actualTitle, Exception innerException)
+#endif
 			: base(userMessage, innerException)
 		{
 			Actual = actual == null ? null : ConvertToString(actual);
@@ -59,7 +70,11 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Gets the actual value.
 		/// </summary>
+#if XUNIT_NULLABLE
+		public string? Actual { get; private set; }
+#else
 		public string Actual { get; private set; }
+#endif
 
 		/// <summary>
 		/// Gets the title used for the actual value.
@@ -69,7 +84,11 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Gets the expected value.
 		/// </summary>
+#if XUNIT_NULLABLE
+		public string? Expected { get; private set; }
+#else
 		public string Expected { get; private set; }
+#endif
 
 		/// <summary>
 		/// Gets the title used for the expected value.
@@ -89,14 +108,16 @@ namespace Xunit.Sdk
 				var formattedExpectedTitle = (ExpectedTitle + ":").PadRight(titleLength);
 				var formattedActualTitle = (ActualTitle + ":").PadRight(titleLength);
 
-				return string.Format(CultureInfo.CurrentCulture,
-									 "{0}{5}{1}{2}{5}{3}{4}",
-									 base.Message,
-									 formattedExpectedTitle,
-									 Expected ?? "(null)",
-									 formattedActualTitle,
-									 Actual ?? "(null)",
-									 Environment.NewLine);
+				return string.Format(
+					CultureInfo.CurrentCulture,
+					"{0}{5}{1}{2}{5}{3}{4}",
+					base.Message,
+					formattedExpectedTitle,
+					Expected ?? "(null)",
+					formattedActualTitle,
+					Actual ?? "(null)",
+					Environment.NewLine
+				);
 			}
 		}
 
@@ -113,7 +134,11 @@ namespace Xunit.Sdk
 			return string.Format("{0}<{1}>", typeInfo.Name.Substring(0, backTickIdx), string.Join(", ", simpleNames));
 		}
 
+#if XUNIT_NULLABLE
+		static string? ConvertToString(object? value)
+#else
 		static string ConvertToString(object value)
+#endif
 		{
 			var stringValue = value as string;
 			if (stringValue != null)

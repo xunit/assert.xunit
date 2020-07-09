@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 using System.Globalization;
 
@@ -18,7 +22,11 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expectedRegexPattern">The regular expression pattern expected not to match</param>
 		/// <param name="actual">The actual value</param>
-		public DoesNotMatchException(object expectedRegexPattern, object actual)
+#if XUNIT_NULLABLE
+		public DoesNotMatchException(string expectedRegexPattern, object? actual)
+#else
+		public DoesNotMatchException(string expectedRegexPattern, object actual)
+#endif
 			: base(string.Format(CultureInfo.CurrentCulture, "Assert.DoesNotMatch() Failure:{2}Regex: {0}{2}Value: {1}", expectedRegexPattern, actual, Environment.NewLine))
 		{ }
 	}

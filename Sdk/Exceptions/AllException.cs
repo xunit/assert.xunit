@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -15,7 +19,11 @@ namespace Xunit.Sdk
 #endif
 	class AllException : XunitException
 	{
+#if XUNIT_NULLABLE
+		readonly IReadOnlyList<Tuple<int, object?, Exception>> errors;
+#else
 		readonly IReadOnlyList<Tuple<int, object, Exception>> errors;
+#endif
 		readonly int totalItems;
 
 		/// <summary>
@@ -23,7 +31,11 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="totalItems">The total number of items that were in the collection.</param>
 		/// <param name="errors">The list of errors that occurred during the test pass.</param>
+#if XUNIT_NULLABLE
+		public AllException(int totalItems, Tuple<int, object?, Exception>[] errors)
+#else
 		public AllException(int totalItems, Tuple<int, object, Exception>[] errors)
+#endif
 			: base("Assert.All() Failure")
 		{
 			this.errors = errors;
@@ -33,7 +45,7 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// The errors that occurred during execution of the test.
 		/// </summary>
-		public IReadOnlyList<Exception> Failures { get { return errors.Select(t => t.Item3).ToList(); } }
+		public IReadOnlyList<Exception> Failures => errors.Select(t => t.Item3).ToList();
 
 		/// <inheritdoc/>
 		public override string Message
@@ -45,21 +57,25 @@ namespace Xunit.Sdk
 					var indexString = string.Format(CultureInfo.CurrentCulture, "[{0}]: ", error.Item1);
 					var spaces = Environment.NewLine + "".PadRight(indexString.Length);
 
-					return string.Format(CultureInfo.CurrentCulture,
-										 "{0}Item: {1}{2}{3}",
-										 indexString,
-										 error.Item2?.ToString()?.Replace(Environment.NewLine, spaces),
-										 spaces,
-										 error.Item3.ToString().Replace(Environment.NewLine, spaces));
+					return string.Format(
+						CultureInfo.CurrentCulture,
+						"{0}Item: {1}{2}{3}",
+						indexString,
+						error.Item2?.ToString()?.Replace(Environment.NewLine, spaces),
+						spaces,
+						error.Item3.ToString().Replace(Environment.NewLine, spaces)
+					);
 				});
 
-				return string.Format(CultureInfo.CurrentCulture,
-									 "{0}: {1} out of {2} items in the collection did not pass.{3}{4}",
-									 base.Message,
-									 errors.Count,
-									 totalItems,
-									 Environment.NewLine,
-									 string.Join(Environment.NewLine, formattedErrors));
+				return string.Format(
+					CultureInfo.CurrentCulture,
+					"{0}: {1} out of {2} items in the collection did not pass.{3}{4}",
+					base.Message,
+					errors.Count,
+					totalItems,
+					Environment.NewLine,
+					string.Join(Environment.NewLine, formattedErrors)
+				);
 			}
 		}
 	}

@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 namespace Xunit.Sdk
 {
 	/// <summary>

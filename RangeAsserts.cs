@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Collections.Generic;
 using Xunit.Sdk;
 
@@ -19,7 +23,8 @@ namespace Xunit
 		/// <param name="low">The (inclusive) low value of the range</param>
 		/// <param name="high">The (inclusive) high value of the range</param>
 		/// <exception cref="InRangeException">Thrown when the value is not in the given range</exception>
-		public static void InRange<T>(T actual, T low, T high) where T : IComparable
+		public static void InRange<T>(T actual, T low, T high)
+			where T : IComparable
 		{
 			InRange(actual, low, high, GetComparer<T>());
 		}
@@ -35,7 +40,7 @@ namespace Xunit
 		/// <exception cref="InRangeException">Thrown when the value is not in the given range</exception>
 		public static void InRange<T>(T actual, T low, T high, IComparer<T> comparer)
 		{
-			Assert.GuardArgumentNotNull("comparer", comparer);
+			GuardArgumentNotNull(nameof(comparer), comparer);
 
 			if (comparer.Compare(low, actual) > 0 || comparer.Compare(actual, high) > 0)
 				throw new InRangeException(actual, low, high);
@@ -49,7 +54,8 @@ namespace Xunit
 		/// <param name="low">The (inclusive) low value of the range</param>
 		/// <param name="high">The (inclusive) high value of the range</param>
 		/// <exception cref="NotInRangeException">Thrown when the value is in the given range</exception>
-		public static void NotInRange<T>(T actual, T low, T high) where T : IComparable
+		public static void NotInRange<T>(T actual, T low, T high)
+			where T : IComparable
 		{
 			NotInRange(actual, low, high, GetComparer<T>());
 		}
@@ -65,7 +71,7 @@ namespace Xunit
 		/// <exception cref="NotInRangeException">Thrown when the value is in the given range</exception>
 		public static void NotInRange<T>(T actual, T low, T high, IComparer<T> comparer)
 		{
-			Assert.GuardArgumentNotNull("comparer", comparer);
+			GuardArgumentNotNull(nameof(comparer), comparer);
 
 			if (comparer.Compare(low, actual) <= 0 && comparer.Compare(actual, high) <= 0)
 				throw new NotInRangeException(actual, low, high);

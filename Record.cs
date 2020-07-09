@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -18,9 +22,13 @@ namespace Xunit
 		/// <param name="testCode">The code which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
 		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static Exception? RecordException(Action testCode)
+#else
 		protected static Exception RecordException(Action testCode)
+#endif
 		{
-			Assert.GuardArgumentNotNull("testCode", testCode);
+			GuardArgumentNotNull(nameof(testCode), testCode);
 
 			try
 			{
@@ -40,10 +48,14 @@ namespace Xunit
 		/// <param name="testCode">The code which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
 		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static Exception? RecordException(Func<object?> testCode)
+#else
 		protected static Exception RecordException(Func<object> testCode)
+#endif
 		{
-			Assert.GuardArgumentNotNull("testCode", testCode);
-			Task task;
+			GuardArgumentNotNull(nameof(testCode), testCode);
+			var task = default(Task);
 
 			try
 			{
@@ -72,9 +84,13 @@ namespace Xunit
 		/// <param name="testCode">The task which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
 		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static async Task<Exception?> RecordExceptionAsync(Func<Task> testCode)
+#else
 		protected static async Task<Exception> RecordExceptionAsync(Func<Task> testCode)
+#endif
 		{
-			Assert.GuardArgumentNotNull("testCode", testCode);
+			GuardArgumentNotNull(nameof(testCode), testCode);
 
 			try
 			{

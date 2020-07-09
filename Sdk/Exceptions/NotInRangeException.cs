@@ -1,3 +1,8 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Globalization;
 
 namespace Xunit.Sdk
@@ -12,47 +17,50 @@ namespace Xunit.Sdk
 #endif
 	class NotInRangeException : XunitException
 	{
-		readonly string actual;
-		readonly string high;
-		readonly string low;
-
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotInRangeException"/> class.
 		/// </summary>
 		/// <param name="actual">The actual object value</param>
 		/// <param name="low">The low value of the range</param>
 		/// <param name="high">The high value of the range</param>
+#if XUNIT_NULLABLE
+		public NotInRangeException(object? actual, object? low, object? high)
+#else
 		public NotInRangeException(object actual, object low, object high)
+#endif
 			: base("Assert.NotInRange() Failure")
 		{
-			this.low = low == null ? null : low.ToString();
-			this.high = high == null ? null : high.ToString();
-			this.actual = actual == null ? null : actual.ToString();
+			Low = low?.ToString();
+			High = high?.ToString();
+			Actual = actual?.ToString();
 		}
 
 		/// <summary>
 		/// Gets the actual object value
 		/// </summary>
-		public string Actual
-		{
-			get { return actual; }
-		}
+#if XUNIT_NULLABLE
+		public string? Actual { get; }
+#else
+		public string Actual { get; }
+#endif
 
 		/// <summary>
 		/// Gets the high value of the range
 		/// </summary>
-		public string High
-		{
-			get { return high; }
-		}
+#if XUNIT_NULLABLE
+		public string? High { get; }
+#else
+		public string High { get; }
+#endif
 
 		/// <summary>
 		/// Gets the low value of the range
 		/// </summary>
-		public string Low
-		{
-			get { return low; }
-		}
+#if XUNIT_NULLABLE
+		public string? Low { get; }
+#else
+		public string Low { get; }
+#endif
 
 		/// <summary>
 		/// Gets a message that describes the current exception.
@@ -62,9 +70,15 @@ namespace Xunit.Sdk
 		{
 			get
 			{
-				return string.Format(CultureInfo.CurrentCulture,
-									 "{0}\r\nRange:  ({1} - {2})\r\nActual: {3}",
-									 base.Message, Low, High, Actual ?? "(null)");
+				return string.Format(
+					CultureInfo.CurrentCulture,
+					"{1}{0}Range:  ({2} - {3}){0}Actual: {4}",
+					Environment.NewLine,
+					base.Message,
+					Low,
+					High,
+					Actual ?? "(null)"
+				);
 			}
 		}
 	}

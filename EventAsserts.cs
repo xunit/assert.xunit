@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Threading.Tasks;
 using Xunit.Sdk;
 
@@ -97,22 +101,48 @@ namespace Xunit
 			return raisedEvent;
 		}
 
+#if XUNIT_NULLABLE
+		static RaisedEvent<T>? RaisesInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
+#else
 		static RaisedEvent<T> RaisesInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
+#endif
 			where T : EventArgs
 		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+#if XUNIT_NULLABLE
+			RaisedEvent<T>? raisedEvent = null;
+			void handler(object? s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
+#else
 			RaisedEvent<T> raisedEvent = null;
 			EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
+#endif
 			attach(handler);
 			testCode();
 			detach(handler);
 			return raisedEvent;
 		}
 
+#if XUNIT_NULLABLE
+		static async Task<RaisedEvent<T>?> RaisesAsyncInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
+#else
 		static async Task<RaisedEvent<T>> RaisesAsyncInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
+#endif
 			where T : EventArgs
 		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+#if XUNIT_NULLABLE
+			RaisedEvent<T>? raisedEvent = null;
+			void handler(object? s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
+#else
 			RaisedEvent<T> raisedEvent = null;
 			EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
+#endif
 			attach(handler);
 			await testCode();
 			detach(handler);
@@ -129,7 +159,11 @@ namespace Xunit
 			/// <summary>
 			/// The sender of the event.
 			/// </summary>
+#if XUNIT_NULLABLE
+			public object? Sender { get; }
+#else
 			public object Sender { get; }
+#endif
 
 			/// <summary>
 			/// The event arguments.
@@ -141,7 +175,11 @@ namespace Xunit
 			/// </summary>
 			/// <param name="sender">The sender of the event.</param>
 			/// <param name="args">The event arguments</param>
+#if XUNIT_NULLABLE
+			public RaisedEvent(object? sender, T args)
+#else
 			public RaisedEvent(object sender, T args)
+#endif
 			{
 				Sender = sender;
 				Arguments = args;

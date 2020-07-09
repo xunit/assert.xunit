@@ -1,4 +1,8 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -15,7 +19,11 @@ namespace Xunit.Sdk
 #endif
 	class RaisesException : XunitException
 	{
+#if XUNIT_NULLABLE
+		readonly string? stackTrace = null;
+#else
 		readonly string stackTrace = null;
+#endif
 
 		/// <summary>
 		/// Creates a new instance of the <see cref="RaisesException" /> class. Call this constructor
@@ -26,7 +34,7 @@ namespace Xunit.Sdk
 			: base("(No event was raised)")
 		{
 			Expected = ConvertToSimpleTypeName(expected.GetTypeInfo());
-			Actual = UserMessage;
+			Actual = "(No event was raised)";
 		}
 
 		/// <summary>
@@ -61,12 +69,14 @@ namespace Xunit.Sdk
 		{
 			get
 			{
-				return string.Format(CultureInfo.CurrentCulture,
-									 "{0}{3}{1}{3}{2}",
-									 base.Message,
-									 Expected ?? "(null)",
-									 Actual ?? "(null)",
-									 Environment.NewLine);
+				return string.Format(
+					CultureInfo.CurrentCulture,
+					"{0}{3}{1}{3}{2}",
+					base.Message,
+					Expected ?? "(null)",
+					Actual ?? "(null)",
+					Environment.NewLine
+				);
 			}
 		}
 
@@ -74,10 +84,11 @@ namespace Xunit.Sdk
 		/// Gets a string representation of the frames on the call stack at the time the current exception was thrown.
 		/// </summary>
 		/// <returns>A string that describes the contents of the call stack, with the most recent method call appearing first.</returns>
-		public override string StackTrace
-		{
-			get { return stackTrace ?? base.StackTrace; }
-		}
+#if XUNIT_NULLABLE
+		public override string? StackTrace => stackTrace ?? base.StackTrace;
+#else
+		public override string StackTrace => stackTrace ?? base.StackTrace;
+#endif
 
 		static string ConvertToSimpleTypeName(TypeInfo typeInfo)
 		{

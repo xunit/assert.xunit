@@ -1,4 +1,8 @@
-﻿using System.Globalization;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+using System.Globalization;
 
 namespace Xunit.Sdk
 {

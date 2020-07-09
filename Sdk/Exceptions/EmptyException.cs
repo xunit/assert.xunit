@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 using System.Collections;
 
@@ -18,7 +22,6 @@ namespace Xunit.Sdk
 		/// </summary>
 		public EmptyException(IEnumerable collection)
 			: base("<empty>", ArgumentFormatter.Format(collection), "Assert.Empty() Failure")
-		{
-		}
+		{ }
 	}
 }
