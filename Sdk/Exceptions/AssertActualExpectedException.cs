@@ -29,7 +29,7 @@ namespace Xunit.Sdk
 		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
 #if XUNIT_NULLABLE
-		public AssertActualExpectedException(object? expected, object? actual, string userMessage, string? expectedTitle = null, string? actualTitle = null)
+		public AssertActualExpectedException(object? expected, object? actual, string? userMessage, string? expectedTitle = null, string? actualTitle = null)
 #else
 		public AssertActualExpectedException(object expected, object actual, string userMessage, string expectedTitle = null, string actualTitle = null)
 #endif
@@ -46,7 +46,7 @@ namespace Xunit.Sdk
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
 		/// <param name="innerException">The inner exception.</param>
 #if XUNIT_NULLABLE
-		public AssertActualExpectedException(object? expected, object? actual, string userMessage, string? expectedTitle, string? actualTitle, Exception? innerException)
+		public AssertActualExpectedException(object? expected, object? actual, string? userMessage, string? expectedTitle, string? actualTitle, Exception? innerException)
 #else
 		public AssertActualExpectedException(object expected, object actual, string userMessage, string expectedTitle, string actualTitle, Exception innerException)
 #endif

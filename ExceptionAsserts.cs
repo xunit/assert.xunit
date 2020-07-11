@@ -39,7 +39,11 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+#if XUNIT_NULLABLE
+		public static T Throws<T>(Func<object?> testCode)
+#else
 		public static T Throws<T>(Func<object> testCode)
+#endif
 			where T : Exception
 		{
 			return (T)Throws(typeof(T), RecordException(testCode));
@@ -85,7 +89,11 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+#if XUNIT_NULLABLE
+		public static T ThrowsAny<T>(Func<object?> testCode)
+#else
 		public static T ThrowsAny<T>(Func<object> testCode)
+#endif
 			where T : Exception
 		{
 			return (T)ThrowsAny(typeof(T), RecordException(testCode));
@@ -124,7 +132,11 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+#if XUNIT_NULLABLE
+		public static Exception Throws(Type exceptionType, Func<object?> testCode)
+#else
 		public static Exception Throws(Type exceptionType, Func<object> testCode)
+#endif
 		{
 			return Throws(exceptionType, RecordException(testCode));
 		}
@@ -201,7 +213,11 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+#if XUNIT_NULLABLE
+		public static T Throws<T>(string paramName, Func<object?> testCode)
+#else
 		public static T Throws<T>(string paramName, Func<object> testCode)
+#endif
 			where T : ArgumentException
 		{
 			GuardArgumentNotNull(nameof(paramName), paramName);
