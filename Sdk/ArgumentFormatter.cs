@@ -52,7 +52,7 @@ namespace Xunit.Sdk
 		/// <param name="value">The value to be formatted.</param>
 		/// <returns>The formatted value.</returns>
 #if XUNIT_NULLABLE
-		public static string? Format(object? value)
+		public static string Format(object? value)
 #else
 		public static string Format(object value)
 #endif
@@ -61,7 +61,7 @@ namespace Xunit.Sdk
 		}
 
 #if XUNIT_NULLABLE
-		static string? Format(object? value, int depth)
+		static string Format(object? value, int depth)
 #else
 		static string Format(object value, int depth)
 #endif
@@ -76,7 +76,7 @@ namespace Xunit.Sdk
 			try
 			{
 				if (value.GetType().GetTypeInfo().IsEnum)
-					return value.ToString()?.Replace(", ", " | ");
+					return value.ToString()?.Replace(", ", " | ") ?? "null";
 
 				if (value is char)
 				{
@@ -128,13 +128,13 @@ namespace Xunit.Sdk
 				{
 					// Sometimes enumerables cannot be enumerated when being, and instead thrown an exception.
 					// This could be, for example, because they require state that is not provided by Xunit.
-					// In these cases, just continue formatting. 
+					// In these cases, just continue formatting.
 				}
 
 				var type = value.GetType();
 				var typeInfo = type.GetTypeInfo();
 				if (typeInfo.IsValueType)
-					return Convert.ToString(value, CultureInfo.CurrentCulture);
+					return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "null";
 
 				var task = value as Task;
 				if (task != null)
@@ -148,9 +148,9 @@ namespace Xunit.Sdk
 
 				if (toString != null && toString.DeclaringType != typeof(object))
 #if XUNIT_NULLABLE
-					return (string?)toString.Invoke(value, EmptyObjects);
+					return ((string?)toString.Invoke(value, EmptyObjects)) ?? "null";
 #else
-					return (string)toString.Invoke(value, EmptyObjects);
+					return ((string)toString.Invoke(value, EmptyObjects)) ?? "null";
 #endif
 
 				return FormatComplexValue(value, depth, type);
@@ -278,16 +278,12 @@ namespace Xunit.Sdk
 			}
 		}
 
-#if XUNIT_NULLABLE
-		static Exception? UnwrapException(Exception? ex)
-#else
 		static Exception UnwrapException(Exception ex)
-#endif
 		{
 			while (true)
 			{
 				var tiex = ex as TargetInvocationException;
-				if (tiex == null)
+				if (tiex == null || tiex.InnerException == null)
 					return ex;
 
 				ex = tiex.InnerException;

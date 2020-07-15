@@ -57,7 +57,7 @@ namespace Xunit
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (expectedRounded != actualRounded)
+			if (!Object.Equals(expectedRounded, actualRounded))
 				throw new EqualException(
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
@@ -160,7 +160,7 @@ namespace Xunit
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (expectedRounded == actualRounded)
+			if (Object.Equals(expectedRounded, actualRounded))
 				throw new NotEqualException(
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
