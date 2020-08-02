@@ -63,6 +63,27 @@ namespace Xunit
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
 				);
 		}
+		
+		/// <summary>
+		/// Verifies that two <see cref="double"/> values are equal, within the number of decimal
+		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
+		/// The rounding method to use is given by <paramref name="rounding" />
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+		/// <param name="rounding">Rounding method to use to process a number that is midway between two numbers</param>
+		public static void Equal(double expected, double actual, int precision, MidpointRounding rounding)
+		{
+			var expectedRounded = Math.Round(expected, precision, rounding);
+			var actualRounded = Math.Round(actual, precision, rounding);
+
+			if (!Object.Equals(expectedRounded, actualRounded))
+				throw new EqualException(
+					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
+				);
+		}
 
 		/// <summary>
 		/// Verifies that two <see cref="decimal"/> values are equal, within the number of decimal
