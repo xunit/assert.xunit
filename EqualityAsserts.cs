@@ -9,6 +9,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Xunit.Sdk;
+#if XUNIT_ASSERT_ARRAY_AS_SPAN
+using System.Linq;
+using static System.MemoryExtensions;
+#endif
 
 namespace Xunit
 {
@@ -19,6 +23,25 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+#if XUNIT_ASSERT_ARRAY_AS_SPAN
+		/// <summary>
+		/// Verifies that two arrays of unmanaged type T are equal, using Span&lt;T&gt;.SequenceEqual.
+		/// </summary>
+		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="EqualException">Thrown when the arrays are not equal</exception>
+		public static void Equal<T>(T[] expected, T[] actual)
+			where T : unmanaged, IEquatable<T>
+		{
+			if (expected == null && actual == null)
+				return;
+			if (expected == null || actual == null)
+				throw new EqualException(expected, actual);
+			if (!expected.AsSpan().SequenceEqual(actual))
+				throw new EqualException(expected, actual);
+		}
+#endif
 		/// <summary>
 		/// Verifies that two objects are equal, using a default comparer.
 		/// </summary>
@@ -170,7 +193,25 @@ namespace Xunit
 		{
 			Equal(expected, actual, EqualityComparer<T>.Default);
 		}
-
+#if XUNIT_ASSERT_ARRAY_AS_SPAN
+		/// <summary>
+		/// Verifies that two arrays of unmanaged type T are not equal, using Span&lt;T&gt;.SequenceEqual.
+		/// </summary>
+		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="NotEqualException">Thrown when the arrays are equal</exception>
+		public static void NotEqual<T>(T[] expected, T[] actual)
+			where T : unmanaged, IEquatable<T>
+		{
+			if (expected == null && actual == null)
+				throw new NotEqualException(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual));
+			if (expected == null || actual == null)
+				return;
+			if (expected.AsSpan().SequenceEqual(actual))
+				throw new NotEqualException(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual));
+		}
+#endif
 		/// <summary>
 		/// Verifies that two objects are not equal, using a default comparer.
 		/// </summary>
