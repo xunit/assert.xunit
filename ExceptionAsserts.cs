@@ -55,6 +55,14 @@ namespace Xunit
 		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static T Throws<T>(Func<Task> testCode) where T : Exception { throw new NotImplementedException(); }
 
+#if XUNIT_VALUETASK
+		/// <summary/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
+		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
+		public static T Throws<T>(Func<ValueTask> testCode) where T : Exception { throw new NotImplementedException(); }
+#endif
+
 		/// <summary>
 		/// Verifies that the exact exception is thrown (and not a derived exception type).
 		/// </summary>
@@ -67,6 +75,21 @@ namespace Xunit
 		{
 			return (T)Throws(typeof(T), await RecordExceptionAsync(testCode));
 		}
+
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Verifies that the exact exception is thrown (and not a derived exception type).
+		/// </summary>
+		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
+		/// <param name="testCode">A delegate to the task to be tested</param>
+		/// <returns>The exception that was thrown, when successful</returns>
+		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+		public static async ValueTask<T> ThrowsAsync<T>(Func<ValueTask> testCode)
+			where T : Exception
+		{
+			return (T)Throws(typeof(T), await RecordExceptionAsync(testCode));
+		}
+#endif
 
 		/// <summary>
 		/// Verifies that the exact exception or a derived exception type is thrown.
@@ -112,6 +135,21 @@ namespace Xunit
 			return (T)ThrowsAny(typeof(T), await RecordExceptionAsync(testCode));
 		}
 
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Verifies that the exact exception or a derived exception type is thrown.
+		/// </summary>
+		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
+		/// <param name="testCode">A delegate to the task to be tested</param>
+		/// <returns>The exception that was thrown, when successful</returns>
+		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+		public static async ValueTask<T> ThrowsAnyAsync<T>(Func<ValueTask> testCode)
+			where T : Exception
+		{
+			return (T)ThrowsAny(typeof(T), await RecordExceptionAsync(testCode));
+		}
+#endif
+
 		/// <summary>
 		/// Verifies that the exact exception is thrown (and not a derived exception type).
 		/// </summary>
@@ -141,6 +179,20 @@ namespace Xunit
 			return Throws(exceptionType, RecordException(testCode));
 		}
 
+		/// <summary/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("You must call Assert.ThrowsAsync (and await the result) when testing async code.", true)]
+		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
+		public static Exception Throws(string paramName, Func<Task> testCode) { throw new NotImplementedException(); }
+
+#if XUNIT_VALUETASK
+		/// <summary/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("You must call Assert.ThrowsAsync (and await the result) when testing async code.", true)]
+		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
+		public static Exception Throws(string paramName, Func<ValueTask> testCode) { throw new NotImplementedException(); }
+#endif
+
 		/// <summary>
 		/// Verifies that the exact exception is thrown (and not a derived exception type).
 		/// </summary>
@@ -152,6 +204,20 @@ namespace Xunit
 		{
 			return Throws(exceptionType, await RecordExceptionAsync(testCode));
 		}
+
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Verifies that the exact exception is thrown (and not a derived exception type).
+		/// </summary>
+		/// <param name="exceptionType">The type of the exception expected to be thrown</param>
+		/// <param name="testCode">A delegate to the task to be tested</param>
+		/// <returns>The exception that was thrown, when successful</returns>
+		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+		public static async ValueTask<Exception> ThrowsAsync(Type exceptionType, Func<ValueTask> testCode)
+		{
+			return Throws(exceptionType, await RecordExceptionAsync(testCode));
+		}
+#endif
 
 #if XUNIT_NULLABLE
 		static Exception Throws(Type exceptionType, Exception? exception)
@@ -233,6 +299,14 @@ namespace Xunit
 		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static T Throws<T>(string paramName, Func<Task> testCode) where T : ArgumentException { throw new NotImplementedException(); }
 
+#if XUNIT_VALUETASK
+		/// <summary/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
+		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
+		public static T Throws<T>(string paramName, Func<ValueTask> testCode) where T : ArgumentException { throw new NotImplementedException(); }
+#endif
+
 		/// <summary>
 		/// Verifies that the exact exception is thrown (and not a derived exception type), where the exception
 		/// derives from <see cref="ArgumentException"/> and has the given parameter name.
@@ -248,5 +322,23 @@ namespace Xunit
 			Equal(paramName, ex.ParamName);
 			return ex;
 		}
+
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Verifies that the exact exception is thrown (and not a derived exception type), where the exception
+		/// derives from <see cref="ArgumentException"/> and has the given parameter name.
+		/// </summary>
+		/// <param name="paramName">The parameter name that is expected to be in the exception</param>
+		/// <param name="testCode">A delegate to the task to be tested</param>
+		/// <returns>The exception that was thrown, when successful</returns>
+		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+		public static async ValueTask<T> ThrowsAsync<T>(string paramName, Func<ValueTask> testCode)
+			where T : ArgumentException
+		{
+			var ex = await ThrowsAsync<T>(testCode);
+			Equal(paramName, ex.ParamName);
+			return ex;
+		}
+#endif
 	}
 }

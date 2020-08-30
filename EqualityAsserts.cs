@@ -63,7 +63,7 @@ namespace Xunit
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
 				);
 		}
-		
+
 		/// <summary>
 		/// Verifies that two <see cref="double"/> values are equal, within the number of decimal
 		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
