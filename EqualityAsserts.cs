@@ -1,8 +1,11 @@
 ﻿#if XUNIT_NULLABLE
 #nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Xunit.Sdk;
@@ -23,7 +26,11 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+#if XUNIT_NULLABLE
+		public static void Equal<T>([AllowNull] T expected, [AllowNull] T actual)
+#else
 		public static void Equal<T>(T expected, T actual)
+#endif
 		{
 			Equal(expected, actual, GetEqualityComparer<T>());
 		}
@@ -36,9 +43,33 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+#if XUNIT_NULLABLE
+		public static void Equal<T>([AllowNull] T expected, [AllowNull] T actual, IEqualityComparer<T> comparer)
+#else
 		public static void Equal<T>(T expected, T actual, IEqualityComparer<T> comparer)
+#endif
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
+
+			var expectedAsIEnum = expected as IEnumerable;
+			var actualAsIEnum = actual as IEnumerable;
+
+			// If both are IEnumerable (or null), see if we got an AssertEqualityComparer<T>, so that
+			// we can invoke it to get the mismatched index.
+			if ((expectedAsIEnum != null && (actual == null || actualAsIEnum != null)) ||
+				(actualAsIEnum != null && expected == null))
+			{
+				var aec = comparer as AssertEqualityComparer<T>;
+				int? mismatchedIndex;
+
+				if (aec != null && !aec.Equals(expected, actual, out mismatchedIndex))
+				{
+					if (mismatchedIndex.HasValue)
+						throw EqualException.FromEnumerable(expectedAsIEnum, actualAsIEnum, mismatchedIndex.Value);
+					else
+						throw new EqualException(expected, actual);
+				}
+			}
 
 			if (!comparer.Equals(expected, actual))
 				throw new EqualException(expected, actual);

@@ -3,6 +3,7 @@
 #endif
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -61,10 +62,19 @@ namespace Xunit.Sdk
 #else
 		public EqualException(string expected, string actual, int expectedIndex, int actualIndex)
 #endif
+			: this(expected, actual, expectedIndex, actualIndex, null)
+		{ }
+
+#if XUNIT_NULLABLE
+		EqualException(string? expected, string? actual, int expectedIndex, int actualIndex, int? pointerPosition)
+#else
+		EqualException(string expected, string actual, int expectedIndex, int actualIndex, int? pointerPosition)
+#endif
 			: base(expected, actual, "Assert.Equal() Failure")
 		{
 			ActualIndex = actualIndex;
 			ExpectedIndex = expectedIndex;
+			PointerPosition = pointerPosition;
 		}
 
 		/// <summary>
@@ -91,18 +101,23 @@ namespace Xunit.Sdk
 			}
 		}
 
+		/// <summary>
+		/// Gets the index of the difference between the IEunmerables when converted to a string.
+		/// </summary>
+		public int? PointerPosition { get; private set; }
+
 		string CreateMessage()
 		{
 			if (ExpectedIndex == -1)
 				return base.Message;
 
-			var printedExpected = ShortenAndEncode(Expected, ExpectedIndex, '↓');
-			var printedActual = ShortenAndEncode(Actual, ActualIndex, '↑');
+			var printedExpected = ShortenAndEncode(Expected, PointerPosition ?? ExpectedIndex, '↓', ExpectedIndex);
+			var printedActual = ShortenAndEncode(Actual, PointerPosition ?? ActualIndex, '↑', ActualIndex);
 
 			var sb = new StringBuilder();
 			sb.Append(UserMessage);
 
-			if (printedExpected.Item2 != "")
+			if (!string.IsNullOrWhiteSpace(printedExpected.Item2))
 				sb.AppendFormat(
 					CultureInfo.CurrentCulture,
 					"{0}          {1}",
@@ -118,7 +133,7 @@ namespace Xunit.Sdk
 				printedActual.Item1
 			);
 
-			if (printedActual.Item2 != "")
+			if (!string.IsNullOrWhiteSpace(printedActual.Item2))
 				sb.AppendFormat(
 					CultureInfo.CurrentCulture,
 					"{0}          {1}",
@@ -129,14 +144,39 @@ namespace Xunit.Sdk
 			return sb.ToString();
 		}
 
+		/// <summary>
+		/// Creates a new instance of the <see cref="EqualException"/> class for IEnumerable comparisons.
+		/// </summary>
+		/// <param name="expected">The expected object value</param>
+		/// <param name="actual">The actual object value</param>
+		/// <param name="mismatchIndex">The first index in the expected IEnumerable where the strings differ</param>
 #if XUNIT_NULLABLE
-		static Tuple<string, string> ShortenAndEncode(string? value, int position, char pointer)
+		public static EqualException FromEnumerable(IEnumerable? expected, IEnumerable? actual, int mismatchIndex)
 #else
-		static Tuple<string, string> ShortenAndEncode(string value, int position, char pointer)
+		public static EqualException FromEnumerable(IEnumerable expected, IEnumerable actual, int mismatchIndex)
+#endif
+		{
+			int? pointerPositionExpected;
+			int? pointerPositionActual;
+
+			var expectedText = ArgumentFormatter.Format(expected, out pointerPositionExpected, mismatchIndex);
+			var actualText = ArgumentFormatter.Format(actual, out pointerPositionActual, mismatchIndex);
+			var pointerPosition = (pointerPositionExpected ?? -1) > (pointerPositionActual ?? -1) ? pointerPositionExpected : pointerPositionActual;
+
+			return new EqualException(expectedText, actualText, mismatchIndex, mismatchIndex, pointerPosition);
+		}
+
+
+#if XUNIT_NULLABLE
+		static Tuple<string, string> ShortenAndEncode(string? value, int position, char pointer, int? index = null)
+#else
+		static Tuple<string, string> ShortenAndEncode(string value, int position, char pointer, int? index = null)
 #endif
 		{
 			if (value == null)
 				return Tuple.Create("(null)", "");
+
+			index = index ?? position;
 
 			var start = Math.Max(position - 20, 0);
 			var end = Math.Min(position + 41, value.Length);
@@ -171,11 +211,11 @@ namespace Xunit.Sdk
 				if (idx < position)
 					printedPointer.Append(' ', paddingLength);
 				else if (idx == position)
-					printedPointer.AppendFormat("{0} (pos {1})", pointer, position);
+					printedPointer.AppendFormat("{0} (pos {1})", pointer, index);
 			}
 
 			if (value.Length == position)
-				printedPointer.AppendFormat("{0} (pos {1})", pointer, position);
+				printedPointer.AppendFormat("{0} (pos {1})", pointer, index);
 
 			if (end < value.Length)
 				printedValue.Append("···");

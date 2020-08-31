@@ -50,22 +50,54 @@ namespace Xunit.Sdk
 		/// Format the value for presentation.
 		/// </summary>
 		/// <param name="value">The value to be formatted.</param>
+		/// <param name="pointerPosition"></param>
+		/// <param name="errorIndex"></param>
 		/// <returns>The formatted value.</returns>
 #if XUNIT_NULLABLE
-		public static string Format(object? value)
+		public static string Format(object? value, out int? pointerPosition, int? errorIndex = null)
 #else
-		public static string Format(object value)
+		public static string Format(object value, out int? pointerPosition, int? errorIndex = null)
 #endif
 		{
-			return Format(value, 1);
+			return Format(value, 1, out pointerPosition, errorIndex);
+		}
+
+		/// <summary>
+		/// Format the value for presentation.
+		/// </summary>
+		/// <param name="value">The value to be formatted.</param>
+		/// <param name="errorIndex"></param>
+		/// <returns>The formatted value.</returns>
+#if XUNIT_NULLABLE
+		public static string Format(object? value, int? errorIndex = null)
+#else
+		public static string Format(object value, int? errorIndex = null)
+#endif
+		{
+			int? pointerPosition;
+
+			return Format(value, 1, out pointerPosition, errorIndex);
 		}
 
 #if XUNIT_NULLABLE
-		static string Format(object? value, int depth)
+		static string FormatInner(object? value, int depth)
 #else
-		static string Format(object value, int depth)
+		static string FormatInner(object value, int depth)
 #endif
 		{
+			int? pointerPosition;
+
+			return Format(value, depth, out pointerPosition, null);
+		}
+
+#if XUNIT_NULLABLE
+		static string Format(object? value, int depth, out int? pointerPostion, int? errorIndex = null)
+#else
+		static string Format(object value, int depth, out int? pointerPostion, int? errorIndex = null)
+#endif
+		{
+			pointerPostion = null;
+
 			if (value == null)
 				return "null";
 
@@ -111,7 +143,7 @@ namespace Xunit.Sdk
 					stringParameter = stringParameter.Replace(@"""", @"\"""); // escape double quotes
 					if (stringParameter.Length > MAX_STRING_LENGTH)
 					{
-						string displayed = stringParameter.Substring(0, MAX_STRING_LENGTH);
+						var displayed = stringParameter.Substring(0, MAX_STRING_LENGTH);
 						return $"\"{displayed}\"...";
 					}
 
@@ -122,7 +154,7 @@ namespace Xunit.Sdk
 				{
 					var enumerable = value as IEnumerable;
 					if (enumerable != null)
-						return FormatEnumerable(enumerable.Cast<object>(), depth);
+						return FormatEnumerable(enumerable.Cast<object>(), depth, errorIndex, out pointerPostion);
 				}
 				catch
 				{
@@ -198,16 +230,55 @@ namespace Xunit.Sdk
 			return $"{type.Name} {{ {formattedParameters} }}";
 		}
 
-		static string FormatEnumerable(IEnumerable<object> enumerableValues, int depth)
+		static string FormatEnumerable(IEnumerable<object> enumerableValues, int depth, int? neededIndex, out int? pointerPostion)
 		{
+			pointerPostion = null;
+
 			if (depth == MAX_DEPTH)
 				return "[...]";
 
-			var values = enumerableValues.Take(MAX_ENUMERABLE_LENGTH + 1).ToList();
-			var printedValues = string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => Format(x, depth + 1)));
+			var printedValues = string.Empty;
 
-			if (values.Count > MAX_ENUMERABLE_LENGTH)
-				printedValues += ", ...";
+			if (neededIndex.HasValue)
+			{
+				var enumeratedValues = enumerableValues.ToList();
+
+				var half = (int)Math.Floor(MAX_ENUMERABLE_LENGTH / 2m);
+				var startIndex = Math.Max(0, neededIndex.Value - half);
+				var endIndex = Math.Min(enumeratedValues.Count, startIndex + MAX_ENUMERABLE_LENGTH);
+				startIndex = Math.Max(0, endIndex - MAX_ENUMERABLE_LENGTH);
+
+				var leftCount = neededIndex.Value - startIndex;
+
+				if (startIndex != 0)
+					printedValues += "..., ";
+
+				var leftValues = enumeratedValues.Skip(startIndex).Take(leftCount).ToList();
+				var rightValues = enumeratedValues.Skip(startIndex + leftCount).Take(MAX_ENUMERABLE_LENGTH - leftCount + 1).ToList();
+
+				// Values to the left of the difference
+				if (leftValues.Count > 0)
+				{
+					printedValues += string.Join(", ", leftValues.Select(x => FormatInner(x, depth + 1)));
+
+					if (rightValues.Count > 0)
+						printedValues += ", ";
+				}
+
+				pointerPostion = printedValues.Length + 1;
+
+				// Difference value and values to the right
+				printedValues += string.Join(", ", rightValues.Take(MAX_ENUMERABLE_LENGTH - leftCount).Select(x => FormatInner(x, depth + 1)));
+				if (leftValues.Count + rightValues.Count > MAX_ENUMERABLE_LENGTH)
+					printedValues += ", ...";
+			}
+			else
+			{
+				var values = enumerableValues.Take(MAX_ENUMERABLE_LENGTH + 1).ToList();
+				printedValues += string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => FormatInner(x, depth + 1)));
+				if (values.Count > MAX_ENUMERABLE_LENGTH)
+					printedValues += ", ...";
+			}
 
 			return $"[{printedValues}]";
 		}
@@ -263,14 +334,14 @@ namespace Xunit.Sdk
 		}
 
 #if XUNIT_NULLABLE
-		static string? WrapAndGetFormattedValue(Func<object?> getter, int depth)
+		static string WrapAndGetFormattedValue(Func<object?> getter, int depth)
 #else
 		static string WrapAndGetFormattedValue(Func<object> getter, int depth)
 #endif
 		{
 			try
 			{
-				return Format(getter(), depth + 1);
+				return FormatInner(getter(), depth + 1);
 			}
 			catch (Exception ex)
 			{

@@ -43,6 +43,19 @@ namespace Xunit.Sdk
 		public bool Equals(T x, T y)
 #endif
 		{
+			int? mismatchIndex;
+
+			return Equals(x, y, out mismatchIndex);
+		}
+
+		/// <inheritdoc/>
+#if XUNIT_NULLABLE
+		public bool Equals([AllowNull] T x, [AllowNull] T y, out int? mismatchIndex)
+#else
+		public bool Equals(T x, T y, out int? mismatchIndex)
+#endif
+		{
+			mismatchIndex = null;
 			var typeInfo = typeof(T).GetTypeInfo();
 
 			// Null?
@@ -99,7 +112,7 @@ namespace Xunit.Sdk
 				return setsEqual.GetValueOrDefault();
 
 			// Enumerable?
-			var enumerablesEqual = CheckIfEnumerablesAreEqual(x, y);
+			var enumerablesEqual = CheckIfEnumerablesAreEqual(x, y, out mismatchIndex);
 			if (enumerablesEqual.HasValue)
 			{
 				if (!enumerablesEqual.GetValueOrDefault())
@@ -174,11 +187,13 @@ namespace Xunit.Sdk
 		}
 
 #if XUNIT_NULLABLE
-		bool? CheckIfEnumerablesAreEqual([AllowNull] T x, [AllowNull] T y)
+		bool? CheckIfEnumerablesAreEqual([AllowNull] T x, [AllowNull] T y, out int? mismatchIndex)
 #else
-		bool? CheckIfEnumerablesAreEqual(T x, T y)
+		bool? CheckIfEnumerablesAreEqual(T x, T y, out int? mismatchIndex)
 #endif
 		{
+			mismatchIndex = null;
+
 			var enumerableX = x as IEnumerable;
 			var enumerableY = y as IEnumerable;
 
@@ -194,16 +209,28 @@ namespace Xunit.Sdk
 				enumeratorY = enumerableY.GetEnumerator();
 				var equalityComparer = innerComparerFactory();
 
+				mismatchIndex = 0;
+
 				while (true)
 				{
 					var hasNextX = enumeratorX.MoveNext();
 					var hasNextY = enumeratorY.MoveNext();
 
 					if (!hasNextX || !hasNextY)
-						return hasNextX == hasNextY;
+					{
+						if (hasNextX == hasNextY)
+						{
+							mismatchIndex = null;
+							return true;
+						}
+
+						return false;
+					}
 
 					if (!equalityComparer.Equals(enumeratorX.Current, enumeratorY.Current))
 						return false;
+
+					mismatchIndex++;
 				}
 			}
 			finally
