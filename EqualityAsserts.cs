@@ -31,7 +31,11 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the arrays are not equal</exception>
+#if XUNIT_NULLABLE
+		public static void Equal<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
+#else
 		public static void Equal<T>(T[] expected, T[] actual)
+#endif
 			where T : unmanaged, IEquatable<T>
 		{
 			if (expected == null && actual == null)
@@ -201,7 +205,11 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="NotEqualException">Thrown when the arrays are equal</exception>
+#if XUNIT_NULLABLE
+		public static void NotEqual<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
+#else
 		public static void NotEqual<T>(T[] expected, T[] actual)
+#endif
 			where T : unmanaged, IEquatable<T>
 		{
 			if (expected == null && actual == null)
