@@ -31,6 +31,10 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the arrays are not equal</exception>
+		/// <remarks>
+		/// If Span&lt;T&gt;.SequenceEqual fails, a call to Assert.Equal(object, object) is made,
+		/// to provide a more meaningful error message.
+		/// </remarks>
 #if XUNIT_NULLABLE
 		public static void Equal<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
 #else
@@ -43,7 +47,7 @@ namespace Xunit
 			if (expected == null || actual == null)
 				throw new EqualException(expected, actual);
 			if (!expected.AsSpan().SequenceEqual(actual))
-				throw new EqualException(expected, actual);
+				Assert.Equal((object)expected, (object)actual);
 		}
 #endif
 		/// <summary>
