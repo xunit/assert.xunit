@@ -9,10 +9,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using Xunit.Sdk;
-#if XUNIT_ASSERT_ARRAY_AS_SPAN
-using System.Linq;
-using static System.MemoryExtensions;
-#endif
 
 namespace Xunit
 {
@@ -23,7 +19,7 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
-#if XUNIT_ASSERT_ARRAY_AS_SPAN
+#if XUNIT_SPAN
 		/// <summary>
 		/// Verifies that two arrays of unmanaged type T are equal, using Span&lt;T&gt;.SequenceEqual.
 		/// </summary>
@@ -50,6 +46,7 @@ namespace Xunit
 				Assert.Equal((object)expected, (object)actual);
 		}
 #endif
+
 		/// <summary>
 		/// Verifies that two objects are equal, using a default comparer.
 		/// </summary>
@@ -201,7 +198,8 @@ namespace Xunit
 		{
 			Equal(expected, actual, EqualityComparer<T>.Default);
 		}
-#if XUNIT_ASSERT_ARRAY_AS_SPAN
+
+#if XUNIT_SPAN
 		/// <summary>
 		/// Verifies that two arrays of unmanaged type T are not equal, using Span&lt;T&gt;.SequenceEqual.
 		/// </summary>
@@ -224,6 +222,7 @@ namespace Xunit
 				throw new NotEqualException(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual));
 		}
 #endif
+
 		/// <summary>
 		/// Verifies that two objects are not equal, using a default comparer.
 		/// </summary>
