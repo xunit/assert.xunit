@@ -19,6 +19,34 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+#if XUNIT_SPAN
+		/// <summary>
+		/// Verifies that two arrays of unmanaged type T are equal, using Span&lt;T&gt;.SequenceEqual.
+		/// </summary>
+		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="EqualException">Thrown when the arrays are not equal</exception>
+		/// <remarks>
+		/// If Span&lt;T&gt;.SequenceEqual fails, a call to Assert.Equal(object, object) is made,
+		/// to provide a more meaningful error message.
+		/// </remarks>
+#if XUNIT_NULLABLE
+		public static void Equal<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
+#else
+		public static void Equal<T>(T[] expected, T[] actual)
+#endif
+			where T : unmanaged, IEquatable<T>
+		{
+			if (expected == null && actual == null)
+				return;
+
+			// Call into Equal<object> so we get proper formatting of the sequence
+			if (expected == null || actual == null || !expected.AsSpan().SequenceEqual(actual))
+				Equal<object>(expected, actual);
+		}
+#endif
+
 		/// <summary>
 		/// Verifies that two objects are equal, using a default comparer.
 		/// </summary>
@@ -170,6 +198,31 @@ namespace Xunit
 		{
 			Equal(expected, actual, EqualityComparer<T>.Default);
 		}
+
+#if XUNIT_SPAN
+		/// <summary>
+		/// Verifies that two arrays of unmanaged type T are not equal, using Span&lt;T&gt;.SequenceEqual.
+		/// </summary>
+		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="NotEqualException">Thrown when the arrays are equal</exception>
+#if XUNIT_NULLABLE
+		public static void NotEqual<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
+#else
+		public static void NotEqual<T>(T[] expected, T[] actual)
+#endif
+			where T : unmanaged, IEquatable<T>
+		{
+			// Call into NotEqual<object> so we get proper formatting of the sequence
+			if (expected == null && actual == null)
+				NotEqual<object>(expected, actual);
+			if (expected == null || actual == null)
+				return;
+			if (expected.AsSpan().SequenceEqual(actual))
+				NotEqual<object>(expected, actual);
+		}
+#endif
 
 		/// <summary>
 		/// Verifies that two objects are not equal, using a default comparer.
