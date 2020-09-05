@@ -1,3 +1,7 @@
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
@@ -5,86 +9,165 @@ using System.Threading.Tasks;
 
 namespace Xunit
 {
-#if XUNIT_VISIBILITY_INTERNAL 
-    internal
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
 #else
-    public
+	public
 #endif
-    partial class Assert
-    {
-        /// <summary>
-        /// Records any exception which is thrown by the given code.
-        /// </summary>
-        /// <param name="testCode">The code which may thrown an exception.</param>
-        /// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
-        protected static Exception RecordException(Action testCode)
-        {
-            Assert.GuardArgumentNotNull("testCode", testCode);
+	partial class Assert
+	{
+		/// <summary>
+		/// Records any exception which is thrown by the given code.
+		/// </summary>
+		/// <param name="testCode">The code which may thrown an exception.</param>
+		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static Exception? RecordException(Action testCode)
+#else
+		protected static Exception RecordException(Action testCode)
+#endif
+		{
+			GuardArgumentNotNull(nameof(testCode), testCode);
 
-            try
-            {
-                testCode();
-                return null;
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-        }
+			try
+			{
+				testCode();
+				return null;
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+		}
 
-        /// <summary>
-        /// Records any exception which is thrown by the given code that has
-        /// a return value. Generally used for testing property accessors.
-        /// </summary>
-        /// <param name="testCode">The code which may thrown an exception.</param>
-        /// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
-        protected static Exception RecordException(Func<object> testCode)
-        {
-            Assert.GuardArgumentNotNull("testCode", testCode);
-            Task task;
+		/// <summary>
+		/// Records any exception which is thrown by the given code that has
+		/// a return value. Generally used for testing property accessors.
+		/// </summary>
+		/// <param name="testCode">The code which may thrown an exception.</param>
+		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static Exception? RecordException(Func<object?> testCode)
+#else
+		protected static Exception RecordException(Func<object> testCode)
+#endif
+		{
+			GuardArgumentNotNull(nameof(testCode), testCode);
+			var task = default(Task);
 
-            try
-            {
-                task = testCode() as Task;
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
+			try
+			{
+				task = testCode() as Task;
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
 
-            if (task != null)
-                throw new InvalidOperationException("You must call Assert.ThrowsAsync, Assert.DoesNotThrowAsync, or Record.ExceptionAsync when testing async code.");
+			if (task != null)
+				throw new InvalidOperationException("You must call Assert.ThrowsAsync, Assert.DoesNotThrowAsync, or Record.ExceptionAsync when testing async code.");
 
-            return null;
-        }
+			return null;
+		}
 
-        /// <summary/>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("You must call Record.ExceptionAsync (and await the result) when testing async code.", true)]
-        [SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
-        protected static Exception RecordException(Func<Task> testCode) { throw new NotImplementedException(); }
+		/// <summary/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
+		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
+		protected static Exception RecordException(Func<Task> testCode) { throw new NotImplementedException(); }
 
-        /// <summary>
-        /// Records any exception which is thrown by the given task.
-        /// </summary>
-        /// <param name="testCode">The task which may thrown an exception.</param>
-        /// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
-        protected static async Task<Exception> RecordExceptionAsync(Func<Task> testCode)
-        {
-            Assert.GuardArgumentNotNull("testCode", testCode);
+#if XUNIT_VALUETASK
+		/// <summary/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
+		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
+		protected static Exception RecordException(Func<ValueTask> testCode) { throw new NotImplementedException(); }
 
-            try
-            {
-                await testCode();
-                return null;
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-        }
-    }
+		/// <summary/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
+		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
+		protected static Exception RecordException<T>(Func<ValueTask<T>> testCode) { throw new NotImplementedException(); }
+#endif
+
+		/// <summary>
+		/// Records any exception which is thrown by the given task.
+		/// </summary>
+		/// <param name="testCode">The task which may thrown an exception.</param>
+		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static async Task<Exception?> RecordExceptionAsync(Func<Task> testCode)
+#else
+		protected static async Task<Exception> RecordExceptionAsync(Func<Task> testCode)
+#endif
+		{
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			try
+			{
+				await testCode();
+				return null;
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+		}
+
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Records any exception which is thrown by the given task.
+		/// </summary>
+		/// <param name="testCode">The task which may thrown an exception.</param>
+		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static async ValueTask<Exception?> RecordExceptionAsync(Func<ValueTask> testCode)
+#else
+		protected static async ValueTask<Exception> RecordExceptionAsync(Func<ValueTask> testCode)
+#endif
+		{
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			try
+			{
+				await testCode();
+				return null;
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+		}
+
+		/// <summary>
+		/// Records any exception which is thrown by the given task.
+		/// </summary>
+		/// <param name="testCode">The task which may thrown an exception.</param>
+		/// <typeparam name="T">The type of the ValueTask return value.</typeparam>
+		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
+#if XUNIT_NULLABLE
+		protected static async ValueTask<Exception?> RecordExceptionAsync<T>(Func<ValueTask<T>> testCode)
+#else
+		protected static async ValueTask<Exception> RecordExceptionAsync<T>(Func<ValueTask<T>> testCode)
+#endif
+		{
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			try
+			{
+				await testCode();
+				return null;
+			}
+			catch (Exception ex)
+			{
+				return ex;
+			}
+		}
+#endif
+	}
 }
