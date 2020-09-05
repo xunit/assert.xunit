@@ -194,7 +194,7 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
-		public static void StrictEqual<T>(T expected, T actual)
+		public static void StrictEqual<T>([AllowNull] T expected, [AllowNull] T actual)
 		{
 			Equal(expected, actual, EqualityComparer<T>.Default);
 		}
@@ -231,7 +231,7 @@ namespace Xunit
 		/// <param name="expected">The expected object</param>
 		/// <param name="actual">The actual object</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
-		public static void NotEqual<T>(T expected, T actual)
+		public static void NotEqual<T>([AllowNull] T expected, [AllowNull] T actual)
 		{
 			NotEqual(expected, actual, GetEqualityComparer<T>());
 		}
@@ -244,7 +244,7 @@ namespace Xunit
 		/// <param name="actual">The actual object</param>
 		/// <param name="comparer">The comparer used to examine the objects</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
-		public static void NotEqual<T>(T expected, T actual, IEqualityComparer<T> comparer)
+		public static void NotEqual<T>([AllowNull] T expected, [AllowNull] T actual, IEqualityComparer<T> comparer)
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
@@ -299,7 +299,7 @@ namespace Xunit
 		/// <param name="expected">The expected object</param>
 		/// <param name="actual">The actual object</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
-		public static void NotStrictEqual<T>(T expected, T actual)
+		public static void NotStrictEqual<T>([AllowNull] T expected, [AllowNull] T actual)
 		{
 			NotEqual(expected, actual, EqualityComparer<T>.Default);
 		}
