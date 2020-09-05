@@ -10,18 +10,15 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+		//NOTE: ref struct types (Span, ReadOnlySpan) are not Nullable, and thus there is no XUNIT_NULLABLE usage currently in this class
+		//		This also means that null spans are identical to empty spans, (both in essence point to a 0 sized array of whatever type)
 
 		//NOTE: we could consider StartsWith<T> and EndsWith<T> and use the Span extension methods to check difference, but, the current 
 		//		Exceptions for startswith and endswith are only built for string types, so those would need a change (or new non-string versions created).
 
-		//NOTE: ref struct types (Span, ReadOnlySpan) are not Nullable, and thus there is no XUNIT_NULLABLE usage currently in this class
-		//		This also means that null spans are identical to empty spans, (both in essence point to an empty array of whatever type)
-
-		//NOTE: all MemoryAsserts are dependent on Span asserts. The memory asserts use the .span property of memory to perform assertions
-
-		//NOTE: there is an implicit conversion operator on Span<T> to ReadOnlySpan<T> I didn't create permutations of all the combinations 
-		//		of Span and ReadOnlySpan for each method, but I did create permutations for each first argument as a hint to the compiler to help 
-		//		it select the right method. Without these null arguments can cause compiler errors
+		//NOTE: there is an implicit conversion operator on Span<T> to ReadOnlySpan<T> - however, I have found that the compiler sometimes struggles
+		//		with identifying the proper methods to use, thus I have overloaded quite a few of the assertions in terms of supplying both
+		//		Span and ReadOnlySpan based methods
 
 		/// <summary>
 		/// Verifies that a span contains a given sub-span, using the default StringComparison.CurrentCulture comparison type.
@@ -252,6 +249,15 @@ namespace Xunit
 		/// <param name="actualSpan">The actual span value.</param>
 		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
 		public static void Equal<T>(Span<T> expectedSpan, Span<T> actualSpan) where T : IEquatable<T>
+			=> Equal(expectedSpan.ToArray(), actualSpan.ToArray(), GetEqualityComparer<T>());
+
+		/// <summary>
+		/// Verifies that two spans are equivalent.
+		/// </summary>
+		/// <param name="expectedSpan">The expected span value.</param>
+		/// <param name="actualSpan">The actual span value.</param>
+		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
+		public static void Equal<T>(ReadOnlySpan<T> expectedSpan, Span<T> actualSpan) where T : IEquatable<T>
 			=> Equal(expectedSpan.ToArray(), actualSpan.ToArray(), GetEqualityComparer<T>());
 	}
 }

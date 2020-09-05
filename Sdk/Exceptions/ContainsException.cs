@@ -36,7 +36,5 @@ namespace Xunit.Sdk
 		/// <param name="actual">The actual value</param>
 		public static ContainsException Create<T>(ReadOnlySpan<T> expected, ReadOnlySpan<T> actual) =>
 			RefStructExceptionHelper.CreateException(expected, actual, (e, a) => new ContainsException(e, a));
-
-
 	}
 }

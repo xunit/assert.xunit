@@ -37,6 +37,5 @@ namespace Xunit.Sdk
 		/// <returns></returns>
 		public static DoesNotContainException Create<T>(ReadOnlySpan<T> expected, ReadOnlySpan<T> actual) =>
 			RefStructExceptionHelper.CreateException(expected, actual, (e, a) => new DoesNotContainException(e, a));
-
 	}
 }
