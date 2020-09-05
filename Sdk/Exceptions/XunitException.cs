@@ -45,9 +45,9 @@ namespace Xunit.Sdk
 		/// <param name="userMessage">The user message to be displayed</param>
 		/// <param name="innerException">The inner exception</param>
 #if XUNIT_NULLABLE
-		protected XunitException(string? userMessage, Exception? innerException)
+		public XunitException(string? userMessage, Exception? innerException)
 #else
-		protected XunitException(string userMessage, Exception innerException)
+		public XunitException(string userMessage, Exception innerException)
 #endif
 			: base(userMessage, innerException)
 		{
