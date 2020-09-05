@@ -40,10 +40,10 @@ namespace Xunit
 		{
 			if (expected == null && actual == null)
 				return;
-			if (expected == null || actual == null)
-				throw new EqualException(expected, actual);
-			if (!expected.AsSpan().SequenceEqual(actual))
-				Assert.Equal((object)expected, (object)actual);
+
+			// Call into Equal<object> so we get proper formatting of the sequence
+			if (expected == null || actual == null || !expected.AsSpan().SequenceEqual(actual))
+				Equal<object>(expected, actual);
 		}
 #endif
 
@@ -214,12 +214,13 @@ namespace Xunit
 #endif
 			where T : unmanaged, IEquatable<T>
 		{
+			// Call into NotEqual<object> so we get proper formatting of the sequence
 			if (expected == null && actual == null)
-				throw new NotEqualException(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual));
+				NotEqual<object>(expected, actual);
 			if (expected == null || actual == null)
 				return;
 			if (expected.AsSpan().SequenceEqual(actual))
-				throw new NotEqualException(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual));
+				NotEqual<object>(expected, actual);
 		}
 #endif
 
