@@ -74,7 +74,7 @@ namespace Xunit
 			Memory<T> expectedSubMemory,
 			ReadOnlyMemory<T>? actualMemory)
 				where T : IEquatable<T> =>
-					ContainsImp(expectedSubMemory, actualMemory);
+					Contains((ReadOnlyMemory<T>)expectedSubMemory, actualMemory);
 
 		/// <summary>
 		/// Verifies that a Memory contains a given sub-Memory
@@ -83,12 +83,6 @@ namespace Xunit
 		/// <param name="actualMemory">The Memory to be inspected</param>
 		/// <exception cref="ContainsException">Thrown when the sub-Memory is not present inside the Memory</exception>
 		public static void Contains<T>(
-			ReadOnlyMemory<T> expectedSubMemory,
-			ReadOnlyMemory<T>? actualMemory)
-				where T : IEquatable<T> =>
-					ContainsImp(expectedSubMemory, actualMemory);
-
-		static void ContainsImp<T>(
 			ReadOnlyMemory<T> expectedSubMemory,
 			ReadOnlyMemory<T>? actualMemory)
 				where T : IEquatable<T>
@@ -147,10 +141,10 @@ namespace Xunit
 		/// <param name="actualMemory">The Memory to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when the sub-Memory is present inside the Memory</exception>
 		public static void DoesNotContain<T>(
-			ReadOnlyMemory<T> expectedSubMemory,
+			Memory<T> expectedSubMemory,
 			ReadOnlyMemory<T>? actualMemory)
 				where T : IEquatable<T> =>
-					DoesNotContainImp(expectedSubMemory, actualMemory);
+					DoesNotContain((ReadOnlyMemory<T>)expectedSubMemory, actualMemory);
 
 		/// <summary>
 		/// Verifies that a Memory does not contain a given sub-Memory
@@ -159,12 +153,6 @@ namespace Xunit
 		/// <param name="actualMemory">The Memory to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when the sub-Memory is present inside the Memory</exception>
 		public static void DoesNotContain<T>(
-			Memory<T> expectedSubMemory,
-			ReadOnlyMemory<T>? actualMemory)
-				where T : IEquatable<T> =>
-					DoesNotContainImp(expectedSubMemory, actualMemory);
-
-		static void DoesNotContainImp<T>(
 			ReadOnlyMemory<T> expectedSubMemory,
 			ReadOnlyMemory<T>? actualMemory)
 				where T : IEquatable<T>
@@ -264,7 +252,7 @@ namespace Xunit
 		public static void Equal(
 			Memory<char> expectedMemory,
 			ReadOnlyMemory<char>? actualMemory) =>
-				Equal(expectedMemory, actualMemory, false, false, false);
+				Equal((ReadOnlyMemory<char>)expectedMemory, actualMemory, false, false, false);
 
 		/// <summary>
 		/// Verifies that two Memory values are equivalent.
@@ -288,28 +276,11 @@ namespace Xunit
 		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
 		public static void Equal(
 			Memory<char> expectedMemory,
-			ReadOnlyMemory<char>? actualMemory,
+			Memory<char>? actualMemory,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
 			bool ignoreWhiteSpaceDifferences = false) =>
-				EqualImp(expectedMemory, actualMemory, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
-
-		/// <summary>
-		/// Verifies that two Memory values are equivalent.
-		/// </summary>
-		/// <param name="expectedMemory">The expected Memory value.</param>
-		/// <param name="actualMemory">The actual Memory value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
-		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
-		public static void Equal(
-			ReadOnlyMemory<char> expectedMemory,
-			ReadOnlyMemory<char>? actualMemory,
-			bool ignoreCase = false,
-			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false) =>
-				EqualImp(expectedMemory, actualMemory, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+				Equal((ReadOnlyMemory<char>)expectedMemory, actualMemory, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
 
 		/// <summary>
 		/// Verifies that two Memory values are equivalent.
@@ -322,15 +293,22 @@ namespace Xunit
 		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
 		public static void Equal(
 			Memory<char> expectedMemory,
-			Memory<char>? actualMemory,
+			ReadOnlyMemory<char>? actualMemory,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
 			bool ignoreWhiteSpaceDifferences = false) =>
-				EqualImp(expectedMemory, actualMemory, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+				Equal((ReadOnlyMemory<char>)expectedMemory, actualMemory, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
 
-		// TODO: We should rewrite the string assertion logic in terms of ReadOnlySpan<T> (I think?) so that it's faster
-		// for Span and Memory users, rather than converting Span and Memory into strings.
-		static void EqualImp(
+		/// <summary>
+		/// Verifies that two Memory values are equivalent.
+		/// </summary>
+		/// <param name="expectedMemory">The expected Memory value.</param>
+		/// <param name="actualMemory">The actual Memory value.</param>
+		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
+		public static void Equal(
 			ReadOnlyMemory<char> expectedMemory,
 			ReadOnlyMemory<char>? actualMemory,
 			bool ignoreCase = false,
@@ -348,44 +326,38 @@ namespace Xunit
 		/// <param name="actualMemory">The actual Memory value.</param>
 		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
 		public static void Equal<T>(
-			ReadOnlyMemory<T> expectedMemory,
-			ReadOnlyMemory<T> actualMemory)
-				where T : IEquatable<T> =>
-					EqualImp(expectedMemory, actualMemory);
-
-		/// <summary>
-		/// Verifies that two Memory values are equivalent.
-		/// </summary>
-		/// <param name="expectedMemory">The expected Memory value.</param>
-		/// <param name="actualMemory">The actual Memory value.</param>
-		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
-		public static void Equal<T>(
-			Memory<T> expectedMemory,
-			ReadOnlyMemory<T> actualMemory)
-				where T : IEquatable<T> =>
-					EqualImp(expectedMemory, actualMemory);
-
-		/// <summary>
-		/// Verifies that two Memory values are equivalent.
-		/// </summary>
-		/// <param name="expectedMemory">The expected Memory value.</param>
-		/// <param name="actualMemory">The actual Memory value.</param>
-		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
-		public static void Equal<T>(
 			Memory<T> expectedMemory,
 			Memory<T> actualMemory)
 				where T : IEquatable<T> =>
-					EqualImp<T>(expectedMemory, actualMemory);
+					Equal((ReadOnlyMemory<T>)expectedMemory, actualMemory);
 
-		static void EqualImp<T>(
+		/// <summary>
+		/// Verifies that two Memory values are equivalent.
+		/// </summary>
+		/// <param name="expectedMemory">The expected Memory value.</param>
+		/// <param name="actualMemory">The actual Memory value.</param>
+		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
+		public static void Equal<T>(
+			Memory<T> expectedMemory,
+			ReadOnlyMemory<T> actualMemory)
+				where T : IEquatable<T> =>
+					Equal((ReadOnlyMemory<T>)expectedMemory, actualMemory);
+
+		/// <summary>
+		/// Verifies that two Memory values are equivalent.
+		/// </summary>
+		/// <param name="expectedMemory">The expected Memory value.</param>
+		/// <param name="actualMemory">The actual Memory value.</param>
+		/// <exception cref="EqualException">Thrown when the Memory values are not equivalent.</exception>
+		public static void Equal<T>(
 			ReadOnlyMemory<T> expectedMemory,
 			ReadOnlyMemory<T> actualMemory)
 				where T : IEquatable<T>
 		{
 			GuardArgumentNotNull(nameof(expectedMemory), expectedMemory);
 
-			// TODO: This should convert to Span and use SequenceEqual
-			Equal(expectedMemory.Span.ToArray(), actualMemory.Span.ToArray(), GetEqualityComparer<T>());
+			if (!expectedMemory.Span.SequenceEqual(actualMemory.Span))
+				Equal<object>(expectedMemory.Span.ToArray(), actualMemory.Span.ToArray());
 		}
 	}
 }

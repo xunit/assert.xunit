@@ -65,11 +65,8 @@ namespace Xunit
 		public static void Contains<T>(
 			Span<T> expectedSubSpan,
 			ReadOnlySpan<T> actualSpan)
-				where T : IEquatable<T>
-		{
-			if (actualSpan == null || actualSpan.IndexOf(expectedSubSpan) < 0)
-				throw ContainsException.Create(expectedSubSpan, actualSpan);
-		}
+				where T : IEquatable<T> =>
+					Contains((ReadOnlySpan<T>)expectedSubSpan, actualSpan);
 
 		/// <summary>
 		/// Verifies that a span contains a given sub-span
@@ -129,13 +126,10 @@ namespace Xunit
 		/// <param name="actualSpan">The span to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when the sub-span is present inside the span</exception>
 		public static void DoesNotContain<T>(
-			ReadOnlySpan<T> expectedSubSpan,
+			Span<T> expectedSubSpan,
 			ReadOnlySpan<T> actualSpan)
-				where T : IEquatable<T>
-		{
-			if (actualSpan != null && actualSpan.IndexOf(expectedSubSpan) >= 0)
-				throw DoesNotContainException.Create(expectedSubSpan, actualSpan);
-		}
+				where T : IEquatable<T> =>
+					DoesNotContain((ReadOnlySpan<T>)expectedSubSpan, actualSpan);
 
 		/// <summary>
 		/// Verifies that a span does not contain a given sub-span
@@ -144,7 +138,7 @@ namespace Xunit
 		/// <param name="actualSpan">The span to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when the sub-span is present inside the span</exception>
 		public static void DoesNotContain<T>(
-			Span<T> expectedSubSpan,
+			ReadOnlySpan<T> expectedSubSpan,
 			ReadOnlySpan<T> actualSpan)
 				where T : IEquatable<T>
 		{
@@ -231,7 +225,7 @@ namespace Xunit
 		public static void Equal(
 			Span<char> expectedSpan,
 			ReadOnlySpan<char> actualSpan) =>
-				Equal(expectedSpan, actualSpan, false, false, false);
+				Equal((ReadOnlySpan<char>)expectedSpan, actualSpan, false, false, false);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -259,7 +253,7 @@ namespace Xunit
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
 			bool ignoreWhiteSpaceDifferences = false) =>
-				Equal(expectedSpan.ToString(), actualSpan.ToString(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+				Equal((ReadOnlySpan<char>)expectedSpan, actualSpan, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -285,22 +279,10 @@ namespace Xunit
 		/// <param name="actualSpan">The actual span value.</param>
 		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
 		public static void Equal<T>(
-			ReadOnlySpan<T> expectedSpan,
-			ReadOnlySpan<T> actualSpan)
-				where T : IEquatable<T> =>
-					Equal(expectedSpan.ToArray(), actualSpan.ToArray(), GetEqualityComparer<T>());
-
-		/// <summary>
-		/// Verifies that two spans are equivalent.
-		/// </summary>
-		/// <param name="expectedSpan">The expected span value.</param>
-		/// <param name="actualSpan">The actual span value.</param>
-		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
-		public static void Equal<T>(
 			Span<T> expectedSpan,
 			ReadOnlySpan<T> actualSpan)
 				where T : IEquatable<T> =>
-					Equal(expectedSpan.ToArray(), actualSpan.ToArray(), GetEqualityComparer<T>());
+					Equal((ReadOnlySpan<T>)expectedSpan, actualSpan);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -312,7 +294,7 @@ namespace Xunit
 			Span<T> expectedSpan,
 			Span<T> actualSpan)
 				where T : IEquatable<T> =>
-					Equal(expectedSpan.ToArray(), actualSpan.ToArray(), GetEqualityComparer<T>());
+					Equal((ReadOnlySpan<T>)expectedSpan, (ReadOnlySpan<T>)actualSpan);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -324,6 +306,21 @@ namespace Xunit
 			ReadOnlySpan<T> expectedSpan,
 			Span<T> actualSpan)
 				where T : IEquatable<T> =>
-					Equal(expectedSpan.ToArray(), actualSpan.ToArray(), GetEqualityComparer<T>());
+					Equal(expectedSpan, (ReadOnlySpan<T>)actualSpan);
+
+		/// <summary>
+		/// Verifies that two spans are equivalent.
+		/// </summary>
+		/// <param name="expectedSpan">The expected span value.</param>
+		/// <param name="actualSpan">The actual span value.</param>
+		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
+		public static void Equal<T>(
+			ReadOnlySpan<T> expectedSpan,
+			ReadOnlySpan<T> actualSpan)
+				where T : IEquatable<T>
+		{
+			if (!expectedSpan.SequenceEqual(actualSpan))
+				Equal<object>(expectedSpan.ToArray(), actualSpan.ToArray());
+		}
 	}
 }
