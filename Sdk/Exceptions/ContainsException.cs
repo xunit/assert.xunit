@@ -2,7 +2,6 @@
 #nullable enable
 #endif
 
-using System;
 
 namespace Xunit.Sdk
 {
@@ -28,15 +27,5 @@ namespace Xunit.Sdk
 #endif
 			: base(expected, actual, "Assert.Contains() Failure", "Not found", "In value")
 		{ }
-
-		/// <summary>
-		/// Creates a new instance of the <see cref="ContainsException"/> class.
-		/// </summary>
-		/// <param name="expected">The expected object value</param>
-		/// <param name="actual">The actual value</param>
-		public static ContainsException Create<T>(
-			ReadOnlySpan<T> expected,
-			ReadOnlySpan<T> actual) =>
-				RefStructExceptionHelper.CreateException(expected, actual, (e, a) => new ContainsException(e, a));
 	}
 }

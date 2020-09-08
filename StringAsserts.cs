@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Globalization;
 using System.Text.RegularExpressions;
 using Xunit.Sdk;
 
@@ -306,25 +305,6 @@ namespace Xunit
 
 			if (expectedIndex < expectedLength || actualIndex < actualLength)
 				throw new EqualException(expected, actual, expectedIndex, actualIndex);
-		}
-
-		static bool IsLineEnding(char c) => c == '\r' || c == '\n';
-
-		static bool IsWhiteSpace(char c)
-		{
-			const char mongolianVowelSeparator = '\u180E';
-			const char zeroWidthSpace = '\u200B';
-			const char zeroWidthNoBreakSpace = '\uFEFF';
-			const char tabulation = '\u0009';
-
-			var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-
-			return
-				unicodeCategory == UnicodeCategory.SpaceSeparator ||
-				c == mongolianVowelSeparator ||
-				c == zeroWidthSpace ||
-				c == zeroWidthNoBreakSpace ||
-				c == tabulation;
 		}
 
 		static int SkipLineEnding(string value, int index)
