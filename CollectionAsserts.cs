@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Xunit.Sdk;
 
 namespace Xunit
@@ -17,6 +18,7 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+#if XUNIT_VALUETASK
 		/// <summary>
 		/// Verifies that all items in the collection pass when executed against
 		/// action.
@@ -74,6 +76,7 @@ namespace Xunit
 			if (errors.Count > 0)
 				throw new AllException(idx, errors.ToArray());
 		}
+#endif
 
 		/// <summary>
 		/// Verifies that all items in the collection pass when executed against
@@ -133,6 +136,7 @@ namespace Xunit
 				throw new AllException(idx, errors.ToArray());
 		}
 
+#if XUNIT_VALUETASK
 		/// <summary>
 		/// Verifies that a collection contains exactly a given number of elements, which meet
 		/// the criteria provided by the element inspectors.
@@ -165,6 +169,7 @@ namespace Xunit
 				}
 			}
 		}
+#endif
 
 		/// <summary>
 		/// Verifies that a collection contains exactly a given number of elements, which meet
