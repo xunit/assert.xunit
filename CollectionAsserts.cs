@@ -141,6 +141,39 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="elementInspectors">The element inspectors, which inspect each element in turn. The
 		/// total number of element inspectors must exactly match the number of elements in the collection.</param>
+		public static async ValueTask Collection<T>(IEnumerable<T> collection, params Func<T, ValueTask>[] elementInspectors)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
+
+			var elements = collection.ToArray();
+			var expectedCount = elementInspectors.Length;
+			var actualCount = elements.Length;
+
+			if (expectedCount != actualCount)
+				throw new CollectionException(collection, expectedCount, actualCount);
+
+			for (var idx = 0; idx < actualCount; idx++)
+			{
+				try
+				{
+					await elementInspectors[idx](elements[idx]);
+				}
+				catch (Exception ex)
+				{
+					throw new CollectionException(collection, expectedCount, actualCount, idx, ex);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Verifies that a collection contains exactly a given number of elements, which meet
+		/// the criteria provided by the element inspectors.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection to be inspected</param>
+		/// <param name="elementInspectors">The element inspectors, which inspect each element in turn. The
+		/// total number of element inspectors must exactly match the number of elements in the collection.</param>
 		public static void Collection<T>(IEnumerable<T> collection, params Action<T>[] elementInspectors)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
