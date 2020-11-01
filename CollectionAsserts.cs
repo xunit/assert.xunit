@@ -25,6 +25,64 @@ namespace Xunit
 		/// <param name="collection">The collection</param>
 		/// <param name="action">The action to test each item against</param>
 		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		public static async ValueTask All<T>(IEnumerable<T> collection, Func<T, ValueTask> action)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(action), action);
+
+			await All(collection, async (item, index) => await action(item));
+		}
+
+		/// <summary>
+		/// Verifies that all items in the collection pass when executed against
+		/// action. The item index is provided to the action, in addition to the item.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		public static async ValueTask All<T>(IEnumerable<T> collection, Func<T, int, ValueTask> action)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(action), action);
+
+#if XUNIT_NULLABLE
+			var errors = new Stack<Tuple<int, object?, Exception>>();
+#else
+			var errors = new Stack<Tuple<int, object, Exception>>();
+#endif
+			var idx = 0;
+
+			foreach (var item in collection)
+			{
+				try
+				{
+					await action(item, idx);
+				}
+				catch (Exception ex)
+				{
+#if XUNIT_NULLABLE
+					errors.Push(new Tuple<int, object?, Exception>(idx, item, ex));
+#else
+					errors.Push(new Tuple<int, object, Exception>(idx, item, ex));
+#endif
+				}
+
+				++idx;
+			}
+
+			if (errors.Count > 0)
+				throw new AllException(idx, errors.ToArray());
+		}
+
+		/// <summary>
+		/// Verifies that all items in the collection pass when executed against
+		/// action.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
 		public static void All<T>(IEnumerable<T> collection, Action<T> action)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
