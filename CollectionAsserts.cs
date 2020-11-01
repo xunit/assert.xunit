@@ -18,66 +18,6 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
-#if XUNIT_VALUETASK
-		/// <summary>
-		/// Verifies that all items in the collection pass when executed against
-		/// action.
-		/// </summary>
-		/// <typeparam name="T">The type of the object to be verified</typeparam>
-		/// <param name="collection">The collection</param>
-		/// <param name="action">The action to test each item against</param>
-		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
-		public static async ValueTask All<T>(IEnumerable<T> collection, Func<T, ValueTask> action)
-		{
-			GuardArgumentNotNull(nameof(collection), collection);
-			GuardArgumentNotNull(nameof(action), action);
-
-			await All(collection, async (item, index) => await action(item));
-		}
-
-		/// <summary>
-		/// Verifies that all items in the collection pass when executed against
-		/// action. The item index is provided to the action, in addition to the item.
-		/// </summary>
-		/// <typeparam name="T">The type of the object to be verified</typeparam>
-		/// <param name="collection">The collection</param>
-		/// <param name="action">The action to test each item against</param>
-		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
-		public static async ValueTask All<T>(IEnumerable<T> collection, Func<T, int, ValueTask> action)
-		{
-			GuardArgumentNotNull(nameof(collection), collection);
-			GuardArgumentNotNull(nameof(action), action);
-
-#if XUNIT_NULLABLE
-			var errors = new Stack<Tuple<int, object?, Exception>>();
-#else
-			var errors = new Stack<Tuple<int, object, Exception>>();
-#endif
-			var idx = 0;
-
-			foreach (var item in collection)
-			{
-				try
-				{
-					await action(item, idx);
-				}
-				catch (Exception ex)
-				{
-#if XUNIT_NULLABLE
-					errors.Push(new Tuple<int, object?, Exception>(idx, item, ex));
-#else
-					errors.Push(new Tuple<int, object, Exception>(idx, item, ex));
-#endif
-				}
-
-				++idx;
-			}
-
-			if (errors.Count > 0)
-				throw new AllException(idx, errors.ToArray());
-		}
-#endif
-
 		/// <summary>
 		/// Verifies that all items in the collection pass when executed against
 		/// action.
@@ -138,56 +78,61 @@ namespace Xunit
 
 #if XUNIT_VALUETASK
 		/// <summary>
-		/// Verifies that a collection contains exactly a given number of elements, which meet
-		/// the criteria provided by the element inspectors.
+		/// Verifies that all items in the collection pass when executed against
+		/// action.
 		/// </summary>
 		/// <typeparam name="T">The type of the object to be verified</typeparam>
-		/// <param name="collection">The collection to be inspected</param>
-		public static void Collection<T>(IEnumerable<T> collection)
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		public static async ValueTask AllAsync<T>(IEnumerable<T> collection, Func<T, ValueTask> action)
 		{
-			// This overload is necessary when there are two overloads with a params if you want
-			// to support the case where there are no elements.
 			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(action), action);
 
-			var elements = collection.ToArray();
-			var expectedCount = 0;
-			var actualCount = elements.Length;
-
-			if (expectedCount != actualCount)
-				throw new CollectionException(collection, expectedCount, actualCount);
+			await AllAsync(collection, async (item, index) => await action(item));
 		}
 
 		/// <summary>
-		/// Verifies that a collection contains exactly a given number of elements, which meet
-		/// the criteria provided by the element inspectors.
+		/// Verifies that all items in the collection pass when executed against
+		/// action. The item index is provided to the action, in addition to the item.
 		/// </summary>
 		/// <typeparam name="T">The type of the object to be verified</typeparam>
-		/// <param name="collection">The collection to be inspected</param>
-		/// <param name="elementInspectors">The element inspectors, which inspect each element in turn. The
-		/// total number of element inspectors must exactly match the number of elements in the collection.</param>
-		public static async ValueTask Collection<T>(IEnumerable<T> collection, params Func<T, ValueTask>[] elementInspectors)
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		public static async ValueTask AllAsync<T>(IEnumerable<T> collection, Func<T, int, ValueTask> action)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
-			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
+			GuardArgumentNotNull(nameof(action), action);
 
-			var elements = collection.ToArray();
-			var expectedCount = elementInspectors.Length;
-			var actualCount = elements.Length;
+#if XUNIT_NULLABLE
+			var errors = new Stack<Tuple<int, object?, Exception>>();
+#else
+			var errors = new Stack<Tuple<int, object, Exception>>();
+#endif
+			var idx = 0;
 
-			if (expectedCount != actualCount)
-				throw new CollectionException(collection, expectedCount, actualCount);
-
-			for (var idx = 0; idx < actualCount; idx++)
+			foreach (var item in collection)
 			{
 				try
 				{
-					await elementInspectors[idx](elements[idx]);
+					await action(item, idx);
 				}
 				catch (Exception ex)
 				{
-					throw new CollectionException(collection, expectedCount, actualCount, idx, ex);
+#if XUNIT_NULLABLE
+					errors.Push(new Tuple<int, object?, Exception>(idx, item, ex));
+#else
+					errors.Push(new Tuple<int, object, Exception>(idx, item, ex));
+#endif
 				}
+
+				++idx;
 			}
+
+			if (errors.Count > 0)
+				throw new AllException(idx, errors.ToArray());
 		}
 #endif
 
@@ -223,6 +168,41 @@ namespace Xunit
 				}
 			}
 		}
+
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Verifies that a collection contains exactly a given number of elements, which meet
+		/// the criteria provided by the element inspectors.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection to be inspected</param>
+		/// <param name="elementInspectors">The element inspectors, which inspect each element in turn. The
+		/// total number of element inspectors must exactly match the number of elements in the collection.</param>
+		public static async ValueTask CollectionAsync<T>(IEnumerable<T> collection, params Func<T, ValueTask>[] elementInspectors)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
+
+			var elements = collection.ToArray();
+			var expectedCount = elementInspectors.Length;
+			var actualCount = elements.Length;
+
+			if (expectedCount != actualCount)
+				throw new CollectionException(collection, expectedCount, actualCount);
+
+			for (var idx = 0; idx < actualCount; idx++)
+			{
+				try
+				{
+					await elementInspectors[idx](elements[idx]);
+				}
+				catch (Exception ex)
+				{
+					throw new CollectionException(collection, expectedCount, actualCount, idx, ex);
+				}
+			}
+		}
+#endif
 
 		/// <summary>
 		/// Verifies that a collection contains a given object.
