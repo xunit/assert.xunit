@@ -23,12 +23,11 @@ namespace Xunit
 		}
 
 #if XUNIT_NULLABLE
-		static IEqualityComparer<T> GetEqualityComparer<T>(IEqualityComparer? innerComparer = null)
+		static IEqualityComparer<T?> GetEqualityComparer<T>(IEqualityComparer? innerComparer = null) =>
+			new AssertEqualityComparer<T?>(innerComparer);
 #else
-		static IEqualityComparer<T> GetEqualityComparer<T>(IEqualityComparer innerComparer = null)
+		static IEqualityComparer<T> GetEqualityComparer<T>(IEqualityComparer innerComparer = null) =>
+			new AssertEqualityComparer<T>(innerComparer);
 #endif
-		{
-			return new AssertEqualityComparer<T>(innerComparer);
-		}
 	}
 }

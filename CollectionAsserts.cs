@@ -443,15 +443,7 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-#if XUNIT_NULLABLE
-			Exception? toThrow;
-#else
-			Exception toThrow;
-#endif
-			GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter.Format(expected), out toThrow);
-
-			if (toThrow != null)
-				throw toThrow;
+			GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter.Format(expected));
 		}
 
 		/// <summary>
@@ -467,17 +459,7 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-#if XUNIT_NULLABLE
-			Exception? toThrow;
-#else
-			Exception toThrow;
-#endif
-			var result = GetSingleResult(collection, null, null, out toThrow);
-
-			if (toThrow != null)
-				throw toThrow;
-
-			return result;
+			return GetSingleResult(collection, null, null);
 		}
 
 		/// <summary>
@@ -497,27 +479,17 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(predicate), predicate);
 
-#if XUNIT_NULLABLE
-			Exception? toThrow;
-#else
-			Exception toThrow;
-#endif
-			var result = GetSingleResult(collection, predicate, "(filter expression)", out toThrow);
-
-			if (toThrow != null)
-				throw toThrow;
-
-			return result;
+			return GetSingleResult(collection, predicate, "(filter expression)");
 		}
 
 #if XUNIT_NULLABLE
-		static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T>? predicate, string? expectedArgument, out Exception? exceptionToThrow, T defaultValue = default)
+		static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T>? predicate, string? expectedArgument)
 #else
-		static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T> predicate, string expectedArgument, out Exception exceptionToThrow, T defaultValue = default(T))
+		static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T> predicate, string expectedArgument)
 #endif
 		{
 			var count = 0;
-			var result = defaultValue;
+			T result = default(T);
 
 			foreach (var item in collection)
 				if (predicate == null || predicate(item))
@@ -527,17 +499,16 @@ namespace Xunit
 			switch (count)
 			{
 				case 0:
-					exceptionToThrow = SingleException.Empty(expectedArgument);
-					break;
+					throw SingleException.Empty(expectedArgument);
 				case 1:
-					exceptionToThrow = null;
-					break;
+#if XUNIT_NULLABLE
+					return result!;
+#else
+					return result;
+#endif
 				default:
-					exceptionToThrow = SingleException.MoreThanOne(count, expectedArgument);
-					break;
+					throw SingleException.MoreThanOne(count, expectedArgument);
 			}
-
-			return result;
 		}
 	}
 }

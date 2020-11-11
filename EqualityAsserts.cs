@@ -195,13 +195,12 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
 #if XUNIT_NULLABLE
-		public static void StrictEqual<T>([AllowNull] T expected, [AllowNull] T actual)
+		public static void StrictEqual<T>([AllowNull] T expected, [AllowNull] T actual) =>
+			Equal(expected, actual, EqualityComparer<T?>.Default);
 #else
-		public static void StrictEqual<T>(T expected, T actual)
-#endif
-		{
+		public static void StrictEqual<T>(T expected, T actual) =>
 			Equal(expected, actual, EqualityComparer<T>.Default);
-		}
+#endif
 
 #if XUNIT_SPAN
 		/// <summary>
@@ -312,12 +311,11 @@ namespace Xunit
 		/// <param name="actual">The actual object</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
 #if XUNIT_NULLABLE
-		public static void NotStrictEqual<T>([AllowNull] T expected, [AllowNull] T actual)
+		public static void NotStrictEqual<T>([AllowNull] T expected, [AllowNull] T actual) =>
+			NotEqual(expected, actual, EqualityComparer<T?>.Default);
 #else
-		public static void NotStrictEqual<T>(T expected, T actual)
-#endif
-		{
+		public static void NotStrictEqual<T>(T expected, T actual) =>
 			NotEqual(expected, actual, EqualityComparer<T>.Default);
-		}
+#endif
 	}
 }
