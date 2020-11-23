@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace Xunit.Sdk
 {

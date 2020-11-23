@@ -1,7 +1,6 @@
 #if XUNIT_NULLABLE
 #nullable enable
 #endif
-using System;
 
 namespace Xunit.Sdk
 {

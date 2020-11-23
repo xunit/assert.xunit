@@ -2,7 +2,6 @@
 #nullable enable
 #endif
 
-using System;
 using System.Collections;
 
 namespace Xunit.Sdk
