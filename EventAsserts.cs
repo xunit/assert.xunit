@@ -25,14 +25,13 @@ namespace Xunit
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
 		public static RaisedEvent<T> Raises<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
-			where T : EventArgs
 		{
 			var raisedEvent = RaisesInternal(attach, detach, testCode);
 
 			if (raisedEvent == null)
 				throw new RaisesException(typeof(T));
 
-			if (!raisedEvent.Arguments.GetType().Equals(typeof(T)))
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
 				throw new RaisesException(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
@@ -48,7 +47,6 @@ namespace Xunit
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
 		public static RaisedEvent<T> RaisesAny<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
-			where T : EventArgs
 		{
 			var raisedEvent = RaisesInternal(attach, detach, testCode);
 
@@ -68,14 +66,13 @@ namespace Xunit
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
 		public static async Task<RaisedEvent<T>> RaisesAsync<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
-			where T : EventArgs
 		{
 			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
 
 			if (raisedEvent == null)
 				throw new RaisesException(typeof(T));
 
-			if (!raisedEvent.Arguments.GetType().Equals(typeof(T)))
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
 				throw new RaisesException(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
@@ -91,7 +88,6 @@ namespace Xunit
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
 		public static async Task<RaisedEvent<T>> RaisesAnyAsync<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
-			where T : EventArgs
 		{
 			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
 
@@ -106,7 +102,6 @@ namespace Xunit
 #else
 		static RaisedEvent<T> RaisesInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
 #endif
-			where T : EventArgs
 		{
 			GuardArgumentNotNull(nameof(attach), attach);
 			GuardArgumentNotNull(nameof(detach), detach);
@@ -130,7 +125,6 @@ namespace Xunit
 #else
 		static async Task<RaisedEvent<T>> RaisesAsyncInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
 #endif
-			where T : EventArgs
 		{
 			GuardArgumentNotNull(nameof(attach), attach);
 			GuardArgumentNotNull(nameof(detach), detach);
@@ -154,7 +148,6 @@ namespace Xunit
 		/// </summary>
 		/// <typeparam name="T">The type of the event arguments.</typeparam>
 		public class RaisedEvent<T>
-			where T : EventArgs
 		{
 			/// <summary>
 			/// The sender of the event.
