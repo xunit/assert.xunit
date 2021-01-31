@@ -145,6 +145,27 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that two <see cref="double"/> values are equal, within the tolerance given by
+		/// <paramref name="tolerance"/> (positive or negative).
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="tolerance">The allowed difference between values</param>
+		/// <exception cref="ArgumentException">Thrown when supplied tolerance is invalid</exception>"
+		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
+		public static void Equal(double expected, double actual, double tolerance)
+		{
+			if (double.IsNaN(tolerance) || double.IsNegativeInfinity(tolerance) || tolerance < 0.0)
+				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
+
+			if (!(double.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance))
+				throw new EqualException(
+					string.Format(CultureInfo.CurrentCulture, "{0:G17}", expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G17}", actual)
+				);
+		}
+		
+		/// <summary>
 		/// Verifies that two <see cref="decimal"/> values are equal, within the number of decimal
 		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
 		/// </summary>
