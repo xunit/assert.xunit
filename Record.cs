@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Xunit
@@ -21,7 +20,6 @@ namespace Xunit
 		/// </summary>
 		/// <param name="testCode">The code which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
 #if XUNIT_NULLABLE
 		protected static Exception? RecordException(Action testCode)
 #else
@@ -47,7 +45,6 @@ namespace Xunit
 		/// </summary>
 		/// <param name="testCode">The code which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
 #if XUNIT_NULLABLE
 		protected static Exception? RecordException(Func<object?> testCode)
 #else
@@ -75,20 +72,17 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		protected static Exception RecordException(Func<Task> testCode) { throw new NotImplementedException(); }
 
 #if XUNIT_VALUETASK
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		protected static Exception RecordException(Func<ValueTask> testCode) { throw new NotImplementedException(); }
 
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		protected static Exception RecordException<T>(Func<ValueTask<T>> testCode) { throw new NotImplementedException(); }
 #endif
 
@@ -97,7 +91,6 @@ namespace Xunit
 		/// </summary>
 		/// <param name="testCode">The task which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
 #if XUNIT_NULLABLE
 		protected static async Task<Exception?> RecordExceptionAsync(Func<Task> testCode)
 #else
@@ -123,7 +116,6 @@ namespace Xunit
 		/// </summary>
 		/// <param name="testCode">The task which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
 #if XUNIT_NULLABLE
 		protected static async ValueTask<Exception?> RecordExceptionAsync(Func<ValueTask> testCode)
 #else
@@ -149,7 +141,6 @@ namespace Xunit
 		/// <param name="testCode">The task which may thrown an exception.</param>
 		/// <typeparam name="T">The type of the ValueTask return value.</typeparam>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "The caught exception is resurfaced to the user.")]
 #if XUNIT_NULLABLE
 		protected static async ValueTask<Exception?> RecordExceptionAsync<T>(Func<ValueTask<T>> testCode)
 #else

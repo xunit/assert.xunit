@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Xunit.Sdk;
 
@@ -52,7 +51,6 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.PropertyChangedAsync (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static void PropertyChanged(INotifyPropertyChanged @object, string propertyName, Func<Task> testCode) { throw new NotImplementedException(); }
 
 		/// <summary>

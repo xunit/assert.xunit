@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Threading.Tasks;
 using Xunit.Sdk;
@@ -52,14 +51,12 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static T Throws<T>(Func<Task> testCode) where T : Exception { throw new NotImplementedException(); }
 
 #if XUNIT_VALUETASK
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static T Throws<T>(Func<ValueTask> testCode) where T : Exception { throw new NotImplementedException(); }
 #endif
 
@@ -182,14 +179,12 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static Exception Throws(string paramName, Func<Task> testCode) { throw new NotImplementedException(); }
 
 #if XUNIT_VALUETASK
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static Exception Throws(string paramName, Func<ValueTask> testCode) { throw new NotImplementedException(); }
 #endif
 
@@ -296,14 +291,12 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static T Throws<T>(string paramName, Func<Task> testCode) where T : ArgumentException { throw new NotImplementedException(); }
 
 #if XUNIT_VALUETASK
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This is a purposeful use of NotImplementedException")]
 		public static T Throws<T>(string paramName, Func<ValueTask> testCode) where T : ArgumentException { throw new NotImplementedException(); }
 #endif
 

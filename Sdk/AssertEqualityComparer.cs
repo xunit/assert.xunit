@@ -1,11 +1,12 @@
 ﻿#if XUNIT_NULLABLE
 #nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 
@@ -337,7 +338,6 @@ namespace Xunit.Sdk
 		}
 
 		/// <inheritdoc/>
-		[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This class is not intended to be used in a hased container")]
 		public int GetHashCode(T obj)
 		{
 			throw new NotImplementedException();
@@ -395,7 +395,6 @@ namespace Xunit.Sdk
 			bool EqualsGeneric<U>(U x, U y)
 				=> new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
 
-			[SuppressMessage("Code Notifications", "RECS0083:Shows NotImplementedException throws in the quick task bar", Justification = "This class is not intended to be used in a hased container")]
 			public int GetHashCode(object obj)
 			{
 				throw new NotImplementedException();

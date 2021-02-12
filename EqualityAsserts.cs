@@ -164,7 +164,7 @@ namespace Xunit
 					string.Format(CultureInfo.CurrentCulture, "{0:G17}", actual)
 				);
 		}
-		
+
 		/// <summary>
 		/// Verifies that two <see cref="decimal"/> values are equal, within the number of decimal
 		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
