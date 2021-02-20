@@ -31,12 +31,15 @@ namespace Xunit.Sdk
 		/// <inheritdoc/>
 #if XUNIT_NULLABLE
 		public new bool Equals(object? x, object? y)
+		{
+			return innerComparer.Equals((T?)x, (T?)y);
+		}
 #else
 		public new bool Equals(object x, object y)
-#endif
 		{
 			return innerComparer.Equals((T)x, (T)y);
 		}
+#endif
 
 		/// <inheritdoc/>
 		public int GetHashCode(object obj)
