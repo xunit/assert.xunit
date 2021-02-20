@@ -36,7 +36,7 @@ namespace Xunit.Sdk
 		}
 #else
 		public new bool Equals(object x, object y)
-		{	
+		{
 			return innerComparer.Equals((T)x, (T)y);
 		}
 #endif
