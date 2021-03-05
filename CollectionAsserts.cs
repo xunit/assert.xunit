@@ -281,7 +281,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expected), expected);
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			TValue value;
+			var value = default(TValue);
 			if (!collection.TryGetValue(expected, out value))
 				throw new ContainsException(expected, collection.Keys);
 
@@ -305,7 +305,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expected), expected);
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			TValue value;
+			var value = default(TValue);
 			if (!collection.TryGetValue(expected, out value))
 				throw new ContainsException(expected, collection.Keys);
 
@@ -585,7 +585,7 @@ namespace Xunit
 #endif
 		{
 			var count = 0;
-			T result = default(T);
+			var result = default(T);
 
 			foreach (var item in collection)
 				if (predicate == null || predicate(item))
