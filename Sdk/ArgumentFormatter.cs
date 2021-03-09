@@ -172,8 +172,8 @@ namespace Xunit.Sdk
 				{
 					if (isDictionaryEntry && typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
 					{
-						var k = typeInfo.GetProperty("Key")?.GetValue(value, null);
-						var v = typeInfo.GetProperty("Value")?.GetValue(value, null);
+						var k = typeInfo.GetDeclaredProperty("Key")?.GetValue(value, null);
+						var v = typeInfo.GetDeclaredProperty("Value")?.GetValue(value, null);
 
 						return $"[\"{k}\"] = {v}";
 					}
