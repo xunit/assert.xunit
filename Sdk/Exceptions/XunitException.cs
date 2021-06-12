@@ -14,7 +14,7 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class XunitException : Exception
+	class XunitException : Exception, IAssertionException
 	{
 #if XUNIT_NULLABLE
 		readonly string? stackTrace;
