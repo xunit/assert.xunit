@@ -166,6 +166,12 @@ namespace Xunit.Sdk
 					// In these cases, just continue formatting.
 				}
 
+				if (value is float)
+					return $"{value:G7}";
+
+				if (value is double)
+					return $"{value:G19}";
+
 				var type = value.GetType();
 				var typeInfo = type.GetTypeInfo();
 				if (typeInfo.IsValueType)
