@@ -36,6 +36,10 @@ namespace Xunit.Sdk
 		public IReadOnlyCollection<Exception> InnerExceptions { get; }
 
 		/// <inheritdoc/>
+#if XUNIT_NULLABLE
 		public override string? StackTrace => "Inner stack traces:";
+#else
+		public override string StackTrace => "Inner stack traces:";
+#endif
 	}
 }
