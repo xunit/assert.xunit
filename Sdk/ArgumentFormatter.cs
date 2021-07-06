@@ -139,7 +139,7 @@ namespace Xunit.Sdk
 				var stringParameter = value as string;
 				if (stringParameter != null)
 				{
-					stringParameter = EscapeHexChars(stringParameter);
+					stringParameter = EscapeString(stringParameter);
 					stringParameter = stringParameter.Replace(@"""", @"\"""); // escape double quotes
 					if (stringParameter.Length > MAX_STRING_LENGTH)
 					{
@@ -380,7 +380,7 @@ namespace Xunit.Sdk
 			}
 		}
 
-		static string EscapeHexChars(string s)
+		internal static string EscapeString(string s)
 		{
 			var builder = new StringBuilder(s.Length);
 			for (var i = 0; i < s.Length; i++)
