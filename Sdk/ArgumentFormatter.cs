@@ -167,10 +167,10 @@ namespace Xunit.Sdk
 				}
 
 				if (value is float)
-					return $"{value:G7}";
+					return $"{value:G9}";
 
 				if (value is double)
-					return $"{value:G19}";
+					return $"{value:G17}";
 
 				var type = value.GetType();
 				var typeInfo = type.GetTypeInfo();
