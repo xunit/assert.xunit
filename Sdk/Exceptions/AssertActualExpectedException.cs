@@ -30,55 +30,29 @@ namespace Xunit.Sdk
 		/// <param name="userMessage">The user message to be shown</param>
 		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
-#if XUNIT_NULLABLE
-		public AssertActualExpectedException(
-			object? expected,
-			object? actual,
-			string? userMessage,
-			string? expectedTitle = null,
-			string? actualTitle = null)
-#else
-		public AssertActualExpectedException(
-			object expected,
-			object actual,
-			string userMessage,
-			string expectedTitle = null,
-			string actualTitle = null)
-#endif
-			: this(expected, actual, userMessage, expectedTitle, actualTitle, null)
-		{ }
-
-		/// <summary>
-		/// Creates a new instance of the <see href="AssertActualExpectedException"/> class.
-		/// </summary>
-		/// <param name="expected">The expected value</param>
-		/// <param name="actual">The actual value</param>
-		/// <param name="userMessage">The user message to be shown</param>
-		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
-		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
 		/// <param name="innerException">The inner exception.</param>
 #if XUNIT_NULLABLE
 		public AssertActualExpectedException(
 			object? expected,
 			object? actual,
 			string? userMessage,
-			string? expectedTitle,
-			string? actualTitle,
-			Exception? innerException)
+			string? expectedTitle = null,
+			string? actualTitle = null,
+			Exception? innerException = null) :
 #else
 		public AssertActualExpectedException(
 			object expected,
 			object actual,
 			string userMessage,
-			string expectedTitle,
-			string actualTitle,
-			Exception innerException)
+			string expectedTitle = null,
+			string actualTitle = null,
+			Exception innerException = null) :
 #endif
-			: base(userMessage, innerException)
+				base(userMessage, innerException)
 		{
-			Actual = actual == null ? null : ConvertToString(actual);
+			Actual = ConvertToString(actual);
 			ActualTitle = actualTitle ?? "Actual";
-			Expected = expected == null ? null : ConvertToString(expected);
+			Expected = ConvertToString(expected);
 			ExpectedTitle = expectedTitle ?? "Expected";
 
 			if (actual != null &&
@@ -166,6 +140,9 @@ namespace Xunit.Sdk
 		static string ConvertToString(object value)
 #endif
 		{
+			if (value == null)
+				return null;
+
 			var stringValue = value as string;
 			if (stringValue != null)
 				return stringValue;
