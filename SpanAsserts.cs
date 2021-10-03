@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if XUNIT_SPAN
+
+using System;
 using System.Globalization;
 using Xunit.Sdk;
 
@@ -14,7 +16,7 @@ namespace Xunit
 		// NOTE: ref struct types (Span, ReadOnlySpan) are not Nullable, and thus there is no XUNIT_NULLABLE usage currently in this class
 		// This also means that null spans are identical to empty spans, (both in essence point to a 0 sized array of whatever type)
 
-		// NOTE: we could consider StartsWith<T> and EndsWith<T> and use the Span extension methods to check difference, but, the current 
+		// NOTE: we could consider StartsWith<T> and EndsWith<T> and use the Span extension methods to check difference, but, the current
 		// Exceptions for startswith and endswith are only built for string types, so those would need a change (or new non-string versions created).
 
 		// NOTE: there is an implicit conversion operator on Span<T> to ReadOnlySpan<T> - however, I have found that the compiler sometimes struggles
@@ -772,3 +774,5 @@ namespace Xunit
 		}
 	}
 }
+
+#endif

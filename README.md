@@ -12,9 +12,13 @@ The following pre-processor directives can be used to influence the resulting co
 
 Projects that consume this repository as source, which are compiled using C# 8 and wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
 
+### `XUNIT_SKIP`
+
+The Skip family of assertions (like `Assert.Skip`) require xUnit.net v3. Define this to enable the Skip assertions.
+
 ### `XUNIT_SPAN`
 
-There are optimized versions of `Assert.Equal` for arrays which use `Span<T>`-based comparison options. If you are using a target framework that supports `Span<T>`, you should define `XUNIT_SPAN` to enable these new assertions.
+There are optimized versions of `Assert.Equal` for arrays which use `Span<T>`- and/or `Memory<T>`-based comparison options. If you are using a target framework that supports `Span<T>` and `Memory<T>`, you should define `XUNIT_SPAN` to enable these new assertions.
 
 ### `XUNIT_VALUETASK`
 

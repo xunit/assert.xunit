@@ -1,4 +1,6 @@
-﻿#if XUNIT_NULLABLE
+﻿#if XUNIT_SKIP
+
+#if XUNIT_NULLABLE
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
 #endif
@@ -66,3 +68,5 @@ namespace Xunit
 		}
 	}
 }
+
+#endif

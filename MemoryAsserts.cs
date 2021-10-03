@@ -1,4 +1,6 @@
-﻿#if XUNIT_NULLABLE
+﻿#if XUNIT_SPAN
+
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -706,3 +708,5 @@ namespace Xunit
 		}
 	}
 }
+
+#endif
