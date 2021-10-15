@@ -81,16 +81,14 @@ namespace Xunit
 
 			var expectedAsIEnum = expected as IEnumerable;
 			var actualAsIEnum = actual as IEnumerable;
+			var aec = comparer as AssertEqualityComparer<T>;
 
-			// If both are IEnumerable (or null), see if we got an AssertEqualityComparer<T>, so that
-			// we can invoke it to get the mismatched index.
-			if ((expectedAsIEnum != null && (actual == null || actualAsIEnum != null)) ||
-				(actualAsIEnum != null && expected == null))
+			// if we got an AssertEqualityComparer<T> we can invoke it to get the mismatched index.
+			if (aec != null)
 			{
-				var aec = comparer as AssertEqualityComparer<T>;
 				int? mismatchedIndex;
 
-				if (aec != null && !aec.Equals(expected, actual, out mismatchedIndex))
+				if (!aec.Equals(expected, actual, out mismatchedIndex))
 				{
 					if (mismatchedIndex.HasValue)
 						throw EqualException.FromEnumerable(expectedAsIEnum, actualAsIEnum, mismatchedIndex.Value);
@@ -98,8 +96,7 @@ namespace Xunit
 						throw new EqualException(expected, actual);
 				}
 			}
-
-			if (!comparer.Equals(expected, actual))
+			else if (!comparer.Equals(expected, actual))
 				throw new EqualException(expected, actual);
 		}
 
