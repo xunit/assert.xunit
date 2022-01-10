@@ -30,23 +30,49 @@ namespace Xunit.Sdk
 		/// <param name="userMessage">The user message to be shown</param>
 		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
-		/// <param name="innerException">The inner exception.</param>
 #if XUNIT_NULLABLE
 		public AssertActualExpectedException(
 			object? expected,
 			object? actual,
 			string? userMessage,
 			string? expectedTitle = null,
-			string? actualTitle = null,
-			Exception? innerException = null) :
+			string? actualTitle = null) :
 #else
 		public AssertActualExpectedException(
 			object expected,
 			object actual,
 			string userMessage,
 			string expectedTitle = null,
-			string actualTitle = null,
-			Exception innerException = null) :
+			string actualTitle = null) :
+#endif
+				this(expected, actual, userMessage, expectedTitle, actualTitle, null)
+		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see href="AssertActualExpectedException"/> class.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
+		/// <param name="userMessage">The user message to be shown</param>
+		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
+		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
+		/// <param name="innerException">The inner exception.</param>
+#if XUNIT_NULLABLE
+		public AssertActualExpectedException(
+			object? expected,
+			object? actual,
+			string? userMessage,
+			string? expectedTitle,
+			string? actualTitle,
+			Exception? innerException) :
+#else
+		public AssertActualExpectedException(
+			object expected,
+			object actual,
+			string userMessage,
+			string expectedTitle,
+			string actualTitle,
+			Exception innerException) :
 #endif
 				base(userMessage, innerException)
 		{
