@@ -136,7 +136,7 @@ namespace Xunit.Sdk
 							return false;
 				}
 
-				return true;
+				// rely on object.Equals since object could be contain more
 			}
 
 			// Implements IStructuralEquatable?
