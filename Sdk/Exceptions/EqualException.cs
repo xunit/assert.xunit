@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Xunit.Sdk
@@ -77,6 +78,17 @@ namespace Xunit.Sdk
 			PointerPosition = pointerPosition;
 		}
 
+#if XUNIT_NULLABLE
+		EqualException(string? expected, string? actual, int expectedIndex, int actualIndex, string? expectedType, string? actualType, int? pointerPosition)
+#else
+		EqualException(string expected, string actual, int expectedIndex, int actualIndex, string expectedType, string actualType, int? pointerPosition)
+#endif
+			: this(expected, actual, expectedIndex, actualIndex, pointerPosition)
+		{
+			ActualType = actualType;
+			ExpectedType = expectedType;
+		}
+
 		/// <summary>
 		/// Gets the index into the actual value where the values first differed.
 		/// Returns -1 if the difference index points were not provided.
@@ -88,6 +100,26 @@ namespace Xunit.Sdk
 		/// Returns -1 if the difference index points were not provided.
 		/// </summary>
 		public int ExpectedIndex { get; }
+
+		/// <summary>
+		/// Gets the type of the actual value of the first values differed.
+		/// Returns null if the type was not provided.
+		/// </summary>
+#if XUNIT_NULLABLE
+		public string? ActualType { get; }
+#else
+		public string ActualType { get; }
+#endif
+
+		/// <summary>
+		/// Gets the type of the expected value of the first values differed.
+		/// Returns null if the type was not provided.
+		/// </summary>
+#if XUNIT_NULLABLE
+		public string? ExpectedType { get; }
+#else
+		public string ExpectedType { get; }
+#endif
 
 		/// <inheritdoc/>
 		public override string Message
@@ -111,8 +143,13 @@ namespace Xunit.Sdk
 			if (ExpectedIndex == -1)
 				return base.Message;
 
-			var printedExpected = ShortenAndEncode(Expected, PointerPosition ?? ExpectedIndex, '↓', ExpectedIndex);
-			var printedActual = ShortenAndEncode(Actual, PointerPosition ?? ActualIndex, '↑', ActualIndex);
+			var undefinedType = string.IsNullOrEmpty(ActualType) || string.IsNullOrEmpty(ExpectedType);
+
+			var actualTypeMessage = undefinedType || ExpectedType == ActualType ? string.Empty : ActualType;
+			var expectedTypeMessage = undefinedType || ExpectedType == ActualType ? string.Empty : ExpectedType;
+
+			var printedExpected = ShortenAndEncode(Expected, expectedTypeMessage, PointerPosition ?? ExpectedIndex, '↓', ExpectedIndex);
+			var printedActual = ShortenAndEncode(Actual, actualTypeMessage, PointerPosition ?? ActualIndex, '↑', ActualIndex);
 
 			var sb = new StringBuilder();
 			sb.Append(UserMessage);
@@ -163,14 +200,20 @@ namespace Xunit.Sdk
 			var actualText = ArgumentFormatter.Format(actual, out pointerPositionActual, mismatchIndex);
 			var pointerPosition = (pointerPositionExpected ?? -1) > (pointerPositionActual ?? -1) ? pointerPositionExpected : pointerPositionActual;
 
-			return new EqualException(expectedText, actualText, mismatchIndex, mismatchIndex, pointerPosition);
+			var expectedEnumerable = expected?.Cast<object>();
+			var actualEnumerable = actual?.Cast<object>();
+
+			var expectedType = mismatchIndex < expectedEnumerable?.Count() ? expectedEnumerable.ElementAt(mismatchIndex)?.GetType().FullName : string.Empty;
+			var actualType = mismatchIndex < actualEnumerable?.Count() ? actualEnumerable.ElementAt(mismatchIndex)?.GetType().FullName : string.Empty;
+
+			return new EqualException(expectedText, actualText, mismatchIndex, mismatchIndex, expectedType, actualType, pointerPosition);
 		}
 
 
 #if XUNIT_NULLABLE
-		static Tuple<string, string> ShortenAndEncode(string? value, int position, char pointer, int? index = null)
+		static Tuple<string, string> ShortenAndEncode(string? value, string? type, int position, char pointer, int? index = null)
 #else
-		static Tuple<string, string> ShortenAndEncode(string value, int position, char pointer, int? index = null)
+		static Tuple<string, string> ShortenAndEncode(string value, string type, int position, char pointer, int? index = null)
 #endif
 		{
 			if (value == null)
@@ -211,7 +254,16 @@ namespace Xunit.Sdk
 				if (idx < position)
 					printedPointer.Append(' ', paddingLength);
 				else if (idx == position)
-					printedPointer.AppendFormat("{0} (pos {1})", pointer, index);
+				{
+					if (string.IsNullOrEmpty(type))
+					{
+						printedPointer.AppendFormat("{0} (pos {1})", pointer, index);
+					}
+					else
+					{
+						printedPointer.AppendFormat("{0} (pos {1}, type {2})", pointer, index, type);
+					}
+				}
 			}
 
 			if (value.Length == position)
