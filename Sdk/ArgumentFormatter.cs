@@ -59,7 +59,7 @@ namespace Xunit.Sdk
 		public static string Format(object value, out int? pointerPosition, int? errorIndex = null)
 #endif
 		{
-			return Format(value, 1, out pointerPosition, errorIndex, false);
+			return Format(value, 1, out pointerPosition, errorIndex);
 		}
 
 		/// <summary>
@@ -76,24 +76,24 @@ namespace Xunit.Sdk
 		{
 			int? pointerPosition;
 
-			return Format(value, 1, out pointerPosition, errorIndex, false);
+			return Format(value, 1, out pointerPosition, errorIndex);
 		}
 
 #if XUNIT_NULLABLE
-		static string FormatInner(object? value, int depth, bool isDictionaryEntry = false)
+		static string FormatInner(object? value, int depth)
 #else
-		static string FormatInner(object value, int depth, bool isDictionaryEntry = false)
+		static string FormatInner(object value, int depth)
 #endif
 		{
 			int? pointerPosition;
 
-			return Format(value, depth, out pointerPosition, null, isDictionaryEntry);
+			return Format(value, depth, out pointerPosition, null);
 		}
 
 #if XUNIT_NULLABLE
-		static string Format(object? value, int depth, out int? pointerPostion, int? errorIndex = null, bool isDictionaryEntry = false)
+		static string Format(object? value, int depth, out int? pointerPostion, int? errorIndex = null)
 #else
-		static string Format(object value, int depth, out int? pointerPostion, int? errorIndex = null, bool isDictionaryEntry = false)
+		static string Format(object value, int depth, out int? pointerPostion, int? errorIndex = null)
 #endif
 		{
 			pointerPostion = null;
@@ -154,10 +154,7 @@ namespace Xunit.Sdk
 				{
 					var enumerable = value as IEnumerable;
 					if (enumerable != null)
-					{
-						var isDictionary = value is IDictionary;
-						return FormatEnumerable(enumerable.Cast<object>(), depth, errorIndex, out pointerPostion, isDictionary);
-					}
+						return FormatEnumerable(enumerable.Cast<object>(), depth, errorIndex, out pointerPostion);
 				}
 				catch
 				{
@@ -176,12 +173,12 @@ namespace Xunit.Sdk
 				var typeInfo = type.GetTypeInfo();
 				if (typeInfo.IsValueType)
 				{
-					if (isDictionaryEntry && typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+					if (typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
 					{
 						var k = typeInfo.GetDeclaredProperty("Key")?.GetValue(value, null);
 						var v = typeInfo.GetDeclaredProperty("Value")?.GetValue(value, null);
 
-						return $"[\"{k}\"] = {v}";
+						return $"[{Format(k)}] = {Format(v)}";
 					}
 
 					return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "null";
@@ -249,7 +246,7 @@ namespace Xunit.Sdk
 			return $"{type.Name} {{ {formattedParameters} }}";
 		}
 
-		static string FormatEnumerable(IEnumerable<object> enumerableValues, int depth, int? neededIndex, out int? pointerPostion, bool isDictionary)
+		static string FormatEnumerable(IEnumerable<object> enumerableValues, int depth, int? neededIndex, out int? pointerPostion)
 		{
 			pointerPostion = null;
 
@@ -294,7 +291,7 @@ namespace Xunit.Sdk
 			else
 			{
 				var values = enumerableValues.Take(MAX_ENUMERABLE_LENGTH + 1).ToList();
-				printedValues += string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => FormatInner(x, depth + 1, isDictionary)));
+				printedValues += string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => FormatInner(x, depth + 1)));
 				if (values.Count > MAX_ENUMERABLE_LENGTH)
 					printedValues += ", ...";
 			}
