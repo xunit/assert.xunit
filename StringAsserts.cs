@@ -242,6 +242,7 @@ namespace Xunit
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 #if XUNIT_NULLABLE
 		public static void Equal(
@@ -249,14 +250,16 @@ namespace Xunit
 			string? actual,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false)
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false)
 #else
 		public static void Equal(
 			string expected,
 			string actual,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false)
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false)
 #endif
 		{
 #if XUNIT_SPAN
@@ -265,7 +268,7 @@ namespace Xunit
 			if (expected == null || actual == null)
 				throw new EqualException(expected, actual, -1, -1);
 
-			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 #else
 			// Start out assuming the one of the values is null
 			int expectedIndex = -1;
@@ -287,6 +290,18 @@ namespace Xunit
 				expectedLength = expected.Length;
 				actualLength = actual.Length;
 
+				// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
+				if (ignoreAllWhiteSpace)
+				{
+					if (expectedLength == 0)
+					{
+						if (SkipWhitespace(actual, 0) == actualLength) return;
+					}
+					if (actualLength == 0)
+					{
+						if (SkipWhitespace(expected, 0) == expectedLength) return;
+					}
+				}
 				while (expectedIndex < expectedLength && actualIndex < actualLength)
 				{
 					char expectedChar = expected[expectedIndex];
@@ -296,6 +311,11 @@ namespace Xunit
 					{
 						expectedIndex = SkipLineEnding(expected, expectedIndex);
 						actualIndex = SkipLineEnding(actual, actualIndex);
+					}
+					else if (ignoreAllWhiteSpace && (IsWhiteSpace(expectedChar) || IsWhiteSpace(actualChar)))
+					{
+						expectedIndex = SkipWhitespace(expected, expectedIndex);
+						actualIndex = SkipWhitespace(actual, actualIndex);
 					}
 					else if (ignoreWhiteSpaceDifferences && IsWhiteSpace(expectedChar) && IsWhiteSpace(actualChar))
 					{
