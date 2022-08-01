@@ -1,4 +1,8 @@
-﻿namespace Xunit.Sdk
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
+namespace Xunit.Sdk
 {
 	/// <summary>
 	/// This is a marker interface implemented by all built-in assertion exceptions so that

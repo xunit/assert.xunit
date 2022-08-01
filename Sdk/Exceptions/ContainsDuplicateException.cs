@@ -1,7 +1,9 @@
-﻿using System;
+﻿#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System.Collections;
 using System.Globalization;
-using System.Linq;
 
 namespace Xunit.Sdk
 {
