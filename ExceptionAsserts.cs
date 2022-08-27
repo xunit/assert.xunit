@@ -256,11 +256,13 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+#if XUNIT_NULLABLE
+		public static T Throws<T>(string? paramName, Action testCode)
+#else
 		public static T Throws<T>(string paramName, Action testCode)
+#endif
 			where T : ArgumentException
 		{
-			GuardArgumentNotNull(nameof(paramName), paramName);
-
 			var ex = Throws<T>(testCode);
 			Equal(paramName, ex.ParamName);
 			return ex;
@@ -275,14 +277,12 @@ namespace Xunit
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
 #if XUNIT_NULLABLE
-		public static T Throws<T>(string paramName, Func<object?> testCode)
+		public static T Throws<T>(string? paramName, Func<object?> testCode)
 #else
 		public static T Throws<T>(string paramName, Func<object> testCode)
 #endif
 			where T : ArgumentException
 		{
-			GuardArgumentNotNull(nameof(paramName), paramName);
-
 			var ex = Throws<T>(testCode);
 			Equal(paramName, ex.ParamName);
 			return ex;
@@ -291,13 +291,21 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
+#if XUNIT_NULLABLE
+		public static T Throws<T>(string? paramName, Func<Task> testCode) where T : ArgumentException { throw new NotImplementedException(); }
+#else
 		public static T Throws<T>(string paramName, Func<Task> testCode) where T : ArgumentException { throw new NotImplementedException(); }
+#endif
 
 #if XUNIT_VALUETASK
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.", true)]
+#if XUNIT_NULLABLE
+		public static T Throws<T>(string? paramName, Func<ValueTask> testCode) where T : ArgumentException { throw new NotImplementedException(); }
+#else
 		public static T Throws<T>(string paramName, Func<ValueTask> testCode) where T : ArgumentException { throw new NotImplementedException(); }
+#endif
 #endif
 
 		/// <summary>
@@ -308,7 +316,11 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the task to be tested</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+#if XUNIT_NULLABLE
+		public static async Task<T> ThrowsAsync<T>(string? paramName, Func<Task> testCode)
+#else
 		public static async Task<T> ThrowsAsync<T>(string paramName, Func<Task> testCode)
+#endif
 			where T : ArgumentException
 		{
 			var ex = await ThrowsAsync<T>(testCode);
@@ -325,7 +337,11 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the task to be tested</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		/// <exception cref="ThrowsException">Thrown when an exception was not thrown, or when an exception of the incorrect type is thrown</exception>
+#if XUNIT_NULLABLE
+		public static async ValueTask<T> ThrowsAsync<T>(string? paramName, Func<ValueTask> testCode)
+#else
 		public static async ValueTask<T> ThrowsAsync<T>(string paramName, Func<ValueTask> testCode)
+#endif
 			where T : ArgumentException
 		{
 			var ex = await ThrowsAsync<T>(testCode);
