@@ -17,7 +17,7 @@ namespace Xunit
 		// This also means that null spans are identical to empty spans, (both in essence point to a 0 sized array of whatever type)
 
 		// NOTE: we could consider StartsWith<T> and EndsWith<T> and use the Span extension methods to check difference, but, the current
-		// Exceptions for startswith and endswith are only built for string types, so those would need a change (or new non-string versions created).
+		// Exceptions for StartsWith and EndsWith are only built for string types, so those would need a change (or new non-string versions created).
 
 		// NOTE: there is an implicit conversion operator on Span<T> to ReadOnlySpan<T> - however, I have found that the compiler sometimes struggles
 		// with identifying the proper methods to use, thus I have overloaded quite a few of the assertions in terms of supplying both
@@ -650,15 +650,12 @@ namespace Xunit
 			// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
 			if (ignoreAllWhiteSpace)
 			{
-				if (expectedLength == 0)
-				{
-					if (SkipWhitespace(actualSpan, 0) == actualLength) return;
-				}
-				if (actualLength == 0)
-				{
-					if (SkipWhitespace(expectedSpan, 0) == expectedLength) return;
-				}
+				if (expectedLength == 0 && SkipWhitespace(actualSpan, 0) == actualLength)
+					return;
+				if (actualLength == 0 && SkipWhitespace(expectedSpan, 0) == expectedLength)
+					return;
 			}
+
 			while (expectedIndex < expectedLength && actualIndex < actualLength)
 			{
 				var expectedChar = expectedSpan[expectedIndex];
@@ -688,9 +685,7 @@ namespace Xunit
 					}
 
 					if (expectedChar != actualChar)
-					{
 						break;
-					}
 
 					expectedIndex++;
 					actualIndex++;

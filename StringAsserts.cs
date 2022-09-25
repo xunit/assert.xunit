@@ -293,15 +293,12 @@ namespace Xunit
 				// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
 				if (ignoreAllWhiteSpace)
 				{
-					if (expectedLength == 0)
-					{
-						if (SkipWhitespace(actual, 0) == actualLength) return;
-					}
-					if (actualLength == 0)
-					{
-						if (SkipWhitespace(expected, 0) == expectedLength) return;
-					}
+					if (expectedLength == 0 && SkipWhitespace(actual, 0) == actualLength)
+						return;
+					if (actualLength == 0 && SkipWhitespace(expected, 0) == expectedLength)
+						return;
 				}
+
 				while (expectedIndex < expectedLength && actualIndex < actualLength)
 				{
 					char expectedChar = expected[expectedIndex];
@@ -331,9 +328,7 @@ namespace Xunit
 						}
 
 						if (expectedChar != actualChar)
-						{
 							break;
-						}
 
 						expectedIndex++;
 						actualIndex++;
@@ -342,9 +337,7 @@ namespace Xunit
 			}
 
 			if (expectedIndex < expectedLength || actualIndex < actualLength)
-			{
 				throw new EqualException(expected, actual, expectedIndex, actualIndex);
-			}
 #endif
 		}
 
@@ -362,13 +355,9 @@ namespace Xunit
 		static int SkipLineEnding(string value, int index)
 		{
 			if (value[index] == '\r')
-			{
 				++index;
-			}
 			if (index < value.Length && value[index] == '\n')
-			{
 				++index;
-			}
 
 			return index;
 		}
