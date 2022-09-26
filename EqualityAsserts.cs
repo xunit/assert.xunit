@@ -21,7 +21,7 @@ namespace Xunit
 	{
 #if XUNIT_SPAN
 		/// <summary>
-		/// Verifies that two arrays of unmanaged type T are equal, using Span&lt;T&gt;.SequenceEqual.
+		/// Verifies that two arrays of un-managed type T are equal, using Span&lt;T&gt;.SequenceEqual.
 		/// </summary>
 		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
 		/// <param name="expected">The expected value</param>
@@ -33,10 +33,11 @@ namespace Xunit
 		/// </remarks>
 #if XUNIT_NULLABLE
 		public static void Equal<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
+			where T : unmanaged, IEquatable<T>
 #else
 		public static void Equal<T>(T[] expected, T[] actual)
+			where T : IEquatable<T>
 #endif
-			where T : unmanaged, IEquatable<T>
 		{
 			if (expected == null && actual == null)
 				return;
@@ -243,7 +244,7 @@ namespace Xunit
 
 #if XUNIT_SPAN
 		/// <summary>
-		/// Verifies that two arrays of unmanaged type T are not equal, using Span&lt;T&gt;.SequenceEqual.
+		/// Verifies that two arrays of un-managed type T are not equal, using Span&lt;T&gt;.SequenceEqual.
 		/// </summary>
 		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
 		/// <param name="expected">The expected value</param>
@@ -251,10 +252,11 @@ namespace Xunit
 		/// <exception cref="NotEqualException">Thrown when the arrays are equal</exception>
 #if XUNIT_NULLABLE
 		public static void NotEqual<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
+			where T : unmanaged, IEquatable<T>
 #else
 		public static void NotEqual<T>(T[] expected, T[] actual)
+			where T : IEquatable<T>
 #endif
-			where T : unmanaged, IEquatable<T>
 		{
 			// Call into NotEqual<object> so we get proper formatting of the sequence
 			if (expected == null && actual == null)
