@@ -72,18 +72,27 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		protected static Exception RecordException(Func<Task> testCode) { throw new NotImplementedException(); }
+		protected static Exception RecordException(Func<Task> testCode)
+		{
+			throw new NotImplementedException();
+		}
 
 #if XUNIT_VALUETASK
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		protected static Exception RecordException(Func<ValueTask> testCode) { throw new NotImplementedException(); }
+		protected static Exception RecordException(Func<ValueTask> testCode)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		protected static Exception RecordException<T>(Func<ValueTask<T>> testCode) { throw new NotImplementedException(); }
+		protected static Exception RecordException<T>(Func<ValueTask<T>> testCode)
+		{
+			throw new NotImplementedException();
+		}
 #endif
 
 		/// <summary>

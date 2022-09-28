@@ -1,11 +1,14 @@
 ﻿#if XUNIT_NULLABLE
 #nullable enable
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
 using System.Reflection;
 using Xunit.Sdk;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit
 {
@@ -39,10 +42,12 @@ namespace Xunit
 		/// <param name="expectedType">The type the object should be</param>
 		/// <param name="object">The object to be evaluated</param>
 		/// <exception cref="IsAssignableFromException">Thrown when the object is not the given type</exception>
+		public static void IsAssignableFrom(
+			Type expectedType,
 #if XUNIT_NULLABLE
-		public static void IsAssignableFrom(Type expectedType, [NotNull] object? @object)
+			[NotNull] object? @object)
 #else
-		public static void IsAssignableFrom(Type expectedType, object @object)
+			object @object)
 #endif
 		{
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
@@ -58,13 +63,11 @@ namespace Xunit
 		/// <param name="object">The object to be evaluated</param>
 		/// <exception cref="IsNotTypeException">Thrown when the object is the given type</exception>
 #if XUNIT_NULLABLE
-		public static void IsNotType<T>(object? @object)
+		public static void IsNotType<T>(object? @object) =>
 #else
-		public static void IsNotType<T>(object @object)
+		public static void IsNotType<T>(object @object) =>
 #endif
-		{
 			IsNotType(typeof(T), @object);
-		}
 
 		/// <summary>
 		/// Verifies that an object is not exactly the given type.
@@ -72,10 +75,12 @@ namespace Xunit
 		/// <param name="expectedType">The type the object should not be</param>
 		/// <param name="object">The object to be evaluated</param>
 		/// <exception cref="IsNotTypeException">Thrown when the object is the given type</exception>
+		public static void IsNotType(
+			Type expectedType,
 #if XUNIT_NULLABLE
-		public static void IsNotType(Type expectedType, object? @object)
+			object? @object)
 #else
-		public static void IsNotType(Type expectedType, object @object)
+			object @object)
 #endif
 		{
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
@@ -107,10 +112,12 @@ namespace Xunit
 		/// <param name="expectedType">The type the object should be</param>
 		/// <param name="object">The object to be evaluated</param>
 		/// <exception cref="IsTypeException">Thrown when the object is not the given type</exception>
+		public static void IsType(
+			Type expectedType,
 #if XUNIT_NULLABLE
-		public static void IsType(Type expectedType, [NotNull] object? @object)
+			[NotNull] object? @object)
 #else
-		public static void IsType(Type expectedType, object @object)
+			object @object)
 #endif
 		{
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
@@ -126,8 +133,8 @@ namespace Xunit
 
 				if (expectedTypeName == actualTypeName)
 				{
-					expectedTypeName += string.Format(" ({0})", expectedType.GetTypeInfo().Assembly.GetName().FullName);
-					actualTypeName += string.Format(" ({0})", actualType.GetTypeInfo().Assembly.GetName().FullName);
+					expectedTypeName += $" ({expectedType.GetTypeInfo().Assembly.GetName().FullName})";
+					actualTypeName += $" ({actualType.GetTypeInfo().Assembly.GetName().FullName})";
 				}
 
 				throw new IsTypeException(expectedTypeName, actualTypeName);

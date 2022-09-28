@@ -773,7 +773,9 @@ namespace Xunit
 				c == tabulation;
 		}
 
-		static int SkipLineEnding(ReadOnlySpan<char> value, int index)
+		static int SkipLineEnding(
+			ReadOnlySpan<char> value,
+			int index)
 		{
 			if (value[index] == '\r')
 				++index;
@@ -784,7 +786,9 @@ namespace Xunit
 			return index;
 		}
 
-		static int SkipWhitespace(ReadOnlySpan<char> value, int index)
+		static int SkipWhitespace(
+			ReadOnlySpan<char> value,
+			int index)
 		{
 			while (index < value.Length)
 			{

@@ -21,8 +21,8 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="MultipleException"/> class.
 		/// </summary>
-		public MultipleException(IEnumerable<Exception> innerExceptions)
-			: base("Multiple failures were encountered:")
+		public MultipleException(IEnumerable<Exception> innerExceptions) :
+			base("Multiple failures were encountered:")
 		{
 			if (innerExceptions == null)
 				throw new ArgumentNullException(nameof(innerExceptions));
@@ -37,9 +37,10 @@ namespace Xunit.Sdk
 
 		/// <inheritdoc/>
 #if XUNIT_NULLABLE
-		public override string? StackTrace => "Inner stack traces:";
+		public override string? StackTrace =>
 #else
-		public override string StackTrace => "Inner stack traces:";
+		public override string StackTrace =>
 #endif
+			"Inner stack traces:";
 	}
 }

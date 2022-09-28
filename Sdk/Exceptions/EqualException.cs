@@ -40,12 +40,15 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected object value</param>
 		/// <param name="actual">The actual object value</param>
+		public EqualException(
 #if XUNIT_NULLABLE
-		public EqualException(object? expected, object? actual)
+			object? expected,
+			object? actual) :
 #else
-		public EqualException(object expected, object actual)
+			object expected,
+			object actual) :
 #endif
-			: base(expected, actual, "Assert.Equal() Failure")
+				base(expected, actual, "Assert.Equal() Failure")
 		{
 			ActualIndex = -1;
 			ExpectedIndex = -1;
@@ -58,32 +61,61 @@ namespace Xunit.Sdk
 		/// <param name="actual">The actual string value</param>
 		/// <param name="expectedIndex">The first index in the expected string where the strings differ</param>
 		/// <param name="actualIndex">The first index in the actual string where the strings differ</param>
+		public EqualException(
 #if XUNIT_NULLABLE
-		public EqualException(string? expected, string? actual, int expectedIndex, int actualIndex)
+			string? expected,
+			string? actual,
+			int expectedIndex,
+			int actualIndex) :
 #else
-		public EqualException(string expected, string actual, int expectedIndex, int actualIndex)
+			string expected,
+			string actual,
+			int expectedIndex,
+			int actualIndex) :
 #endif
-			: this(expected, actual, expectedIndex, actualIndex, null)
+				this(expected, actual, expectedIndex, actualIndex, null)
 		{ }
 
+		EqualException(
 #if XUNIT_NULLABLE
-		EqualException(string? expected, string? actual, int expectedIndex, int actualIndex, int? pointerPosition)
+			string? expected,
+			string? actual,
+			int expectedIndex,
+			int actualIndex,
+			int? pointerPosition) :
 #else
-		EqualException(string expected, string actual, int expectedIndex, int actualIndex, int? pointerPosition)
+			string expected,
+			string actual,
+			int expectedIndex,
+			int actualIndex,
+			int? pointerPosition) :
 #endif
-			: base(expected, actual, "Assert.Equal() Failure")
+				base(expected, actual, "Assert.Equal() Failure")
 		{
 			ActualIndex = actualIndex;
 			ExpectedIndex = expectedIndex;
 			PointerPosition = pointerPosition;
 		}
 
+		EqualException(
 #if XUNIT_NULLABLE
-		EqualException(string? expected, string? actual, int expectedIndex, int actualIndex, string? expectedType, string? actualType, int? pointerPosition)
+			string? expected,
+			string? actual,
+			int expectedIndex,
+			int actualIndex,
+			string? expectedType,
+			string? actualType,
+			int? pointerPosition) :
 #else
-		EqualException(string expected, string actual, int expectedIndex, int actualIndex, string expectedType, string actualType, int? pointerPosition)
+			string expected,
+			string actual,
+			int expectedIndex,
+			int actualIndex,
+			string expectedType,
+			string actualType,
+			int? pointerPosition) :
 #endif
-			: this(expected, actual, expectedIndex, actualIndex, pointerPosition)
+				this(expected, actual, expectedIndex, actualIndex, pointerPosition)
 		{
 			ActualType = actualType;
 			ExpectedType = expectedType;
@@ -187,11 +219,15 @@ namespace Xunit.Sdk
 		/// <param name="expected">The expected object value</param>
 		/// <param name="actual">The actual object value</param>
 		/// <param name="mismatchIndex">The first index in the expected IEnumerable where the strings differ</param>
+		public static EqualException FromEnumerable(
 #if XUNIT_NULLABLE
-		public static EqualException FromEnumerable(IEnumerable? expected, IEnumerable? actual, int mismatchIndex)
+			IEnumerable? expected,
+			IEnumerable? actual,
 #else
-		public static EqualException FromEnumerable(IEnumerable expected, IEnumerable actual, int mismatchIndex)
+			IEnumerable expected,
+			IEnumerable actual,
 #endif
+			int mismatchIndex)
 		{
 			int? pointerPositionExpected;
 			int? pointerPositionActual;
@@ -210,11 +246,17 @@ namespace Xunit.Sdk
 		}
 
 
+		static Tuple<string, string> ShortenAndEncode(
 #if XUNIT_NULLABLE
-		static Tuple<string, string> ShortenAndEncode(string? value, string? type, int position, char pointer, int? index = null)
+			string? value,
+			string? type,
 #else
-		static Tuple<string, string> ShortenAndEncode(string value, string type, int position, char pointer, int? index = null)
+			string value,
+			string type,
 #endif
+			int position,
+			char pointer,
+			int? index = null)
 		{
 			if (value == null)
 				return Tuple.Create("(null)", "");

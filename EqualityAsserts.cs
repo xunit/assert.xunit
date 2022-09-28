@@ -1,14 +1,15 @@
 ﻿#if XUNIT_NULLABLE
 #nullable enable
-
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using Xunit.Sdk;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit
 {
@@ -31,12 +32,15 @@ namespace Xunit
 		/// If Span&lt;T&gt;.SequenceEqual fails, a call to Assert.Equal(object, object) is made,
 		/// to provide a more meaningful error message.
 		/// </remarks>
+		public static void Equal<T>(
 #if XUNIT_NULLABLE
-		public static void Equal<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
-			where T : unmanaged, IEquatable<T>
+			[AllowNull] T[] expected,
+			[AllowNull] T[] actual)
+				where T : unmanaged, IEquatable<T>
 #else
-		public static void Equal<T>(T[] expected, T[] actual)
-			where T : IEquatable<T>
+			T[] expected,
+			T[] actual)
+				where T : IEquatable<T>
 #endif
 		{
 			if (expected == null && actual == null)
@@ -55,14 +59,15 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+		public static void Equal<T>(
 #if XUNIT_NULLABLE
-		public static void Equal<T>([AllowNull] T expected, [AllowNull] T actual)
+			[AllowNull] T expected,
+			[AllowNull] T actual) =>
 #else
-		public static void Equal<T>(T expected, T actual)
+			T expected,
+			T actual) =>
 #endif
-		{
-			Equal(expected, actual, GetEqualityComparer<T>());
-		}
+				Equal(expected, actual, GetEqualityComparer<T>());
 
 		/// <summary>
 		/// Verifies that two objects are equal, using a custom equatable comparer.
@@ -72,11 +77,15 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+		public static void Equal<T>(
 #if XUNIT_NULLABLE
-		public static void Equal<T>([AllowNull] T expected, [AllowNull] T actual, IEqualityComparer<T> comparer)
+			[AllowNull] T expected,
+			[AllowNull] T actual,
 #else
-		public static void Equal<T>(T expected, T actual, IEqualityComparer<T> comparer)
+			T expected,
+			T actual,
 #endif
+			IEqualityComparer<T> comparer)
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
@@ -109,16 +118,16 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
 		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
-		public static void Equal(double expected, double actual, int precision)
+		public static void Equal(
+			double expected,
+			double actual,
+			int precision)
 		{
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (!Object.Equals(expectedRounded, actualRounded))
-				throw new EqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
-				);
+			if (!object.Equals(expectedRounded, actualRounded))
+				throw new EqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -130,16 +139,17 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
 		/// <param name="rounding">Rounding method to use to process a number that is midway between two numbers</param>
-		public static void Equal(double expected, double actual, int precision, MidpointRounding rounding)
+		public static void Equal(
+			double expected,
+			double actual,
+			int precision,
+			MidpointRounding rounding)
 		{
 			var expectedRounded = Math.Round(expected, precision, rounding);
 			var actualRounded = Math.Round(actual, precision, rounding);
 
-			if (!Object.Equals(expectedRounded, actualRounded))
-				throw new EqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
-				);
+			if (!object.Equals(expectedRounded, actualRounded))
+				throw new EqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -156,11 +166,8 @@ namespace Xunit
 			if (double.IsNaN(tolerance) || double.IsNegativeInfinity(tolerance) || tolerance < 0.0)
 				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
 
-			if (!(double.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance))
-				throw new EqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0:G17}", expected),
-					string.Format(CultureInfo.CurrentCulture, "{0:G17}", actual)
-				);
+			if (!(object.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance))
+				throw new EqualException($"{expected:G17}", $"{actual:G17}");
 		}
 
 		/// <summary>
@@ -172,16 +179,16 @@ namespace Xunit
 		/// <param name="tolerance">The allowed difference between values</param>
 		/// <exception cref="ArgumentException">Thrown when supplied tolerance is invalid</exception>"
 		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
-		public static void Equal(float expected, float actual, float tolerance)
+		public static void Equal(
+			float expected,
+			float actual,
+			float tolerance)
 		{
 			if (float.IsNaN(tolerance) || float.IsNegativeInfinity(tolerance) || tolerance < 0.0)
 				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
 
-			if (!(float.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance))
-				throw new EqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0:G9}", expected),
-					string.Format(CultureInfo.CurrentCulture, "{0:G9}", actual)
-				);
+			if (!(object.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance))
+				throw new EqualException($"{expected:G9}", $"{actual:G9}");
 		}
 
 		/// <summary>
@@ -192,16 +199,16 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The number of decimal places (valid values: 0-28)</param>
 		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
-		public static void Equal(decimal expected, decimal actual, int precision)
+		public static void Equal(
+			decimal expected,
+			decimal actual,
+			int precision)
 		{
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
 			if (expectedRounded != actualRounded)
-				throw new EqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
-				);
+				throw new EqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -212,19 +219,15 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The allowed difference in time where the two dates are considered equal</param>
 		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
-		public static void Equal(DateTime expected, DateTime actual, TimeSpan precision)
+		public static void Equal(
+			DateTime expected,
+			DateTime actual,
+			TimeSpan precision)
 		{
 			var difference = (expected - actual).Duration();
+
 			if (difference > precision)
-			{
-				throw new EqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0} ", expected),
-					string.Format(CultureInfo.CurrentCulture, "{0} difference {1} is larger than {2}",
-						actual,
-						difference.ToString(),
-						precision.ToString()
-					));
-			}
+				throw new EqualException($"{expected} ", $"{actual} difference {difference} is larger than {precision}");
 		}
 
 		/// <summary>
@@ -234,12 +237,15 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+		public static void StrictEqual<T>(
 #if XUNIT_NULLABLE
-		public static void StrictEqual<T>([AllowNull] T expected, [AllowNull] T actual) =>
-			Equal(expected, actual, EqualityComparer<T?>.Default);
+			[AllowNull] T expected,
+			[AllowNull] T actual) =>
+				Equal(expected, actual, EqualityComparer<T?>.Default);
 #else
-		public static void StrictEqual<T>(T expected, T actual) =>
-			Equal(expected, actual, EqualityComparer<T>.Default);
+			T expected,
+			T actual) =>
+				Equal(expected, actual, EqualityComparer<T>.Default);
 #endif
 
 #if XUNIT_SPAN
@@ -250,12 +256,15 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="NotEqualException">Thrown when the arrays are equal</exception>
+		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-		public static void NotEqual<T>([AllowNull] T[] expected, [AllowNull] T[] actual)
-			where T : unmanaged, IEquatable<T>
+			[AllowNull] T[] expected,
+			[AllowNull] T[] actual)
+				where T : unmanaged, IEquatable<T>
 #else
-		public static void NotEqual<T>(T[] expected, T[] actual)
-			where T : IEquatable<T>
+			T[] expected,
+			T[] actual)
+				where T : IEquatable<T>
 #endif
 		{
 			// Call into NotEqual<object> so we get proper formatting of the sequence
@@ -275,14 +284,15 @@ namespace Xunit
 		/// <param name="expected">The expected object</param>
 		/// <param name="actual">The actual object</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
+		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-		public static void NotEqual<T>([AllowNull] T expected, [AllowNull] T actual)
+			[AllowNull] T expected,
+			[AllowNull] T actual) =>
 #else
-		public static void NotEqual<T>(T expected, T actual)
+			T expected,
+			T actual) =>
 #endif
-		{
-			NotEqual(expected, actual, GetEqualityComparer<T>());
-		}
+				NotEqual(expected, actual, GetEqualityComparer<T>());
 
 		/// <summary>
 		/// Verifies that two objects are not equal, using a custom equality comparer.
@@ -292,11 +302,15 @@ namespace Xunit
 		/// <param name="actual">The actual object</param>
 		/// <param name="comparer">The comparer used to examine the objects</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
+		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-		public static void NotEqual<T>([AllowNull] T expected, [AllowNull] T actual, IEqualityComparer<T> comparer)
+			[AllowNull] T expected,
+			[AllowNull] T actual,
 #else
-		public static void NotEqual<T>(T expected, T actual, IEqualityComparer<T> comparer)
+			T expected,
+			T actual,
 #endif
+			IEqualityComparer<T> comparer)
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
@@ -312,16 +326,16 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
 		/// <exception cref="EqualException">Thrown when the values are equal</exception>
-		public static void NotEqual(double expected, double actual, int precision)
+		public static void NotEqual(
+			double expected,
+			double actual,
+			int precision)
 		{
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
-			if (Object.Equals(expectedRounded, actualRounded))
-				throw new NotEqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
-				);
+			if (object.Equals(expectedRounded, actualRounded))
+				throw new NotEqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -332,16 +346,16 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The number of decimal places (valid values: 0-28)</param>
 		/// <exception cref="EqualException">Thrown when the values are equal</exception>
-		public static void NotEqual(decimal expected, decimal actual, int precision)
+		public static void NotEqual(
+			decimal expected,
+			decimal actual,
+			int precision)
 		{
 			var expectedRounded = Math.Round(expected, precision);
 			var actualRounded = Math.Round(actual, precision);
 
 			if (expectedRounded == actualRounded)
-				throw new NotEqualException(
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
-					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
-				);
+				throw new NotEqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -351,12 +365,15 @@ namespace Xunit
 		/// <param name="expected">The expected object</param>
 		/// <param name="actual">The actual object</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
+		public static void NotStrictEqual<T>(
 #if XUNIT_NULLABLE
-		public static void NotStrictEqual<T>([AllowNull] T expected, [AllowNull] T actual) =>
-			NotEqual(expected, actual, EqualityComparer<T?>.Default);
+			[AllowNull] T expected,
+			[AllowNull] T actual) =>
+				NotEqual(expected, actual, EqualityComparer<T?>.Default);
 #else
-		public static void NotStrictEqual<T>(T expected, T actual) =>
-			NotEqual(expected, actual, EqualityComparer<T>.Default);
+			T expected,
+			T actual) =>
+				NotEqual(expected, actual, EqualityComparer<T>.Default);
 #endif
 	}
 }

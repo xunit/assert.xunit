@@ -3,7 +3,6 @@
 #endif
 
 using System.Collections;
-using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -25,15 +24,18 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="duplicateObject">The object that was present twice in the collection.</param>
 		/// <param name="collection">The collection that was checked for duplicate entries.</param>
+		public ContainsDuplicateException(
 #if XUNIT_NULLABLE
-		public ContainsDuplicateException(object? duplicateObject, IEnumerable collection)
+			object? duplicateObject,
+			IEnumerable collection) :
 #else
-		public ContainsDuplicateException(object duplicateObject, IEnumerable collection)
+			object duplicateObject,
+			IEnumerable collection) :
 #endif
-			: base("Assert.Distinct() Failure")
+				base("Assert.Distinct() Failure")
 		{
-			this.DuplicateObject = duplicateObject;
-			this.Collection = collection;
+			DuplicateObject = duplicateObject;
+			Collection = collection;
 		}
 
 		/// <summary>
@@ -51,12 +53,7 @@ namespace Xunit.Sdk
 #endif
 
 		/// <inheritdoc/>
-		public override string Message
-		{
-			get
-			{
-				return string.Format(CultureInfo.CurrentCulture, "{0}: The item {1} occurs multiple times in {2}.", base.Message, ArgumentFormatter.Format(DuplicateObject), ArgumentFormatter.Format(Collection));
-			}
-		}
+		public override string Message =>
+			$"{base.Message}: The item {ArgumentFormatter.Format(DuplicateObject)} occurs multiple times in {ArgumentFormatter.Format(Collection)}.";
 	}
 }

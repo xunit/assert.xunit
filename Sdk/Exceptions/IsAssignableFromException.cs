@@ -21,12 +21,14 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected type</param>
 		/// <param name="actual">The actual object value</param>
+		public IsAssignableFromException(
+			Type expected,
 #if XUNIT_NULLABLE
-		public IsAssignableFromException(Type expected, object? actual)
+			object? actual) :
 #else
-		public IsAssignableFromException(Type expected, object actual)
+			object actual) :
 #endif
-			: base(expected, actual?.GetType(), "Assert.IsAssignableFrom() Failure")
+				base(expected, actual?.GetType(), "Assert.IsAssignableFrom() Failure")
 		{ }
 	}
 }

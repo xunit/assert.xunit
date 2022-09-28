@@ -1,7 +1,5 @@
 ﻿#if XUNIT_NULLABLE
 #nullable enable
-
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
@@ -9,6 +7,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit.Sdk
 {
@@ -38,23 +40,30 @@ namespace Xunit.Sdk
 		}
 
 		/// <inheritdoc/>
+		public bool Equals(
 #if XUNIT_NULLABLE
-		public bool Equals([AllowNull] T x, [AllowNull] T y)
+			[AllowNull] T x,
+			[AllowNull] T y)
 #else
-		public bool Equals(T x, T y)
+			T x,
+			T y)
 #endif
 		{
-			int? mismatchIndex;
+			int? _;
 
-			return Equals(x, y, out mismatchIndex);
+			return Equals(x, y, out _);
 		}
 
 		/// <inheritdoc/>
+		public bool Equals(
 #if XUNIT_NULLABLE
-		public bool Equals([AllowNull] T x, [AllowNull] T y, out int? mismatchIndex)
+			[AllowNull] T x,
+			[AllowNull] T y,
 #else
-		public bool Equals(T x, T y, out int? mismatchIndex)
+			T x,
+			T y,
 #endif
+			out int? mismatchIndex)
 		{
 			mismatchIndex = null;
 			var typeInfo = typeof(T).GetTypeInfo();
@@ -187,11 +196,15 @@ namespace Xunit.Sdk
 			return object.Equals(x, y);
 		}
 
+		bool? CheckIfEnumerablesAreEqual(
 #if XUNIT_NULLABLE
-		bool? CheckIfEnumerablesAreEqual([AllowNull] T x, [AllowNull] T y, out int? mismatchIndex)
+			[AllowNull] T x,
+			[AllowNull] T y,
 #else
-		bool? CheckIfEnumerablesAreEqual(T x, T y, out int? mismatchIndex)
+			T x,
+			T y,
 #endif
+			out int? mismatchIndex)
 		{
 			mismatchIndex = null;
 
@@ -245,10 +258,13 @@ namespace Xunit.Sdk
 			}
 		}
 
+		bool? CheckIfDictionariesAreEqual(
 #if XUNIT_NULLABLE
-		bool? CheckIfDictionariesAreEqual([AllowNull] T x, [AllowNull] T y)
+			[AllowNull] T x,
+			[AllowNull] T y)
 #else
-		bool? CheckIfDictionariesAreEqual(T x, T y)
+			T x,
+			T y)
 #endif
 		{
 			var dictionaryX = x as IDictionary;
@@ -286,11 +302,15 @@ namespace Xunit.Sdk
 		static MethodInfo s_compareTypedSetsMethod;
 #endif
 
+		bool? CheckIfSetsAreEqual(
 #if XUNIT_NULLABLE
-		bool? CheckIfSetsAreEqual([AllowNull] T x, [AllowNull] T y, TypeInfo typeInfo)
+			[AllowNull] T x,
+			[AllowNull] T y,
 #else
-		bool? CheckIfSetsAreEqual(T x, T y, TypeInfo typeInfo)
+			T x,
+			T y,
 #endif
+			TypeInfo typeInfo)
 		{
 			if (!IsSet(typeInfo))
 				return null;
@@ -321,21 +341,23 @@ namespace Xunit.Sdk
 #endif
 		}
 
-		bool CompareTypedSets<R>(IEnumerable enumX, IEnumerable enumY)
+		bool CompareTypedSets<R>(
+			IEnumerable enumX,
+			IEnumerable enumY)
 		{
 			var setX = new HashSet<R>(enumX.Cast<R>());
 			var setY = new HashSet<R>(enumY.Cast<R>());
+
 			return setX.SetEquals(setY);
 		}
 
-		bool IsSet(TypeInfo typeInfo)
-		{
-			return typeInfo.ImplementedInterfaces
+		bool IsSet(TypeInfo typeInfo) =>
+			typeInfo
+				.ImplementedInterfaces
 				.Select(i => i.GetTypeInfo())
 				.Where(ti => ti.IsGenericType)
 				.Select(ti => ti.GetGenericTypeDefinition())
 				.Contains(typeof(ISet<>).GetGenericTypeDefinition());
-		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(T obj)
@@ -358,10 +380,13 @@ namespace Xunit.Sdk
 			static MethodInfo s_equalsMethod;
 #endif
 
+			public new bool Equals(
 #if XUNIT_NULLABLE
-			public new bool Equals(object? x, object? y)
+				object? x,
+				object? y)
 #else
-			public new bool Equals(object x, object y)
+				object x,
+				object y)
 #endif
 			{
 				if (x == null)
@@ -392,8 +417,10 @@ namespace Xunit.Sdk
 #endif
 			}
 
-			bool EqualsGeneric<U>(U x, U y)
-				=> new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
+			bool EqualsGeneric<U>(
+				U x,
+				U y) =>
+					new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
 
 			public int GetHashCode(object obj)
 			{

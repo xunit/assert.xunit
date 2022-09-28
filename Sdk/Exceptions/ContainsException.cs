@@ -2,7 +2,6 @@
 #nullable enable
 #endif
 
-
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -20,12 +19,15 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected object value</param>
 		/// <param name="actual">The actual value</param>
+		public ContainsException(
 #if XUNIT_NULLABLE
-		public ContainsException(object? expected, object? actual)
+			object? expected,
+			object? actual) :
 #else
-		public ContainsException(object expected, object actual)
+			object expected,
+			object actual) :
 #endif
-			: base(expected, actual, "Assert.Contains() Failure", "Not found", "In value")
+				base(expected, actual, "Assert.Contains() Failure", "Not found", "In value")
 		{ }
 	}
 }

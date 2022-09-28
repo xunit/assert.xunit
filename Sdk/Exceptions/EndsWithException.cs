@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -20,28 +19,27 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="EndsWithException"/> class.
 		/// </summary>
-		/// <param name="expected">The expected string value</param>
+		/// <param name="expected">The expected value that should've ended <paramref name="actual"/></param>
 		/// <param name="actual">The actual value</param>
+		public EndsWithException(
 #if XUNIT_NULLABLE
-		public EndsWithException(string? expected, string? actual)
+			string? expected,
+			string? actual) :
 #else
-		public EndsWithException(string expected, string actual)
+			string expected,
+			string actual) :
 #endif
-			: base(
-				string.Format(
-					CultureInfo.CurrentCulture,
-					"Assert.EndsWith() Failure:{2}Expected: {0}{2}Actual:   {1}",
-					ShortenExpected(expected, actual) ?? "(null)",
-					ShortenActual(expected, actual) ?? "(null)",
-					Environment.NewLine
-				)
-			)
+				base($"Assert.EndsWith() Failure:{Environment.NewLine}Expected: {ShortenExpected(expected, actual) ?? "(null)"}{Environment.NewLine}Actual:   {ShortenActual(expected, actual) ?? "(null)"}")
 		{ }
 
 #if XUNIT_NULLABLE
-		static string? ShortenExpected(string? expected, string? actual)
+		static string? ShortenExpected(
+			string? expected,
+			string? actual)
 #else
-		static string ShortenExpected(string expected, string actual)
+		static string ShortenExpected(
+			string expected,
+			string actual)
 #endif
 		{
 			if (expected == null || actual == null || actual.Length <= expected.Length)
@@ -51,9 +49,13 @@ namespace Xunit.Sdk
 		}
 
 #if XUNIT_NULLABLE
-		static string? ShortenActual(string? expected, string? actual)
+		static string? ShortenActual(
+			string? expected,
+			string? actual)
 #else
-		static string ShortenActual(string expected, string actual)
+		static string ShortenActual(
+			string expected,
+			string actual)
 #endif
 		{
 			if (expected == null || actual == null || actual.Length <= expected.Length)

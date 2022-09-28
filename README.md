@@ -1,6 +1,6 @@
 # About This Project
 
-This project contains the xUnit.net assertion library source code, intended to be used as a Git submodule.
+This project contains the xUnit.net assertion library source code, intended to be used as a Git submodule. Code here has a minimum target-framework of `netstandard1.1`, `net452`, or `netcoreapp1.0`.
 
 To open an issue for this project, please visit the [core xUnit.net project issue tracker](https://github.com/xunit/xunit/issues).
 
@@ -8,19 +8,19 @@ To open an issue for this project, please visit the [core xUnit.net project issu
 
 The following pre-processor directives can be used to influence the resulting code contained in this repository:
 
-### `XUNIT_NULLABLE`
+### `XUNIT_NULLABLE` (min: C# 9.0, xUnit.net v2)
 
-Projects that consume this repository as source, which are compiled using C# 8 and wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
+Projects that consume this repository as source, which wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
 
-### `XUNIT_SKIP`
+### `XUNIT_SKIP` (min: C# 10.0, xUnit.net v3)
 
 The Skip family of assertions (like `Assert.Skip`) require xUnit.net v3. Define this to enable the Skip assertions.
 
-### `XUNIT_SPAN`
+### `XUNIT_SPAN` (min: C# 6.0, xUnit.net v2)
 
 There are optimized versions of `Assert.Equal` for arrays which use `Span<T>`- and/or `Memory<T>`-based comparison options. If you are using a target framework that supports `Span<T>` and `Memory<T>`, you should define `XUNIT_SPAN` to enable these new assertions.
 
-### `XUNIT_VALUETASK`
+### `XUNIT_VALUETASK` (min: C# 6.0, xUnit.net v2)
 
 Any asynchronous assertion API (like `Assert.ThrowsAsync`) is available with versions that consume `Task` or `Task<T>`. If you are using a target framework and compiler that support `ValueTask<T>`, you should define `XUNIT_VALUETASK` to enable additional versions of those assertions that will consume `ValueTask` and/or `ValueTask<T>`.
 

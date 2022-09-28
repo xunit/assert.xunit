@@ -2,8 +2,6 @@
 #nullable enable
 #endif
 
-using System.Globalization;
-
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -21,8 +19,8 @@ namespace Xunit.Sdk
 		/// when no exception was thrown.
 		/// </summary>
 		/// <param name="propertyName">The name of the property that was expected to be changed.</param>
-		public PropertyChangedException(string propertyName)
-			: base(string.Format(CultureInfo.CurrentCulture, "Assert.PropertyChanged failure: Property {0} was not set", propertyName))
+		public PropertyChangedException(string propertyName) :
+			base($"Assert.PropertyChanged failure: Property {propertyName} was not set")
 		{ }
 	}
 }

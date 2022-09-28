@@ -6,8 +6,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Xunit.Sdk;
+
+#if XUNIT_VALUETASK
+using System.Threading.Tasks;
+#endif
 
 namespace Xunit
 {
@@ -26,7 +29,9 @@ namespace Xunit
 		/// <param name="collection">The collection</param>
 		/// <param name="action">The action to test each item against</param>
 		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
-		public static void All<T>(IEnumerable<T> collection, Action<T> action)
+		public static void All<T>(
+			IEnumerable<T> collection,
+			Action<T> action)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
@@ -42,7 +47,9 @@ namespace Xunit
 		/// <param name="collection">The collection</param>
 		/// <param name="action">The action to test each item against</param>
 		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
-		public static void All<T>(IEnumerable<T> collection, Action<T, int> action)
+		public static void All<T>(
+			IEnumerable<T> collection,
+			Action<T, int> action)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
@@ -85,7 +92,9 @@ namespace Xunit
 		/// <param name="collection">The collection</param>
 		/// <param name="action">The action to test each item against</param>
 		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
-		public static async ValueTask AllAsync<T>(IEnumerable<T> collection, Func<T, ValueTask> action)
+		public static async ValueTask AllAsync<T>(
+			IEnumerable<T> collection,
+			Func<T, ValueTask> action)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
@@ -101,7 +110,9 @@ namespace Xunit
 		/// <param name="collection">The collection</param>
 		/// <param name="action">The action to test each item against</param>
 		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
-		public static async ValueTask AllAsync<T>(IEnumerable<T> collection, Func<T, int, ValueTask> action)
+		public static async ValueTask AllAsync<T>(
+			IEnumerable<T> collection,
+			Func<T, int, ValueTask> action)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
@@ -144,7 +155,9 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="elementInspectors">The element inspectors, which inspect each element in turn. The
 		/// total number of element inspectors must exactly match the number of elements in the collection.</param>
-		public static void Collection<T>(IEnumerable<T> collection, params Action<T>[] elementInspectors)
+		public static void Collection<T>(
+			IEnumerable<T> collection,
+			params Action<T>[] elementInspectors)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
@@ -178,7 +191,9 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="elementInspectors">The element inspectors, which inspect each element in turn. The
 		/// total number of element inspectors must exactly match the number of elements in the collection.</param>
-		public static async ValueTask CollectionAsync<T>(IEnumerable<T> collection, params Func<T, ValueTask>[] elementInspectors)
+		public static async ValueTask CollectionAsync<T>(
+			IEnumerable<T> collection,
+			params Func<T, ValueTask>[] elementInspectors)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
@@ -191,7 +206,6 @@ namespace Xunit
 				throw new CollectionException(collection, expectedCount, actualCount);
 
 			for (var idx = 0; idx < actualCount; idx++)
-			{
 				try
 				{
 					await elementInspectors[idx](elements[idx]);
@@ -200,7 +214,6 @@ namespace Xunit
 				{
 					throw new CollectionException(collection, expectedCount, actualCount, idx, ex);
 				}
-			}
 		}
 #endif
 
@@ -211,7 +224,9 @@ namespace Xunit
 		/// <param name="expected">The object expected to be in the collection</param>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static void Contains<T>(T expected, IEnumerable<T> collection)
+		public static void Contains<T>(
+			T expected,
+			IEnumerable<T> collection)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
@@ -234,7 +249,10 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
 		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static void Contains<T>(T expected, IEnumerable<T> collection, IEqualityComparer<T> comparer)
+		public static void Contains<T>(
+			T expected,
+			IEnumerable<T> collection,
+			IEqualityComparer<T> comparer)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
@@ -252,7 +270,9 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="filter">The filter used to find the item you're ensuring the collection contains</param>
 		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static void Contains<T>(IEnumerable<T> collection, Predicate<T> filter)
+		public static void Contains<T>(
+			IEnumerable<T> collection,
+			Predicate<T> filter)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(filter), filter);
@@ -273,9 +293,11 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected.</param>
 		/// <returns>The value associated with <paramref name="expected"/>.</returns>
 		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static TValue Contains<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection)
+		public static TValue Contains<TKey, TValue>(
+			TKey expected,
+			IReadOnlyDictionary<TKey, TValue> collection)
 #if XUNIT_NULLABLE
-			where TKey : notnull
+				where TKey : notnull
 #endif
 		{
 			GuardArgumentNotNull(nameof(expected), expected);
@@ -297,9 +319,11 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected.</param>
 		/// <returns>The value associated with <paramref name="expected"/>.</returns>
 		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static TValue Contains<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection)
+		public static TValue Contains<TKey, TValue>(
+			TKey expected,
+			IDictionary<TKey, TValue> collection)
 #if XUNIT_NULLABLE
-			where TKey : notnull
+				where TKey : notnull
 #endif
 		{
 			GuardArgumentNotNull(nameof(expected), expected);
@@ -318,10 +342,8 @@ namespace Xunit
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when an object is present inside the container more than once</exception>
-		public static void Distinct<T>(IEnumerable<T> collection)
-		{
+		public static void Distinct<T>(IEnumerable<T> collection) =>
 			Distinct<T>(collection, EqualityComparer<T>.Default);
-		}
 
 		/// <summary>
 		/// Verifies that a collection contains each object only once.
@@ -330,7 +352,9 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
 		/// <exception cref="DoesNotContainException">Thrown when an object is present inside the container more than once</exception>
-		public static void Distinct<T>(IEnumerable<T> collection, IEqualityComparer<T> comparer)
+		public static void Distinct<T>(
+			IEnumerable<T> collection,
+			IEqualityComparer<T> comparer)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
@@ -349,7 +373,9 @@ namespace Xunit
 		/// <param name="expected">The object that is expected not to be in the collection</param>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
-		public static void DoesNotContain<T>(T expected, IEnumerable<T> collection)
+		public static void DoesNotContain<T>(
+			T expected,
+			IEnumerable<T> collection)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
@@ -372,7 +398,10 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
 		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
-		public static void DoesNotContain<T>(T expected, IEnumerable<T> collection, IEqualityComparer<T> comparer)
+		public static void DoesNotContain<T>(
+			T expected,
+			IEnumerable<T> collection,
+			IEqualityComparer<T> comparer)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
@@ -390,7 +419,9 @@ namespace Xunit
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="filter">The filter used to find the item you're ensuring the collection does not contain</param>
 		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
-		public static void DoesNotContain<T>(IEnumerable<T> collection, Predicate<T> filter)
+		public static void DoesNotContain<T>(
+			IEnumerable<T> collection,
+			Predicate<T> filter)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(filter), filter);
@@ -408,9 +439,11 @@ namespace Xunit
 		/// <param name="expected">The object expected to be in the collection.</param>
 		/// <param name="collection">The collection to be inspected.</param>
 		/// <exception cref="DoesNotContainException">Thrown when the object is present in the collection</exception>
-		public static void DoesNotContain<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection)
+		public static void DoesNotContain<TKey, TValue>(
+			TKey expected,
+			IReadOnlyDictionary<TKey, TValue> collection)
 #if XUNIT_NULLABLE
-			where TKey : notnull
+				where TKey : notnull
 #endif
 		{
 			GuardArgumentNotNull(nameof(expected), expected);
@@ -427,9 +460,11 @@ namespace Xunit
 		/// <param name="expected">The object expected to be in the collection.</param>
 		/// <param name="collection">The collection to be inspected.</param>
 		/// <exception cref="DoesNotContainException">Thrown when the object is present in the collection</exception>
-		public static void DoesNotContain<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection)
+		public static void DoesNotContain<TKey, TValue>(
+			TKey expected,
+			IDictionary<TKey, TValue> collection)
 #if XUNIT_NULLABLE
-			where TKey : notnull
+				where TKey : notnull
 #endif
 		{
 			GuardArgumentNotNull(nameof(expected), expected);
@@ -467,10 +502,10 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
-		public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual)
-		{
-			Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>());
-		}
+		public static void Equal<T>(
+			IEnumerable<T> expected,
+			IEnumerable<T> actual) =>
+				Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>());
 
 		/// <summary>
 		/// Verifies that two sequences are equivalent, using a custom equatable comparer.
@@ -480,10 +515,11 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
-		public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer)
-		{
-			Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
-		}
+		public static void Equal<T>(
+			IEnumerable<T> expected,
+			IEnumerable<T> actual,
+			IEqualityComparer<T> comparer) =>
+				Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
 
 		/// <summary>
 		/// Verifies that a collection is not empty.
@@ -514,10 +550,10 @@ namespace Xunit
 		/// <param name="expected">The expected object</param>
 		/// <param name="actual">The actual object</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
-		public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
-		{
-			NotEqual(expected, actual, GetEqualityComparer<IEnumerable<T>>());
-		}
+		public static void NotEqual<T>(
+			IEnumerable<T> expected,
+			IEnumerable<T> actual) =>
+				NotEqual(expected, actual, GetEqualityComparer<IEnumerable<T>>());
 
 		/// <summary>
 		/// Verifies that two sequences are not equivalent, using a custom equality comparer.
@@ -527,10 +563,11 @@ namespace Xunit
 		/// <param name="actual">The actual object</param>
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
-		public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer)
-		{
-			NotEqual(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
-		}
+		public static void NotEqual<T>(
+			IEnumerable<T> expected,
+			IEnumerable<T> actual,
+			IEqualityComparer<T> comparer) =>
+				NotEqual(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
 
 		/// <summary>
 		/// Verifies that the given collection contains only a single
@@ -561,10 +598,12 @@ namespace Xunit
 		/// <returns>The single item in the collection.</returns>
 		/// <exception cref="SingleException">Thrown when the collection does not contain
 		/// exactly one element.</exception>
+		public static void Single(
+			IEnumerable collection,
 #if XUNIT_NULLABLE
-		public static void Single(IEnumerable collection, object? expected)
+			object? expected)
 #else
-		public static void Single(IEnumerable collection, object expected)
+			object expected)
 #endif
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
@@ -600,7 +639,9 @@ namespace Xunit
 		/// <returns>The single item in the filtered collection.</returns>
 		/// <exception cref="SingleException">Thrown when the filtered collection does
 		/// not contain exactly one element.</exception>
-		public static T Single<T>(IEnumerable<T> collection, Predicate<T> predicate)
+		public static T Single<T>(
+			IEnumerable<T> collection,
+			Predicate<T> predicate)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(predicate), predicate);
@@ -608,10 +649,14 @@ namespace Xunit
 			return GetSingleResult(collection, predicate, "(filter expression)");
 		}
 
+		static T GetSingleResult<T>(
+			IEnumerable<T> collection,
 #if XUNIT_NULLABLE
-		static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T>? predicate, string? expectedArgument)
+			Predicate<T>? predicate,
+			string? expectedArgument)
 #else
-		static T GetSingleResult<T>(IEnumerable<T> collection, Predicate<T> predicate, string expectedArgument)
+			Predicate<T> predicate,
+			string expectedArgument)
 #endif
 		{
 			var count = 0;

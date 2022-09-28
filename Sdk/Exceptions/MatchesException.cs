@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -22,20 +21,15 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expectedRegexPattern">The expected regular expression pattern</param>
 		/// <param name="actual">The actual value</param>
+		public MatchesException(
 #if XUNIT_NULLABLE
-		public MatchesException(string? expectedRegexPattern, object? actual)
+			string? expectedRegexPattern,
+			object? actual) :
 #else
-		public MatchesException(string expectedRegexPattern, object actual)
+			string expectedRegexPattern,
+			object actual) :
 #endif
-			: base(
-				string.Format(
-					CultureInfo.CurrentCulture,
-					"Assert.Matches() Failure:{2}Regex: {0}{2}Value: {1}",
-					expectedRegexPattern,
-					actual,
-					Environment.NewLine
-				)
-			)
+				base($"Assert.Matches() Failure:{Environment.NewLine}Regex: {expectedRegexPattern}{Environment.NewLine}Value: {actual}")
 		{ }
 	}
 }

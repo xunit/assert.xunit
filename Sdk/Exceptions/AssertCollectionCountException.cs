@@ -2,8 +2,6 @@
 #nullable enable
 #endif
 
-using System.Globalization;
-
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -21,8 +19,10 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expectedCount">The expected number of items in the collection.</param>
 		/// <param name="actualCount">The actual number of items in the collection.</param>
-		public AssertCollectionCountException(int expectedCount, int actualCount)
-			: base(string.Format(CultureInfo.CurrentCulture, "The collection contained {0} matching element(s) instead of {1}.", actualCount, expectedCount))
+		public AssertCollectionCountException(
+			int expectedCount,
+			int actualCount) :
+				base($"The collection contained {actualCount} matching element(s) instead of {expectedCount}.")
 		{ }
 	}
 }

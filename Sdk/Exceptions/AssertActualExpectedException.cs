@@ -1,14 +1,15 @@
 #if XUNIT_NULLABLE
 #nullable enable
-
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
 using System.Collections;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit.Sdk
 {
@@ -30,15 +31,14 @@ namespace Xunit.Sdk
 		/// <param name="userMessage">The user message to be shown</param>
 		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
-#if XUNIT_NULLABLE
 		public AssertActualExpectedException(
+#if XUNIT_NULLABLE
 			object? expected,
 			object? actual,
 			string? userMessage,
 			string? expectedTitle = null,
 			string? actualTitle = null) :
 #else
-		public AssertActualExpectedException(
 			object expected,
 			object actual,
 			string userMessage,
@@ -57,8 +57,8 @@ namespace Xunit.Sdk
 		/// <param name="expectedTitle">The title to use for the expected value (defaults to "Expected")</param>
 		/// <param name="actualTitle">The title to use for the actual value (defaults to "Actual")</param>
 		/// <param name="innerException">The inner exception.</param>
-#if XUNIT_NULLABLE
 		public AssertActualExpectedException(
+#if XUNIT_NULLABLE
 			object? expected,
 			object? actual,
 			string? userMessage,
@@ -66,7 +66,6 @@ namespace Xunit.Sdk
 			string? actualTitle,
 			Exception? innerException) :
 #else
-		public AssertActualExpectedException(
 			object expected,
 			object actual,
 			string userMessage,
@@ -86,8 +85,8 @@ namespace Xunit.Sdk
 				Actual == Expected &&
 				actual.GetType() != expected.GetType())
 			{
-				Actual += string.Format(CultureInfo.CurrentCulture, " ({0})", actual.GetType().FullName);
-				Expected += string.Format(CultureInfo.CurrentCulture, " ({0})", expected.GetType().FullName);
+				Actual += $" ({actual.GetType().FullName})";
+				Expected += $" ({expected.GetType().FullName})";
 			}
 		}
 
@@ -133,16 +132,7 @@ namespace Xunit.Sdk
 				var formattedActualTitle = (ActualTitle + ":").PadRight(titleLength);
 				var indentedNewLine = Environment.NewLine + " ".PadRight(titleLength);
 
-				return string.Format(
-					CultureInfo.CurrentCulture,
-					"{0}{5}{1}{2}{5}{3}{4}",
-					base.Message,
-					formattedExpectedTitle,
-					(Expected ?? "(null)").Replace(Environment.NewLine, indentedNewLine),
-					formattedActualTitle,
-					(Actual ?? "(null)").Replace(Environment.NewLine, indentedNewLine),
-					Environment.NewLine
-				);
+				return $"{base.Message}{Environment.NewLine}{formattedExpectedTitle}{Expected?.Replace(Environment.NewLine, indentedNewLine) ?? "(null)"}{Environment.NewLine}{formattedActualTitle}{Actual?.Replace(Environment.NewLine, indentedNewLine) ?? "(null)"}";
 			}
 		}
 
@@ -156,7 +146,7 @@ namespace Xunit.Sdk
 			if (backTickIdx < 0)
 				backTickIdx = typeInfo.Name.Length;  // F# doesn't use backticks for generic type names
 
-			return string.Format("{0}<{1}>", typeInfo.Name.Substring(0, backTickIdx), string.Join(", ", simpleNames));
+			return $"{typeInfo.Name.Substring(0, backTickIdx)}<{string.Join(", ", simpleNames)}>";
 		}
 
 #if XUNIT_NULLABLE
@@ -175,7 +165,7 @@ namespace Xunit.Sdk
 
 			var formattedValue = ArgumentFormatter.Format(value);
 			if (value is IEnumerable)
-				formattedValue = string.Format("{0} {1}", ConvertToSimpleTypeName(value.GetType().GetTypeInfo()), formattedValue);
+				formattedValue = $"{ConvertToSimpleTypeName(value.GetType().GetTypeInfo())} {formattedValue}";
 
 			return formattedValue;
 		}

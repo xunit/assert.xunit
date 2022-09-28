@@ -3,6 +3,7 @@
 #endif
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Xunit.Sdk
 {
@@ -25,31 +26,36 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Initializes a new instance of the <see cref="XunitException"/> class.
 		/// </summary>
-		public XunitException() { }
+		public XunitException()
+		{ }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="XunitException"/> class.
 		/// </summary>
 		/// <param name="userMessage">The user message to be displayed</param>
 #if XUNIT_NULLABLE
-		public XunitException(string? userMessage)
-			: this(userMessage, (Exception?)null) { }
+		public XunitException(string? userMessage) :
+			this(userMessage, (Exception?)null)
 #else
-		public XunitException(string userMessage)
-			: this(userMessage, (Exception)null) { }
+		public XunitException(string userMessage) :
+			this(userMessage, (Exception)null)
 #endif
+		{ }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="XunitException"/> class.
 		/// </summary>
 		/// <param name="userMessage">The user message to be displayed</param>
 		/// <param name="innerException">The inner exception</param>
+		public XunitException(
 #if XUNIT_NULLABLE
-		public XunitException(string? userMessage, Exception? innerException)
+			string? userMessage,
+			Exception? innerException) :
 #else
-		public XunitException(string userMessage, Exception innerException)
+			string userMessage,
+			Exception innerException) :
 #endif
-			: base(userMessage, innerException)
+				base(userMessage, innerException)
 		{
 			UserMessage = userMessage;
 		}
@@ -59,12 +65,15 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="userMessage">The user message to be displayed</param>
 		/// <param name="stackTrace">The stack trace to be displayed</param>
+		protected XunitException(
 #if XUNIT_NULLABLE
-		protected XunitException(string? userMessage, string? stackTrace)
+			string? userMessage,
+			string? stackTrace) :
 #else
-		protected XunitException(string userMessage, string stackTrace)
+			string userMessage,
+			string stackTrace) :
 #endif
-			: this(userMessage)
+				this(userMessage)
 		{
 			this.stackTrace = stackTrace;
 		}
@@ -74,10 +83,11 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <returns>A string that describes the contents of the call stack, with the most recent method call appearing first.</returns>
 #if XUNIT_NULLABLE
-		public override string? StackTrace => stackTrace ?? base.StackTrace;
+		public override string? StackTrace =>
 #else
-		public override string StackTrace => stackTrace ?? base.StackTrace;
+		public override string StackTrace =>
 #endif
+			stackTrace ?? base.StackTrace;
 
 		/// <summary>
 		/// Gets the user message
@@ -93,16 +103,16 @@ namespace Xunit.Sdk
 		{
 			var className = GetType().ToString();
 			var message = Message;
-			var result = default(string);
+			string result;
 
 			if (message == null || message.Length <= 0)
 				result = className;
 			else
-				result = string.Format("{0}: {1}", className, message);
+				result = $"{className}: {message}";
 
 			var stackTrace = StackTrace;
 			if (stackTrace != null)
-				result = result + Environment.NewLine + stackTrace;
+				result = $"{result}{Environment.NewLine}{stackTrace}";
 
 			return result;
 		}

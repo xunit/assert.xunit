@@ -50,14 +50,17 @@ namespace Xunit.Sdk
 		/// Format the value for presentation.
 		/// </summary>
 		/// <param name="value">The value to be formatted.</param>
-		/// <param name="pointerPosition"></param>
+		/// <param name="pointerPosition">The position where the difference starts</param>
 		/// <param name="errorIndex"></param>
 		/// <returns>The formatted value.</returns>
+		public static string Format(
 #if XUNIT_NULLABLE
-		public static string Format(object? value, out int? pointerPosition, int? errorIndex = null)
+			object? value,
 #else
-		public static string Format(object value, out int? pointerPosition, int? errorIndex = null)
+			object value,
 #endif
+			out int? pointerPosition,
+			int? errorIndex = null)
 		{
 			return Format(value, 1, out pointerPosition, errorIndex);
 		}
@@ -68,33 +71,41 @@ namespace Xunit.Sdk
 		/// <param name="value">The value to be formatted.</param>
 		/// <param name="errorIndex"></param>
 		/// <returns>The formatted value.</returns>
+		public static string Format(
 #if XUNIT_NULLABLE
-		public static string Format(object? value, int? errorIndex = null)
+			object? value,
 #else
-		public static string Format(object value, int? errorIndex = null)
+			object value,
 #endif
+			int? errorIndex = null)
 		{
-			int? pointerPosition;
+			int? _;
 
-			return Format(value, 1, out pointerPosition, errorIndex);
+			return Format(value, 1, out _, errorIndex);
 		}
 
+		static string FormatInner(
 #if XUNIT_NULLABLE
-		static string FormatInner(object? value, int depth)
+			object? value,
 #else
-		static string FormatInner(object value, int depth)
+			object value,
 #endif
+			int depth)
 		{
-			int? pointerPosition;
+			int? _;
 
-			return Format(value, depth, out pointerPosition, null);
+			return Format(value, depth, out _, null);
 		}
 
+		static string Format(
 #if XUNIT_NULLABLE
-		static string Format(object? value, int depth, out int? pointerPostion, int? errorIndex = null)
+			object? value,
 #else
-		static string Format(object value, int depth, out int? pointerPostion, int? errorIndex = null)
+			object value,
 #endif
+			int depth,
+			out int? pointerPostion,
+			int? errorIndex = null)
 		{
 			pointerPostion = null;
 
@@ -211,7 +222,10 @@ namespace Xunit.Sdk
 			}
 		}
 
-		static string FormatComplexValue(object value, int depth, Type type)
+		static string FormatComplexValue(
+			object value,
+			int depth,
+			Type type)
 		{
 			if (depth == MAX_DEPTH)
 				return $"{type.Name} {{ ... }}";
@@ -246,7 +260,11 @@ namespace Xunit.Sdk
 			return $"{type.Name} {{ {formattedParameters} }}";
 		}
 
-		static string FormatEnumerable(IEnumerable<object> enumerableValues, int depth, int? neededIndex, out int? pointerPostion)
+		static string FormatEnumerable(
+			IEnumerable<object> enumerableValues,
+			int depth,
+			int? neededIndex,
+			out int? pointerPostion)
 		{
 			pointerPostion = null;
 
@@ -349,11 +367,13 @@ namespace Xunit.Sdk
 			return name + arraySuffix;
 		}
 
+		static string WrapAndGetFormattedValue(
 #if XUNIT_NULLABLE
-		static string WrapAndGetFormattedValue(Func<object?> getter, int depth)
+			Func<object?> getter,
 #else
-		static string WrapAndGetFormattedValue(Func<object> getter, int depth)
+			Func<object> getter,
 #endif
+			int depth)
 		{
 			try
 			{
@@ -409,10 +429,12 @@ namespace Xunit.Sdk
 			return builder.ToString();
 		}
 
+		static bool TryGetEscapeSequence(
+			char ch,
 #if XUNIT_NULLABLE
-		static bool TryGetEscapeSequence(char ch, out string? value)
+			out string? value)
 #else
-		static bool TryGetEscapeSequence(char ch, out string value)
+			out string value)
 #endif
 		{
 			value = null;

@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -65,20 +64,8 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <returns>The error message that explains the reason for the exception, or an empty string("").</returns>
 		/// <filterpriority>1</filterpriority>
-		public override string Message
-		{
-			get
-			{
-				return string.Format(
-					CultureInfo.CurrentCulture,
-					"{0}{3}{1}{3}{2}",
-					base.Message,
-					Expected ?? "(null)",
-					Actual ?? "(null)",
-					Environment.NewLine
-				);
-			}
-		}
+		public override string Message =>
+			$"{base.Message}{Environment.NewLine}{Expected ?? "(null)"}{Environment.NewLine}{Actual ?? "(null)"}";
 
 		/// <summary>
 		/// Gets a string representation of the frames on the call stack at the time the current exception was thrown.
@@ -100,7 +87,7 @@ namespace Xunit.Sdk
 			if (backTickIdx < 0)
 				backTickIdx = typeInfo.Name.Length;  // F# doesn't use backticks for generic type names
 
-			return string.Format("{0}<{1}>", typeInfo.Name.Substring(0, backTickIdx), string.Join(", ", simpleNames));
+			return $"{typeInfo.Name.Substring(0, backTickIdx)}<{string.Join(", ", simpleNames)}>";
 		}
 	}
 }
