@@ -1,4 +1,4 @@
-﻿#if XUNIT_SKIP
+#if XUNIT_SKIP
 
 #if XUNIT_NULLABLE
 #nullable enable

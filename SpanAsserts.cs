@@ -1,4 +1,4 @@
-﻿#if XUNIT_SPAN
+#if XUNIT_SPAN
 
 #if XUNIT_NULLABLE
 #nullable enable

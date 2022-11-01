@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
