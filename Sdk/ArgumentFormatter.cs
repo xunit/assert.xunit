@@ -178,7 +178,7 @@ namespace Xunit.Sdk
 					return $"{value:G9}";
 
 				if (value is double)
-					return $"{value:G17}";
+					return $"{value:G15}";
 
 				var type = value.GetType();
 				var typeInfo = type.GetTypeInfo();
