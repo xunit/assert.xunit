@@ -163,6 +163,33 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that two <see cref="float"/> values are equal, within the number of decimal
+		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
+		public static void Equal(float expected, float actual, int precision)
+		{
+			Equal((double)expected, (double)actual, precision);
+		}
+
+		/// <summary>
+		/// Verifies that two <see cref="float"/> values are equal, within the number of decimal
+		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
+		/// The rounding method to use is given by <paramref name="rounding" />
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+		/// <param name="rounding">Rounding method to use to process a number that is midway between two numbers</param>
+		public static void Equal(float expected, float actual, int precision, MidpointRounding rounding)
+		{
+			Equal((double)expected, (double)actual, precision, rounding);
+		}
+
+		/// <summary>
 		/// Verifies that two <see cref="float"/> values are equal, within the tolerance given by
 		/// <paramref name="tolerance"/> (positive or negative).
 		/// </summary>
