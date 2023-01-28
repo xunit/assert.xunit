@@ -149,10 +149,17 @@ namespace Xunit.Internal
 					return VerifyEquivalence(expectedValue, actualValue, strict, prefixDot + "Value", expectedRefs, actualRefs);
 				}
 
-				// Value types and strings should just fall back to their Equals implementation
-				if (expectedTypeInfo.IsValueType || expectedType == typeof(string))
+				// Primitive types, enums and strings should just fall back to their Equals implementation
+				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string))
 					return
 						expected.Equals(actual)
+							? null
+							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+
+				// IComparable value types should fall back to their CompareTo implementation
+				if (expectedTypeInfo.IsValueType && expected is IComparable expectedComparable)
+					return
+						expectedComparable.CompareTo(actual) == 0
 							? null
 							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
 
