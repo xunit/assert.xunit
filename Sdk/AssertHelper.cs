@@ -113,41 +113,6 @@ namespace Xunit.Internal
 			{
 				var expectedType = expected.GetType();
 				var expectedTypeInfo = expectedType.GetTypeInfo();
-				var actualType = actual.GetType();
-				var actualTypeInfo = actualType.GetTypeInfo();
-
-				// KeyValuePair<,> should compare key and value for equivalence; since KVP is a value
-				// type, we want to avoid just calling Equals(), since it's not a good enough test of
-				// equivalence for us (we want equivalence tests for both key and value).
-				if (expectedTypeInfo.IsGenericType &&
-					expectedTypeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>) &&
-					actualTypeInfo.IsGenericType &&
-					actualTypeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
-				{
-					var prefixDot = prefix == string.Empty ? string.Empty : prefix + ".";
-
-					var expectedKeyGetter = expectedType.GetRuntimeProperty("Key");
-					var actualKeyGetter = actualType.GetRuntimeProperty("Key");
-					if (expectedKeyGetter == null || actualKeyGetter == null)
-						throw new InvalidOperationException("Catastrophic failure: Could not find KeyValuePair<,>.Key via reflection");
-
-					var expectedKey = expectedKeyGetter.GetValue(expected);
-					var actualKey = actualKeyGetter.GetValue(actual);
-
-					var keyResult = VerifyEquivalence(expectedKey, actualKey, strict, prefixDot + "Key", expectedRefs, actualRefs);
-					if (keyResult != null)
-						return keyResult;
-
-					var expectedValueGetter = expectedType.GetRuntimeProperty("Value");
-					var actualValueGetter = actualType.GetRuntimeProperty("Value");
-					if (expectedValueGetter == null || actualValueGetter == null)
-						throw new InvalidOperationException("Catastrophic failure: Could not find KeyValuePair<,>.Value via reflection");
-
-					var expectedValue = expectedValueGetter.GetValue(expected);
-					var actualValue = actualValueGetter.GetValue(actual);
-
-					return VerifyEquivalence(expectedValue, actualValue, strict, prefixDot + "Value", expectedRefs, actualRefs);
-				}
 
 				// Primitive types, enums and strings should just fall back to their Equals implementation
 				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string))
