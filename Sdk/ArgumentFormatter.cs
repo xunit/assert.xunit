@@ -317,6 +317,30 @@ namespace Xunit.Sdk
 			return $"[{printedValues}]";
 		}
 
+
+		/// <summary>
+		/// Extension method for IsSZArray to work downlevel 
+		/// </summary>
+		/// <param name="typeInfo">The typeInfo to be checked</param>
+		/// <returns>Whether the Type is a SZ array or not</returns>
+		public static bool IsSzArrayType(this TypeInfo typeInfo)
+		{
+
+#if NETCOREAPP2_0_OR_GREATER
+			// framework built-in function
+			return typeInfo.IsSZArray;
+#else
+
+			// bounce through a few layers of indirection to detect this
+#if XUNIT_NULLABLE
+			return typeInfo == typeInfo.GetElementType()!.MakeArrayType().GetTypeInfo();
+#else
+			return typeInfo == typeInfo.GetElementType().MakeArrayType().GetTypeInfo();
+#endif
+
+#endif
+		}
+
 		static string FormatTypeName(Type type)
 		{
 			var typeInfo = type.GetTypeInfo();
@@ -324,9 +348,24 @@ namespace Xunit.Sdk
 
 			// Deconstruct and re-construct array
 			while (typeInfo.IsArray)
-			{
-				var rank = typeInfo.GetArrayRank();
-				arraySuffix += $"[{new string(',', rank - 1)}]";
+			
+				if (typeInfo.IsSzArrayType())
+				{
+					arraySuffix += "[]";
+				}
+				else
+				{
+					var rank = typeInfo.GetArrayRank();
+					if (rank == 1)
+					{
+						arraySuffix += "[*]";
+					}
+					else
+					{
+						arraySuffix += $"[{new string(',', rank - 1)}]";
+					}
+				}
+
 #if XUNIT_NULLABLE
 				typeInfo = typeInfo.GetElementType()!.GetTypeInfo();
 #else
