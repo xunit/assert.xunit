@@ -322,7 +322,7 @@ namespace Xunit.Sdk
 		/// Extension method for IsSZArray to work downlevel 
 		/// </summary>
 		/// <param name="typeInfo">The typeInfo to be checked</param>
-		/// <returns>Whether the Type is a SZ array or not</returns>
+		/// <returns>Whether the TypeInfo is a SZ array or not</returns>
 		public static bool IsSzArrayType(this TypeInfo typeInfo)
 		{
 
@@ -341,6 +341,7 @@ namespace Xunit.Sdk
 #endif
 		}
 
+
 		static string FormatTypeName(Type type)
 		{
 			var typeInfo = type.GetTypeInfo();
@@ -348,7 +349,7 @@ namespace Xunit.Sdk
 
 			// Deconstruct and re-construct array
 			while (typeInfo.IsArray)
-			
+			{
 				if (typeInfo.IsSzArrayType())
 				{
 					arraySuffix += "[]";
