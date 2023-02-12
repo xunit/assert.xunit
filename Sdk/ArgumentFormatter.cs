@@ -317,6 +317,17 @@ namespace Xunit.Sdk
 			return $"[{printedValues}]";
 		}
 
+		static bool IsSZArrayType(this TypeInfo typeInfo)
+		{
+#if NETCOREAPP2_0_OR_GREATER
+			return typeInfo.IsSZArray;
+#elif XUNIT_NULLABLE
+			return typeInfo == typeInfo.GetElementType()!.MakeArrayType().GetTypeInfo();
+#else
+			return typeInfo == typeInfo.GetElementType().MakeArrayType().GetTypeInfo();
+#endif
+		}
+
 		static string FormatTypeName(Type type)
 		{
 			var typeInfo = type.GetTypeInfo();
@@ -325,8 +336,17 @@ namespace Xunit.Sdk
 			// Deconstruct and re-construct array
 			while (typeInfo.IsArray)
 			{
-				var rank = typeInfo.GetArrayRank();
-				arraySuffix += $"[{new string(',', rank - 1)}]";
+				if (typeInfo.IsSZArrayType())
+					arraySuffix += "[]";
+				else
+				{
+					var rank = typeInfo.GetArrayRank();
+					if (rank == 1)
+						arraySuffix += "[*]";
+					else
+						arraySuffix += $"[{new string(',', rank - 1)}]";
+				}
+
 #if XUNIT_NULLABLE
 				typeInfo = typeInfo.GetElementType()!.GetTypeInfo();
 #else
