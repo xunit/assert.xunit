@@ -122,11 +122,15 @@ namespace Xunit.Internal
 							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
 
 				// IComparable value types should fall back to their CompareTo implementation
-				if (expectedTypeInfo.IsValueType && expected is IComparable expectedComparable)
-					return
-						expectedComparable.CompareTo(actual) == 0
-							? null
-							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+				if (expectedTypeInfo.IsValueType)
+				{
+					var expectedComparable = expected as IComparable;
+					if (expectedComparable != null)
+						return
+							expectedComparable.CompareTo(actual) == 0
+								? null
+								: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+				}
 
 				// Enumerables? Check equivalence of individual members
 				var enumerableExpected = expected as IEnumerable;
