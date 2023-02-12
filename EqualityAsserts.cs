@@ -212,6 +212,17 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that two <see cref="DateTime"/> values are equal.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
+		public static void Equal(
+			DateTime expected,
+			DateTime actual) =>
+				Equal(expected, actual, TimeSpan.Zero);
+
+		/// <summary>
 		/// Verifies that two <see cref="DateTime"/> values are equal, within the precision
 		/// given by <paramref name="precision"/>.
 		/// </summary>
@@ -227,8 +238,26 @@ namespace Xunit
 			var difference = (expected - actual).Duration();
 
 			if (difference > precision)
-				throw new EqualException(expected.ToString(), $"{actual} (difference {difference} is larger than {precision})");
+			{
+				var actualValue =
+					precision == TimeSpan.Zero
+						? actual.ToString()
+						: $"{actual} (difference {difference} is larger than {precision})";
+
+				throw new EqualException(expected.ToString(), actualValue);
+			}
 		}
+
+		/// <summary>
+		/// Verifies that two <see cref="DateTimeOffset"/> values are equal.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
+		public static void Equal(
+			DateTimeOffset expected,
+			DateTimeOffset actual) =>
+				Equal(expected, actual, TimeSpan.Zero);
 
 		/// <summary>
 		/// Verifies that two <see cref="DateTimeOffset"/> values are equal, within the precision
@@ -246,7 +275,14 @@ namespace Xunit
 			var difference = (expected - actual).Duration();
 
 			if (difference > precision)
-				throw new EqualException(expected.ToString(), $"{actual} (difference {difference} is larger than {precision})");
+			{
+				var actualValue =
+					precision == TimeSpan.Zero
+						? actual.ToString()
+						: $"{actual} (difference {difference} is larger than {precision})";
+
+				throw new EqualException(expected.ToString(), actualValue);
+			}
 		}
 
 		/// <summary>
