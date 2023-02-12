@@ -503,8 +503,13 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
 		public static void Equal<T>(
+#if XUNIT_NULLABLE
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual) =>
+#else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual) =>
+#endif
 				Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>());
 
 		/// <summary>
@@ -516,8 +521,13 @@ namespace Xunit
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
 		public static void Equal<T>(
+#if XUNIT_NULLABLE
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual,
+#else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual,
+#endif
 			IEqualityComparer<T> comparer) =>
 				Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
 
@@ -551,8 +561,13 @@ namespace Xunit
 		/// <param name="actual">The actual object</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
 		public static void NotEqual<T>(
+#if XUNIT_NULLABLE
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual) =>
+#else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual) =>
+#endif
 				NotEqual(expected, actual, GetEqualityComparer<IEnumerable<T>>());
 
 		/// <summary>
@@ -564,8 +579,13 @@ namespace Xunit
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
 		public static void NotEqual<T>(
+#if XUNIT_NULLABLE
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual,
+#else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual,
+#endif
 			IEqualityComparer<T> comparer) =>
 				NotEqual(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
 
