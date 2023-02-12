@@ -161,7 +161,10 @@ namespace Xunit
 		/// <param name="tolerance">The allowed difference between values</param>
 		/// <exception cref="ArgumentException">Thrown when supplied tolerance is invalid</exception>"
 		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
-		public static void Equal(double expected, double actual, double tolerance)
+		public static void Equal(
+			double expected,
+			double actual,
+			double tolerance)
 		{
 			if (double.IsNaN(tolerance) || double.IsNegativeInfinity(tolerance) || tolerance < 0.0)
 				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
@@ -178,10 +181,11 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
 		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
-		public static void Equal(float expected, float actual, int precision)
-		{
-			Equal((double)expected, (double)actual, precision);
-		}
+		public static void Equal(
+			float expected,
+			float actual,
+			int precision) =>
+				Equal((double)expected, (double)actual, precision);
 
 		/// <summary>
 		/// Verifies that two <see cref="float"/> values are equal, within the number of decimal
@@ -192,10 +196,12 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
 		/// <param name="rounding">Rounding method to use to process a number that is midway between two numbers</param>
-		public static void Equal(float expected, float actual, int precision, MidpointRounding rounding)
-		{
-			Equal((double)expected, (double)actual, precision, rounding);
-		}
+		public static void Equal(
+			float expected,
+			float actual,
+			int precision,
+			MidpointRounding rounding) =>
+				Equal((double)expected, (double)actual, precision, rounding);
 
 		/// <summary>
 		/// Verifies that two <see cref="float"/> values are equal, within the tolerance given by
