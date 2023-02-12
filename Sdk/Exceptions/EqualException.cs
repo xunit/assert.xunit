@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Xunit.Sdk
@@ -39,12 +40,15 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected object value</param>
 		/// <param name="actual">The actual object value</param>
+		public EqualException(
 #if XUNIT_NULLABLE
-		public EqualException(object? expected, object? actual)
+			object? expected,
+			object? actual) :
 #else
-		public EqualException(object expected, object actual)
+			object expected,
+			object actual) :
 #endif
-			: base(expected, actual, "Assert.Equal() Failure")
+				base(expected, actual, "Assert.Equal() Failure")
 		{
 			ActualIndex = -1;
 			ExpectedIndex = -1;
@@ -57,24 +61,64 @@ namespace Xunit.Sdk
 		/// <param name="actual">The actual string value</param>
 		/// <param name="expectedIndex">The first index in the expected string where the strings differ</param>
 		/// <param name="actualIndex">The first index in the actual string where the strings differ</param>
+		public EqualException(
 #if XUNIT_NULLABLE
-		public EqualException(string? expected, string? actual, int expectedIndex, int actualIndex)
+			string? expected,
+			string? actual,
+			int expectedIndex,
+			int actualIndex) :
 #else
-		public EqualException(string expected, string actual, int expectedIndex, int actualIndex)
+			string expected,
+			string actual,
+			int expectedIndex,
+			int actualIndex) :
 #endif
-			: this(expected, actual, expectedIndex, actualIndex, null)
+				this(expected, actual, expectedIndex, actualIndex, null)
 		{ }
 
+		EqualException(
 #if XUNIT_NULLABLE
-		EqualException(string? expected, string? actual, int expectedIndex, int actualIndex, int? pointerPosition)
+			string? expected,
+			string? actual,
+			int expectedIndex,
+			int actualIndex,
+			int? pointerPosition) :
 #else
-		EqualException(string expected, string actual, int expectedIndex, int actualIndex, int? pointerPosition)
+			string expected,
+			string actual,
+			int expectedIndex,
+			int actualIndex,
+			int? pointerPosition) :
 #endif
-			: base(expected, actual, "Assert.Equal() Failure")
+				base(expected, actual, "Assert.Equal() Failure")
 		{
 			ActualIndex = actualIndex;
 			ExpectedIndex = expectedIndex;
 			PointerPosition = pointerPosition;
+		}
+
+		EqualException(
+#if XUNIT_NULLABLE
+			string? expected,
+			string? actual,
+			int expectedIndex,
+			int actualIndex,
+			string? expectedType,
+			string? actualType,
+			int? pointerPosition) :
+#else
+			string expected,
+			string actual,
+			int expectedIndex,
+			int actualIndex,
+			string expectedType,
+			string actualType,
+			int? pointerPosition) :
+#endif
+				this(expected, actual, expectedIndex, actualIndex, pointerPosition)
+		{
+			ActualType = actualType;
+			ExpectedType = expectedType;
 		}
 
 		/// <summary>
@@ -89,6 +133,26 @@ namespace Xunit.Sdk
 		/// </summary>
 		public int ExpectedIndex { get; }
 
+		/// <summary>
+		/// Gets the type of the actual value of the first values differed.
+		/// Returns null if the type was not provided.
+		/// </summary>
+#if XUNIT_NULLABLE
+		public string? ActualType { get; }
+#else
+		public string ActualType { get; }
+#endif
+
+		/// <summary>
+		/// Gets the type of the expected value of the first values differed.
+		/// Returns null if the type was not provided.
+		/// </summary>
+#if XUNIT_NULLABLE
+		public string? ExpectedType { get; }
+#else
+		public string ExpectedType { get; }
+#endif
+
 		/// <inheritdoc/>
 		public override string Message
 		{
@@ -102,7 +166,7 @@ namespace Xunit.Sdk
 		}
 
 		/// <summary>
-		/// Gets the index of the difference between the IEunmerables when converted to a string.
+		/// Gets the index of the difference between the IEnumerables when converted to a string.
 		/// </summary>
 		public int? PointerPosition { get; private set; }
 
@@ -111,8 +175,13 @@ namespace Xunit.Sdk
 			if (ExpectedIndex == -1)
 				return base.Message;
 
-			var printedExpected = ShortenAndEncode(Expected, PointerPosition ?? ExpectedIndex, '↓', ExpectedIndex);
-			var printedActual = ShortenAndEncode(Actual, PointerPosition ?? ActualIndex, '↑', ActualIndex);
+			var undefinedType = string.IsNullOrEmpty(ActualType) || string.IsNullOrEmpty(ExpectedType);
+
+			var actualTypeMessage = undefinedType || ExpectedType == ActualType ? string.Empty : ActualType;
+			var expectedTypeMessage = undefinedType || ExpectedType == ActualType ? string.Empty : ExpectedType;
+
+			var printedExpected = ShortenAndEncode(Expected, expectedTypeMessage, PointerPosition ?? ExpectedIndex, '↓', ExpectedIndex);
+			var printedActual = ShortenAndEncode(Actual, actualTypeMessage, PointerPosition ?? ActualIndex, '↑', ActualIndex);
 
 			var sb = new StringBuilder();
 			sb.Append(UserMessage);
@@ -150,11 +219,15 @@ namespace Xunit.Sdk
 		/// <param name="expected">The expected object value</param>
 		/// <param name="actual">The actual object value</param>
 		/// <param name="mismatchIndex">The first index in the expected IEnumerable where the strings differ</param>
+		public static EqualException FromEnumerable(
 #if XUNIT_NULLABLE
-		public static EqualException FromEnumerable(IEnumerable? expected, IEnumerable? actual, int mismatchIndex)
+			IEnumerable? expected,
+			IEnumerable? actual,
 #else
-		public static EqualException FromEnumerable(IEnumerable expected, IEnumerable actual, int mismatchIndex)
+			IEnumerable expected,
+			IEnumerable actual,
 #endif
+			int mismatchIndex)
 		{
 			int? pointerPositionExpected;
 			int? pointerPositionActual;
@@ -163,15 +236,27 @@ namespace Xunit.Sdk
 			var actualText = ArgumentFormatter.Format(actual, out pointerPositionActual, mismatchIndex);
 			var pointerPosition = (pointerPositionExpected ?? -1) > (pointerPositionActual ?? -1) ? pointerPositionExpected : pointerPositionActual;
 
-			return new EqualException(expectedText, actualText, mismatchIndex, mismatchIndex, pointerPosition);
+			var expectedEnumerable = expected?.Cast<object>();
+			var actualEnumerable = actual?.Cast<object>();
+
+			var expectedType = mismatchIndex < expectedEnumerable?.Count() ? expectedEnumerable.ElementAt(mismatchIndex)?.GetType().FullName : string.Empty;
+			var actualType = mismatchIndex < actualEnumerable?.Count() ? actualEnumerable.ElementAt(mismatchIndex)?.GetType().FullName : string.Empty;
+
+			return new EqualException(expectedText, actualText, mismatchIndex, mismatchIndex, expectedType, actualType, pointerPosition);
 		}
 
 
+		static Tuple<string, string> ShortenAndEncode(
 #if XUNIT_NULLABLE
-		static Tuple<string, string> ShortenAndEncode(string? value, int position, char pointer, int? index = null)
+			string? value,
+			string? type,
 #else
-		static Tuple<string, string> ShortenAndEncode(string value, int position, char pointer, int? index = null)
+			string value,
+			string type,
 #endif
+			int position,
+			char pointer,
+			int? index = null)
 		{
 			if (value == null)
 				return Tuple.Create("(null)", "");
@@ -211,7 +296,12 @@ namespace Xunit.Sdk
 				if (idx < position)
 					printedPointer.Append(' ', paddingLength);
 				else if (idx == position)
-					printedPointer.AppendFormat("{0} (pos {1})", pointer, index);
+				{
+					if (string.IsNullOrEmpty(type))
+						printedPointer.AppendFormat("{0} (pos {1})", pointer, index);
+					else
+						printedPointer.AppendFormat("{0} (pos {1}, type {2})", pointer, index, type);
+				}
 			}
 
 			if (value.Length == position)

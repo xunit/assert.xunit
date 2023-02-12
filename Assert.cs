@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -26,7 +26,9 @@ namespace Xunit
 		/// <summary>Do not call this method.</summary>
 		[Obsolete("This is an override of Object.Equals(). Call Assert.Equal() instead.", true)]
 		[EditorBrowsable(EditorBrowsableState.Never)]
-		public new static bool Equals(object a, object b)
+		public new static bool Equals(
+			object a,
+			object b)
 		{
 			throw new InvalidOperationException("Assert.Equals should not be used");
 		}
@@ -34,7 +36,9 @@ namespace Xunit
 		/// <summary>Do not call this method.</summary>
 		[Obsolete("This is an override of Object.ReferenceEquals(). Call Assert.Same() instead.", true)]
 		[EditorBrowsable(EditorBrowsableState.Never)]
-		public new static bool ReferenceEquals(object a, object b)
+		public new static bool ReferenceEquals(
+			object a,
+			object b)
 		{
 			throw new InvalidOperationException("Assert.ReferenceEquals should not be used");
 		}

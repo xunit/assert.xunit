@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -47,24 +47,21 @@ namespace Xunit.Sdk
 		{ }
 
 		/// <inheritdoc/>
-		public override string Message => message ?? base.Message;
+		public override string Message =>
+			message ?? base.Message;
 
 		static string FormatMemberNameList(
 			IEnumerable<string> memberNames,
-			string prefix)
-		{
-			return "[" + string.Join(", ", memberNames.Select(k => $"\"{prefix}{k}\"")) + "]";
-		}
+			string prefix) =>
+				"[" + string.Join(", ", memberNames.Select(k => $"\"{prefix}{k}\"")) + "]";
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
 		/// a circular reference was discovered.
 		/// </summary>
 		/// <param name="memberName">The name of the member that caused the circular reference</param>
-		public static EquivalentException ForCircularReference(string memberName)
-		{
-			return new EquivalentException($"Assert.Equivalent() Failure: Circular reference found in '{memberName}'");
-		}
+		public static EquivalentException ForCircularReference(string memberName) =>
+			new EquivalentException($"Assert.Equivalent() Failure: Circular reference found in '{memberName}'");
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
@@ -102,21 +99,19 @@ namespace Xunit.Sdk
 			object expected,
 			object actual,
 #endif
-			string memberName)
-		{
-			return new EquivalentException(
-				expected,
-				actual,
-				memberName == string.Empty ? string.Empty : $": Mismatched value on member '{memberName}'"
-			);
-		}
+			string memberName) =>
+				new EquivalentException(
+					expected,
+					actual,
+					memberName == string.Empty ? string.Empty : $": Mismatched value on member '{memberName}'"
+				);
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
 		/// a value was missing from the <paramref name="actual"/> collection.
 		/// </summary>
-		/// <param name="expected"></param>
-		/// <param name="actual"></param>
+		/// <param name="expected">The object that was expected to be found in <paramref name="actual"/> collection.</param>
+		/// <param name="actual">The actual collection which was missing the object.</param>
 		/// <param name="memberName">The name of the member that was being inspected (may be an empty
 		/// string for a top-level collection)</param>
 		public static EquivalentException ForMissingCollectionValue(
@@ -127,24 +122,24 @@ namespace Xunit.Sdk
 			object expected,
 			IEnumerable<object> actual,
 #endif
-			string memberName)
-		{
-			return new EquivalentException(
-				expected,
-				ArgumentFormatter.Format(actual),
-				$": Collection value not found{(memberName == string.Empty ? string.Empty : $" in member '{memberName}'")}",
-				actualTitle: "In"
-			);
-		}
+			string memberName) =>
+				new EquivalentException(
+					expected,
+					ArgumentFormatter.Format(actual),
+					$": Collection value not found{(memberName == string.Empty ? string.Empty : $" in member '{memberName}'")}",
+					actualTitle: "In"
+				);
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
 		/// that <paramref name="actual"/> contained one or more values that were not specified
 		/// in <paramref name="expected"/>.
 		/// </summary>
-		/// <param name="expected">The expected values</param>
-		/// <param name="actual">The actual values</param>
-		/// <param name="actualLeftovers">The actual values that did not have matching expected values</param>
+		/// <param name="expected">The values expected to be found in the <paramref name="actual"/>
+		/// collection.</param>
+		/// <param name="actual">The actual collection values.</param>
+		/// <param name="actualLeftovers">The values from <paramref name="actual"/> that did not have
+		/// matching <paramref name="expected"/> values</param>
 		/// <param name="memberName">The name of the member that was being inspected (may be an empty
 		/// string for a top-level collection)</param>
 		public static EquivalentException ForExtraCollectionValue(
@@ -157,13 +152,11 @@ namespace Xunit.Sdk
 			IEnumerable<object> actual,
 			IEnumerable<object> actualLeftovers,
 #endif
-			string memberName)
-		{
-			return new EquivalentException(
-				ArgumentFormatter.Format(expected),
-				$"{ArgumentFormatter.Format(actualLeftovers)} left over from {ArgumentFormatter.Format(actual)}",
-				$": Extra values found{(memberName == string.Empty ? string.Empty : $" in member '{memberName}'")}"
-			);
-		}
+			string memberName) =>
+				new EquivalentException(
+					ArgumentFormatter.Format(expected),
+					$"{ArgumentFormatter.Format(actualLeftovers)} left over from {ArgumentFormatter.Format(actual)}",
+					$": Extra values found{(memberName == string.Empty ? string.Empty : $" in member '{memberName}'")}"
+				);
 	}
 }

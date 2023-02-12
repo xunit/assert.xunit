@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -24,7 +24,10 @@ namespace Xunit
 		/// <param name="propertyName">The property name for which the notification should be raised</param>
 		/// <param name="testCode">The test code which should cause the notification to be raised</param>
 		/// <exception cref="PropertyChangedException">Thrown when the notification is not raised</exception>
-		public static void PropertyChanged(INotifyPropertyChanged @object, string propertyName, Action testCode)
+		public static void PropertyChanged(
+			INotifyPropertyChanged @object,
+			string propertyName,
+			Action testCode)
 		{
 			GuardArgumentNotNull(nameof(@object), @object);
 			GuardArgumentNotNull(nameof(propertyName), propertyName);
@@ -51,7 +54,13 @@ namespace Xunit
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.PropertyChangedAsync (and await the result) when testing async code.", true)]
-		public static void PropertyChanged(INotifyPropertyChanged @object, string propertyName, Func<Task> testCode) { throw new NotImplementedException(); }
+		public static void PropertyChanged(
+			INotifyPropertyChanged @object,
+			string propertyName,
+			Func<Task> testCode)
+		{
+			throw new NotImplementedException();
+		}
 
 		/// <summary>
 		/// Verifies that the provided object raised <see cref="INotifyPropertyChanged.PropertyChanged"/>
@@ -61,7 +70,10 @@ namespace Xunit
 		/// <param name="propertyName">The property name for which the notification should be raised</param>
 		/// <param name="testCode">The test code which should cause the notification to be raised</param>
 		/// <exception cref="PropertyChangedException">Thrown when the notification is not raised</exception>
-		public static async Task PropertyChangedAsync(INotifyPropertyChanged @object, string propertyName, Func<Task> testCode)
+		public static async Task PropertyChangedAsync(
+			INotifyPropertyChanged @object,
+			string propertyName,
+			Func<Task> testCode)
 		{
 			GuardArgumentNotNull(nameof(@object), @object);
 			GuardArgumentNotNull(nameof(propertyName), propertyName);

@@ -19,12 +19,14 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="userMessage">The user message to be displayed, or null for the default message</param>
 		/// <param name="value">The actual value</param>
+		public TrueException(
 #if XUNIT_NULLABLE
-		public TrueException(string? userMessage, bool? value)
+			string? userMessage,
 #else
-		public TrueException(string userMessage, bool? value)
+			string userMessage,
 #endif
-			: base("True", value?.ToString() ?? "(null)", userMessage ?? "Assert.True() Failure")
+			bool? value) :
+				base("True", value?.ToString() ?? "(null)", userMessage ?? "Assert.True() Failure")
 		{ }
 	}
 }

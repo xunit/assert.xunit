@@ -1,4 +1,8 @@
-﻿#if XUNIT_SPAN
+#if XUNIT_SPAN
+
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
 
 using System;
 using System.Globalization;
@@ -17,7 +21,7 @@ namespace Xunit
 		// This also means that null spans are identical to empty spans, (both in essence point to a 0 sized array of whatever type)
 
 		// NOTE: we could consider StartsWith<T> and EndsWith<T> and use the Span extension methods to check difference, but, the current
-		// Exceptions for startswith and endswith are only built for string types, so those would need a change (or new non-string versions created).
+		// Exceptions for StartsWith and EndsWith are only built for string types, so those would need a change (or new non-string versions created).
 
 		// NOTE: there is an implicit conversion operator on Span<T> to ReadOnlySpan<T> - however, I have found that the compiler sometimes struggles
 		// with identifying the proper methods to use, thus I have overloaded quite a few of the assertions in terms of supplying both
@@ -530,7 +534,7 @@ namespace Xunit
 		public static void Equal(
 			Span<char> expectedSpan,
 			Span<char> actualSpan) =>
-				Equal((ReadOnlySpan<char>)expectedSpan, (ReadOnlySpan<char>)actualSpan, false, false, false);
+				Equal((ReadOnlySpan<char>)expectedSpan, (ReadOnlySpan<char>)actualSpan, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -541,7 +545,7 @@ namespace Xunit
 		public static void Equal(
 			Span<char> expectedSpan,
 			ReadOnlySpan<char> actualSpan) =>
-				Equal((ReadOnlySpan<char>)expectedSpan, actualSpan, false, false, false);
+				Equal((ReadOnlySpan<char>)expectedSpan, actualSpan, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -552,7 +556,7 @@ namespace Xunit
 		public static void Equal(
 			ReadOnlySpan<char> expectedSpan,
 			Span<char> actualSpan) =>
-				Equal(expectedSpan, (ReadOnlySpan<char>)actualSpan, false, false, false);
+				Equal(expectedSpan, (ReadOnlySpan<char>)actualSpan, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -563,7 +567,7 @@ namespace Xunit
 		public static void Equal(
 			ReadOnlySpan<char> expectedSpan,
 			ReadOnlySpan<char> actualSpan) =>
-				Equal(expectedSpan, actualSpan, false, false, false);
+				Equal(expectedSpan, actualSpan, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -573,14 +577,16 @@ namespace Xunit
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
 		public static void Equal(
 			Span<char> expectedSpan,
 			Span<char> actualSpan,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false) =>
-				Equal((ReadOnlySpan<char>)expectedSpan, (ReadOnlySpan<char>)actualSpan, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false) =>
+				Equal((ReadOnlySpan<char>)expectedSpan, (ReadOnlySpan<char>)actualSpan, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -590,14 +596,16 @@ namespace Xunit
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
 		public static void Equal(
 			Span<char> expectedSpan,
 			ReadOnlySpan<char> actualSpan,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false) =>
-				Equal((ReadOnlySpan<char>)expectedSpan, actualSpan, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false) =>
+				Equal((ReadOnlySpan<char>)expectedSpan, actualSpan, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -607,14 +615,16 @@ namespace Xunit
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, removes all whitespaces and tabs before comparing.</param>
 		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
 		public static void Equal(
 			ReadOnlySpan<char> expectedSpan,
 			Span<char> actualSpan,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false) =>
-				Equal(expectedSpan, (ReadOnlySpan<char>)actualSpan, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false) =>
+				Equal(expectedSpan, (ReadOnlySpan<char>)actualSpan, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 
 		/// <summary>
 		/// Verifies that two spans are equivalent.
@@ -624,13 +634,15 @@ namespace Xunit
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the spans are not equivalent.</exception>
 		public static void Equal(
 			ReadOnlySpan<char> expectedSpan,
 			ReadOnlySpan<char> actualSpan,
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false)
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false)
 		{
 			// Walk the string, keeping separate indices since we can skip variable amounts of
 			// data based on ignoreLineEndingDifferences and ignoreWhiteSpaceDifferences.
@@ -638,6 +650,15 @@ namespace Xunit
 			var actualIndex = 0;
 			var expectedLength = expectedSpan.Length;
 			var actualLength = actualSpan.Length;
+
+			// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
+			if (ignoreAllWhiteSpace)
+			{
+				if (expectedLength == 0 && SkipWhitespace(actualSpan, 0) == actualLength)
+					return;
+				if (actualLength == 0 && SkipWhitespace(expectedSpan, 0) == expectedLength)
+					return;
+			}
 
 			while (expectedIndex < expectedLength && actualIndex < actualLength)
 			{
@@ -648,6 +669,11 @@ namespace Xunit
 				{
 					expectedIndex = SkipLineEnding(expectedSpan, expectedIndex);
 					actualIndex = SkipLineEnding(actualSpan, actualIndex);
+				}
+				else if (ignoreAllWhiteSpace && (IsWhiteSpace(expectedChar) || IsWhiteSpace(actualChar)))
+				{
+					expectedIndex = SkipWhitespace(expectedSpan, expectedIndex);
+					actualIndex = SkipWhitespace(actualSpan, actualIndex);
 				}
 				else if (ignoreWhiteSpaceDifferences && IsWhiteSpace(expectedChar) && IsWhiteSpace(actualChar))
 				{
@@ -663,9 +689,7 @@ namespace Xunit
 					}
 
 					if (expectedChar != actualChar)
-					{
 						break;
-					}
 
 					expectedIndex++;
 					actualIndex++;
@@ -749,7 +773,9 @@ namespace Xunit
 				c == tabulation;
 		}
 
-		static int SkipLineEnding(ReadOnlySpan<char> value, int index)
+		static int SkipLineEnding(
+			ReadOnlySpan<char> value,
+			int index)
 		{
 			if (value[index] == '\r')
 				++index;
@@ -760,7 +786,9 @@ namespace Xunit
 			return index;
 		}
 
-		static int SkipWhitespace(ReadOnlySpan<char> value, int index)
+		static int SkipWhitespace(
+			ReadOnlySpan<char> value,
+			int index)
 		{
 			while (index < value.Length)
 			{

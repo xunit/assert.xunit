@@ -1,9 +1,8 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
 using System;
-using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -29,14 +28,7 @@ namespace Xunit.Sdk
 #else
 		public static Exception Empty(string expected) =>
 #endif
-			new SingleException(
-				string.Format(
-					CultureInfo.CurrentCulture,
-					"The collection was expected to contain a single element{0}, but it {1}",
-					expected == null ? "" : " matching " + expected,
-					expected == null ? "was empty." : "contained no matching elements."
-				)
-			);
+			new SingleException($"The collection was expected to contain a single element{(expected == null ? "" : " matching " + expected)}, but it {(expected == null ? "was empty." : "contained no matching elements.")}");
 
 		/// <summary>
 		/// Creates an instance of <see cref="SingleException"/> for when the collection had too many of the expected items.
@@ -47,14 +39,6 @@ namespace Xunit.Sdk
 #else
 		public static Exception MoreThanOne(int count, string expected) =>
 #endif
-			new SingleException(
-				string.Format(
-					CultureInfo.CurrentCulture,
-					"The collection was expected to contain a single element{0}, but it contained {1}{2} elements.",
-					expected == null ? "" : " matching " + expected,
-					count,
-					expected == null ? "" : " matching"
-				)
-			);
+			new SingleException($"The collection was expected to contain a single element{(expected == null ? "" : " matching " + expected)}, but it contained {count}{(expected == null ? "" : " matching")} elements.");
 	}
 }

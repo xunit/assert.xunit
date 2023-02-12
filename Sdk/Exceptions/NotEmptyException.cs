@@ -17,8 +17,8 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotEmptyException"/> class.
 		/// </summary>
-		public NotEmptyException()
-			: base("Assert.NotEmpty() Failure")
+		public NotEmptyException() :
+			base("Assert.NotEmpty() Failure")
 		{ }
 	}
 }
