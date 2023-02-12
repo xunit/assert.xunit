@@ -19,12 +19,15 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected object value</param>
 		/// <param name="actual">The actual value</param>
+		public DoesNotContainException(
 #if XUNIT_NULLABLE
-		public DoesNotContainException(object? expected, object? actual)
+			object? expected,
+			object? actual) :
 #else
-		public DoesNotContainException(object expected, object actual)
+			object expected,
+			object actual) :
 #endif
-			: base(expected, actual, "Assert.DoesNotContain() Failure", "Found", "In value")
+				base(expected, actual, "Assert.DoesNotContain() Failure", "Found", "In value")
 		{ }
 	}
 }

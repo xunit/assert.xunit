@@ -1,10 +1,13 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
 using System.Collections.Generic;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit.Sdk
 {
@@ -16,10 +19,13 @@ namespace Xunit.Sdk
 		where T : IComparable
 	{
 		/// <inheritdoc/>
+		public int Compare(
 #if XUNIT_NULLABLE
-		public int Compare([AllowNull] T x, [AllowNull] T y)
+			[AllowNull] T x,
+			[AllowNull] T y)
 #else
-		public int Compare(T x, T y)
+			T x,
+			T y)
 #endif
 		{
 			// Null?

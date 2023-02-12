@@ -1,9 +1,12 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit
 {
@@ -15,10 +18,12 @@ namespace Xunit
 	partial class Assert
 	{
 		/// <summary/>
+		internal static void GuardArgumentNotNull(
+			string argName,
 #if XUNIT_NULLABLE
-		internal static void GuardArgumentNotNull(string argName, [NotNull] object? argValue)
+			[NotNull] object? argValue)
 #else
-		internal static void GuardArgumentNotNull(string argName, object argValue)
+			object argValue)
 #endif
 		{
 			if (argValue == null)

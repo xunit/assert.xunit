@@ -1,7 +1,5 @@
 #if XUNIT_NULLABLE
 #nullable enable
-
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
@@ -11,6 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xunit.Sdk;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit.Internal
 {
@@ -23,12 +25,11 @@ namespace Xunit.Internal
 #endif
 
 #if XUNIT_NULLABLE
-		static Dictionary<string, Func<object?, object?>> GetGettersForType(Type type)
+		static Dictionary<string, Func<object?, object?>> GetGettersForType(Type type) =>
 #else
-		static Dictionary<string, Func<object, object>> GetGettersForType(Type type)
+		static Dictionary<string, Func<object, object>> GetGettersForType(Type type) =>
 #endif
-		{
-			return gettersByType.GetOrAdd(type, _type =>
+			gettersByType.GetOrAdd(type, _type =>
 			{
 				var fieldGetters =
 					_type
@@ -55,7 +56,6 @@ namespace Xunit.Internal
 						.Concat(propertyGetters)
 						.ToDictionary(g => g.name, g => g.getter);
 			});
-		}
 
 #if XUNIT_NULLABLE
 		public static EquivalentException? VerifyEquivalence(
@@ -113,48 +113,24 @@ namespace Xunit.Internal
 			{
 				var expectedType = expected.GetType();
 				var expectedTypeInfo = expectedType.GetTypeInfo();
-				var actualType = actual.GetType();
-				var actualTypeInfo = actualType.GetTypeInfo();
 
-				// KeyValuePair<,> should compare key and value for equivalence; since KVP is a value
-				// type, we want to avoid just calling Equals(), since it's not a good enough test of
-				// equivalence for us (we want equivalence tests for both key and value).
-				if (expectedTypeInfo.IsGenericType &&
-					expectedTypeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>) &&
-					actualTypeInfo.IsGenericType &&
-					actualTypeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
-				{
-					var prefixDot = prefix == string.Empty ? string.Empty : prefix + ".";
-
-					var expectedKeyGetter = expectedType.GetRuntimeProperty("Key");
-					var actualKeyGetter = actualType.GetRuntimeProperty("Key");
-					if (expectedKeyGetter == null || actualKeyGetter == null)
-						throw new InvalidOperationException("Catastrophic failure: Could not find KeyValuePair<,>.Key via reflection");
-
-					var expectedKey = expectedKeyGetter.GetValue(expected);
-					var actualKey = actualKeyGetter.GetValue(actual);
-
-					var keyResult = VerifyEquivalence(expectedKey, actualKey, strict, prefixDot + "Key", expectedRefs, actualRefs);
-					if (keyResult != null)
-						return keyResult;
-
-					var expectedValueGetter = expectedType.GetRuntimeProperty("Value");
-					var actualValueGetter = actualType.GetRuntimeProperty("Value");
-					if (expectedValueGetter == null || actualValueGetter == null)
-						throw new InvalidOperationException("Catastrophic failure: Could not find KeyValuePair<,>.Value via reflection");
-
-					var expectedValue = expectedValueGetter.GetValue(expected);
-					var actualValue = actualValueGetter.GetValue(actual);
-
-					return VerifyEquivalence(expectedValue, actualValue, strict, prefixDot + "Value", expectedRefs, actualRefs);
-				}
-
-				// Value types and strings should just fall back to their Equals implementation
-				if (expectedTypeInfo.IsValueType || expectedType == typeof(string))
+				// Primitive types, enums and strings should just fall back to their Equals implementation
+				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string))
 					return
 						expected.Equals(actual)
 							? null
 							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+
+				// IComparable value types should fall back to their CompareTo implementation
+				if (expectedTypeInfo.IsValueType)
+				{
+					var expectedComparable = expected as IComparable;
+					if (expectedComparable != null)
+						return
+							expectedComparable.CompareTo(actual) == 0
+								? null
+								: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+				}
 
 				// Enumerables? Check equivalence of individual members
 				var enumerableExpected = expected as IEnumerable;

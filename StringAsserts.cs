@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -21,14 +21,14 @@ namespace Xunit
 		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			string expectedSubstring,
 #if XUNIT_NULLABLE
-		public static void Contains(string expectedSubstring, string? actualString)
+			string? actualString) =>
 #else
-		public static void Contains(string expectedSubstring, string actualString)
+			string actualString) =>
 #endif
-		{
-			Contains(expectedSubstring, actualString, StringComparison.CurrentCulture);
-		}
+				Contains(expectedSubstring, actualString, StringComparison.CurrentCulture);
 
 		/// <summary>
 		/// Verifies that a string contains a given sub-string, using the given comparison type.
@@ -37,11 +37,14 @@ namespace Xunit
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
 		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			string expectedSubstring,
 #if XUNIT_NULLABLE
-		public static void Contains(string expectedSubstring, string? actualString, StringComparison comparisonType)
+			string? actualString,
 #else
-		public static void Contains(string expectedSubstring, string actualString, StringComparison comparisonType)
+			string actualString,
 #endif
+			StringComparison comparisonType)
 		{
 			GuardArgumentNotNull(nameof(expectedSubstring), expectedSubstring);
 
@@ -55,14 +58,14 @@ namespace Xunit
 		/// <param name="expectedSubstring">The sub-string which is expected not to be in the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			string expectedSubstring,
 #if XUNIT_NULLABLE
-		public static void DoesNotContain(string expectedSubstring, string? actualString)
+			string? actualString) =>
 #else
-		public static void DoesNotContain(string expectedSubstring, string actualString)
+			string actualString) =>
 #endif
-		{
-			DoesNotContain(expectedSubstring, actualString, StringComparison.CurrentCulture);
-		}
+				DoesNotContain(expectedSubstring, actualString, StringComparison.CurrentCulture);
 
 		/// <summary>
 		/// Verifies that a string does not contain a given sub-string, using the current culture.
@@ -71,11 +74,14 @@ namespace Xunit
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
 		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the given string</exception>
+		public static void DoesNotContain(
+			string expectedSubstring,
 #if XUNIT_NULLABLE
-		public static void DoesNotContain(string expectedSubstring, string? actualString, StringComparison comparisonType)
+			string? actualString,
 #else
-		public static void DoesNotContain(string expectedSubstring, string actualString, StringComparison comparisonType)
+			string actualString,
 #endif
+			StringComparison comparisonType)
 		{
 			GuardArgumentNotNull(nameof(expectedSubstring), expectedSubstring);
 
@@ -89,14 +95,15 @@ namespace Xunit
 		/// <param name="expectedStartString">The string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="ContainsException">Thrown when the string does not start with the expected string</exception>
+		public static void StartsWith(
 #if XUNIT_NULLABLE
-		public static void StartsWith(string? expectedStartString, string? actualString)
+			string? expectedStartString,
+			string? actualString) =>
 #else
-		public static void StartsWith(string expectedStartString, string actualString)
+			string expectedStartString,
+			string actualString) =>
 #endif
-		{
-			StartsWith(expectedStartString, actualString, StringComparison.CurrentCulture);
-		}
+				StartsWith(expectedStartString, actualString, StringComparison.CurrentCulture);
 
 		/// <summary>
 		/// Verifies that a string starts with a given string, using the given comparison type.
@@ -105,11 +112,15 @@ namespace Xunit
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
 		/// <exception cref="ContainsException">Thrown when the string does not start with the expected string</exception>
+		public static void StartsWith(
 #if XUNIT_NULLABLE
-		public static void StartsWith(string? expectedStartString, string? actualString, StringComparison comparisonType)
+			string? expectedStartString,
+			string? actualString,
 #else
-		public static void StartsWith(string expectedStartString, string actualString, StringComparison comparisonType)
+			string expectedStartString,
+			string actualString,
 #endif
+			StringComparison comparisonType)
 		{
 			if (expectedStartString == null || actualString == null || !actualString.StartsWith(expectedStartString, comparisonType))
 				throw new StartsWithException(expectedStartString, actualString);
@@ -121,14 +132,15 @@ namespace Xunit
 		/// <param name="expectedEndString">The string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="ContainsException">Thrown when the string does not end with the expected string</exception>
+		public static void EndsWith(
 #if XUNIT_NULLABLE
-		public static void EndsWith(string? expectedEndString, string? actualString)
+			string? expectedEndString,
+			string? actualString) =>
 #else
-		public static void EndsWith(string expectedEndString, string actualString)
+			string expectedEndString,
+			string actualString) =>
 #endif
-		{
-			EndsWith(expectedEndString, actualString, StringComparison.CurrentCulture);
-		}
+				EndsWith(expectedEndString, actualString, StringComparison.CurrentCulture);
 
 		/// <summary>
 		/// Verifies that a string ends with a given string, using the given comparison type.
@@ -137,11 +149,15 @@ namespace Xunit
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
 		/// <exception cref="ContainsException">Thrown when the string does not end with the expected string</exception>
+		public static void EndsWith(
 #if XUNIT_NULLABLE
-		public static void EndsWith(string? expectedEndString, string? actualString, StringComparison comparisonType)
+			string? expectedEndString,
+			string? actualString,
 #else
-		public static void EndsWith(string expectedEndString, string actualString, StringComparison comparisonType)
+			string expectedEndString,
+			string actualString,
 #endif
+			StringComparison comparisonType)
 		{
 			if (expectedEndString == null || actualString == null || !actualString.EndsWith(expectedEndString, comparisonType))
 				throw new EndsWithException(expectedEndString, actualString);
@@ -153,10 +169,12 @@ namespace Xunit
 		/// <param name="expectedRegexPattern">The regex pattern expected to match</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="MatchesException">Thrown when the string does not match the regex pattern</exception>
+		public static void Matches(
+			string expectedRegexPattern,
 #if XUNIT_NULLABLE
-		public static void Matches(string expectedRegexPattern, string? actualString)
+			string? actualString)
 #else
-		public static void Matches(string expectedRegexPattern, string actualString)
+			string actualString)
 #endif
 		{
 			GuardArgumentNotNull(nameof(expectedRegexPattern), expectedRegexPattern);
@@ -171,10 +189,12 @@ namespace Xunit
 		/// <param name="expectedRegex">The regex expected to match</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="MatchesException">Thrown when the string does not match the regex</exception>
+		public static void Matches(
+			Regex expectedRegex,
 #if XUNIT_NULLABLE
-		public static void Matches(Regex expectedRegex, string? actualString)
+			string? actualString)
 #else
-		public static void Matches(Regex expectedRegex, string actualString)
+			string actualString)
 #endif
 		{
 			GuardArgumentNotNull(nameof(expectedRegex), expectedRegex);
@@ -189,10 +209,12 @@ namespace Xunit
 		/// <param name="expectedRegexPattern">The regex pattern expected not to match</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="DoesNotMatchException">Thrown when the string matches the regex pattern</exception>
+		public static void DoesNotMatch(
+			string expectedRegexPattern,
 #if XUNIT_NULLABLE
-		public static void DoesNotMatch(string expectedRegexPattern, string? actualString)
+			string? actualString)
 #else
-		public static void DoesNotMatch(string expectedRegexPattern, string actualString)
+			string actualString)
 #endif
 		{
 			GuardArgumentNotNull(nameof(expectedRegexPattern), expectedRegexPattern);
@@ -207,10 +229,12 @@ namespace Xunit
 		/// <param name="expectedRegex">The regex expected not to match</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="DoesNotMatchException">Thrown when the string matches the regex</exception>
+		public static void DoesNotMatch(
+			Regex expectedRegex,
 #if XUNIT_NULLABLE
-		public static void DoesNotMatch(Regex expectedRegex, string? actualString)
+			string? actualString)
 #else
-		public static void DoesNotMatch(Regex expectedRegex, string actualString)
+			string actualString)
 #endif
 		{
 			GuardArgumentNotNull(nameof(expectedRegex), expectedRegex);
@@ -225,14 +249,15 @@ namespace Xunit
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
 #if XUNIT_NULLABLE
-		public static void Equal(string? expected, string? actual)
+			string? expected,
+			string? actual) =>
 #else
-		public static void Equal(string expected, string actual)
+			string expected,
+			string actual) =>
 #endif
-		{
-			Equal(expected, actual, false, false, false);
-		}
+				Equal(expected, actual, false, false, false);
 
 		/// <summary>
 		/// Verifies that two strings are equivalent.
@@ -242,22 +267,20 @@ namespace Xunit
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
-#if XUNIT_NULLABLE
 		public static void Equal(
+#if XUNIT_NULLABLE
 			string? expected,
 			string? actual,
-			bool ignoreCase = false,
-			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false)
 #else
-		public static void Equal(
 			string expected,
 			string actual,
+#endif
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
-			bool ignoreWhiteSpaceDifferences = false)
-#endif
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false)
 		{
 #if XUNIT_SPAN
 			if (expected == null && actual == null)
@@ -265,7 +288,7 @@ namespace Xunit
 			if (expected == null || actual == null)
 				throw new EqualException(expected, actual, -1, -1);
 
-			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences);
+			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 #else
 			// Start out assuming the one of the values is null
 			int expectedIndex = -1;
@@ -287,6 +310,15 @@ namespace Xunit
 				expectedLength = expected.Length;
 				actualLength = actual.Length;
 
+				// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
+				if (ignoreAllWhiteSpace)
+				{
+					if (expectedLength == 0 && SkipWhitespace(actual, 0) == actualLength)
+						return;
+					if (actualLength == 0 && SkipWhitespace(expected, 0) == expectedLength)
+						return;
+				}
+
 				while (expectedIndex < expectedLength && actualIndex < actualLength)
 				{
 					char expectedChar = expected[expectedIndex];
@@ -296,6 +328,11 @@ namespace Xunit
 					{
 						expectedIndex = SkipLineEnding(expected, expectedIndex);
 						actualIndex = SkipLineEnding(actual, actualIndex);
+					}
+					else if (ignoreAllWhiteSpace && (IsWhiteSpace(expectedChar) || IsWhiteSpace(actualChar)))
+					{
+						expectedIndex = SkipWhitespace(expected, expectedIndex);
+						actualIndex = SkipWhitespace(actual, actualIndex);
 					}
 					else if (ignoreWhiteSpaceDifferences && IsWhiteSpace(expectedChar) && IsWhiteSpace(actualChar))
 					{
@@ -311,9 +348,7 @@ namespace Xunit
 						}
 
 						if (expectedChar != actualChar)
-						{
 							break;
-						}
 
 						expectedIndex++;
 						actualIndex++;
@@ -322,38 +357,32 @@ namespace Xunit
 			}
 
 			if (expectedIndex < expectedLength || actualIndex < actualLength)
-			{
 				throw new EqualException(expected, actual, expectedIndex, actualIndex);
-			}
 #endif
 		}
 
 #if !XUNIT_SPAN
-		static bool IsLineEnding(char c)
-		{
-			return c == '\r' || c == '\n';
-		}
+		static bool IsLineEnding(char c) =>
+			c == '\r' || c == '\n';
 
-		static bool IsWhiteSpace(char c)
-		{
-			return c == ' ' || c == '\t';
-		}
+		static bool IsWhiteSpace(char c) =>
+			c == ' ' || c == '\t';
 
-		static int SkipLineEnding(string value, int index)
+		static int SkipLineEnding(
+			string value,
+			int index)
 		{
 			if (value[index] == '\r')
-			{
 				++index;
-			}
 			if (index < value.Length && value[index] == '\n')
-			{
 				++index;
-			}
 
 			return index;
 		}
 
-		static int SkipWhitespace(string value, int index)
+		static int SkipWhitespace(
+			string value,
+			int index)
 		{
 			while (index < value.Length)
 			{

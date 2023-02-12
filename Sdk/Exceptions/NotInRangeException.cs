@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -23,12 +22,17 @@ namespace Xunit.Sdk
 		/// <param name="actual">The actual object value</param>
 		/// <param name="low">The low value of the range</param>
 		/// <param name="high">The high value of the range</param>
+		public NotInRangeException(
 #if XUNIT_NULLABLE
-		public NotInRangeException(object? actual, object? low, object? high)
+			object? actual,
+			object? low,
+			object? high) :
 #else
-		public NotInRangeException(object actual, object low, object high)
+			object actual,
+			object low,
+			object high) :
 #endif
-			: base("Assert.NotInRange() Failure")
+				base("Assert.NotInRange() Failure")
 		{
 			Low = low?.ToString();
 			High = high?.ToString();
@@ -66,20 +70,7 @@ namespace Xunit.Sdk
 		/// Gets a message that describes the current exception.
 		/// </summary>
 		/// <returns>The error message that explains the reason for the exception, or an empty string("").</returns>
-		public override string Message
-		{
-			get
-			{
-				return string.Format(
-					CultureInfo.CurrentCulture,
-					"{1}{0}Range:  ({2} - {3}){0}Actual: {4}",
-					Environment.NewLine,
-					base.Message,
-					Low,
-					High,
-					Actual ?? "(null)"
-				);
-			}
-		}
+		public override string Message =>
+			$"{base.Message}{Environment.NewLine}Range:  ({Low} - {High}){Environment.NewLine}Actual: {Actual ?? "(null)"}";
 	}
 }

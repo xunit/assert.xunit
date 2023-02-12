@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -18,8 +18,8 @@ namespace Xunit.Sdk
 		/// Creates a new instance of the <see cref="FailException"/> class.
 		/// </summary>
 		/// <param name="message">The user's failure message.</param>
-		public FailException(string message)
-			: base($"Assert.Fail(): {message}")
+		public FailException(string message) :
+			base($"Assert.Fail(): {message}")
 		{ }
 	}
 }

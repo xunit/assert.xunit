@@ -17,8 +17,8 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotNullException"/> class.
 		/// </summary>
-		public NotNullException()
-			: base("Assert.NotNull() Failure")
+		public NotNullException() :
+			base("Assert.NotNull() Failure")
 		{ }
 	}
 }

@@ -19,12 +19,18 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="ProperSubsetException"/> class.
 		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
 #if XUNIT_NULLABLE
-		public ProperSubsetException(IEnumerable expected, IEnumerable? actual)
+		public ProperSubsetException(
+			IEnumerable expected,
+			IEnumerable? actual) :
 #else
-		public ProperSubsetException(IEnumerable expected, IEnumerable actual)
+		public ProperSubsetException(
+			IEnumerable expected,
+			IEnumerable actual) :
 #endif
-			: base(expected, actual, "Assert.ProperSubset() Failure")
+				base(expected, actual, "Assert.ProperSubset() Failure")
 		{ }
 	}
 }

@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -17,10 +17,8 @@ namespace Xunit
 	partial class Assert
 	{
 		static IComparer<T> GetComparer<T>()
-			where T : IComparable
-		{
-			return new AssertComparer<T>();
-		}
+			where T : IComparable =>
+				new AssertComparer<T>();
 
 #if XUNIT_NULLABLE
 		static IEqualityComparer<T?> GetEqualityComparer<T>(IEqualityComparer? innerComparer = null) =>

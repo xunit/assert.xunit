@@ -17,12 +17,15 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotEqualException"/> class.
 		/// </summary>
+		public NotEqualException(
 #if XUNIT_NULLABLE
-		public NotEqualException(string? expected, string? actual)
+			string? expected,
+			string? actual) :
 #else
-		public NotEqualException(string expected, string actual)
+			string expected,
+			string actual) :
 #endif
-			: base($"Not {expected ?? "(null)"}", actual ?? "(null)", "Assert.NotEqual() Failure")
+				base($"Not {expected ?? "(null)"}", actual ?? "(null)", "Assert.NotEqual() Failure")
 		{ }
 	}
 }

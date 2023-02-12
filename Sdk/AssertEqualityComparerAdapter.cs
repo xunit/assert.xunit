@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -29,16 +29,15 @@ namespace Xunit.Sdk
 		}
 
 		/// <inheritdoc/>
+		public new bool Equals(
 #if XUNIT_NULLABLE
-		public new bool Equals(object? x, object? y)
-		{
-			return innerComparer.Equals((T?)x, (T?)y);
-		}
+			object? x,
+			object? y) =>
+				innerComparer.Equals((T?)x, (T?)y);
 #else
-		public new bool Equals(object x, object y)
-		{
-			return innerComparer.Equals((T)x, (T)y);
-		}
+			object x,
+			object y) =>
+				innerComparer.Equals((T)x, (T)y);
 #endif
 
 		/// <inheritdoc/>

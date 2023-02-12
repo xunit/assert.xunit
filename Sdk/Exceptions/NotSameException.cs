@@ -17,8 +17,8 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotSameException"/> class.
 		/// </summary>
-		public NotSameException()
-			: base("Assert.NotSame() Failure")
+		public NotSameException() :
+			base("Assert.NotSame() Failure")
 		{ }
 	}
 }
