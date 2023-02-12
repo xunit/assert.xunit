@@ -8,10 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit.Sdk;
 
-#if XUNIT_NULLABLE
-using System.Diagnostics.CodeAnalysis;
-#endif
-
 #if XUNIT_VALUETASK
 using System.Threading.Tasks;
 #endif
@@ -508,8 +504,8 @@ namespace Xunit
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
 		public static void Equal<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] IEnumerable<T> expected,
-			[AllowNull] IEnumerable<T> actual) =>
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual) =>
 #else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual) =>
@@ -526,8 +522,8 @@ namespace Xunit
 		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
 		public static void Equal<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] IEnumerable<T> expected,
-			[AllowNull] IEnumerable<T> actual,
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual,
 #else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual,
@@ -566,8 +562,8 @@ namespace Xunit
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
 		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] IEnumerable<T> expected,
-			[AllowNull] IEnumerable<T> actual) =>
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual) =>
 #else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual) =>
@@ -584,8 +580,8 @@ namespace Xunit
 		/// <exception cref="NotEqualException">Thrown when the objects are equal</exception>
 		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] IEnumerable<T> expected,
-			[AllowNull] IEnumerable<T> actual,
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual,
 #else
 			IEnumerable<T> expected,
 			IEnumerable<T> actual,
