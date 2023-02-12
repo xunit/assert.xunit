@@ -1,9 +1,12 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using Xunit.Sdk;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit
 {
@@ -48,14 +51,15 @@ namespace Xunit
 		/// <param name="condition">The condition to be tested</param>
 		/// <param name="userMessage">The message to show when the condition is not false</param>
 		/// <exception cref="FalseException">Thrown if the condition is not false</exception>
+		public static void False(
 #if XUNIT_NULLABLE
-		public static void False([DoesNotReturnIf(parameterValue: true)] bool condition, string? userMessage)
+			[DoesNotReturnIf(parameterValue: true)] bool condition,
+			string? userMessage) =>
 #else
-		public static void False(bool condition, string userMessage)
+			bool condition,
+			string userMessage) =>
 #endif
-		{
-			False((bool?)condition, userMessage);
-		}
+				False((bool?)condition, userMessage);
 
 		/// <summary>
 		/// Verifies that the condition is false.
@@ -63,10 +67,13 @@ namespace Xunit
 		/// <param name="condition">The condition to be tested</param>
 		/// <param name="userMessage">The message to show when the condition is not false</param>
 		/// <exception cref="FalseException">Thrown if the condition is not false</exception>
+		public static void False(
 #if XUNIT_NULLABLE
-		public static void False([DoesNotReturnIf(parameterValue: true)] bool? condition, string? userMessage)
+			[DoesNotReturnIf(parameterValue: true)] bool? condition,
+			string? userMessage)
 #else
-		public static void False(bool? condition, string userMessage)
+			bool? condition,
+			string userMessage)
 #endif
 		{
 			if (!condition.HasValue || condition.GetValueOrDefault())
@@ -107,14 +114,15 @@ namespace Xunit
 		/// <param name="condition">The condition to be inspected</param>
 		/// <param name="userMessage">The message to be shown when the condition is false</param>
 		/// <exception cref="TrueException">Thrown when the condition is false</exception>
+		public static void True(
 #if XUNIT_NULLABLE
-		public static void True([DoesNotReturnIf(parameterValue: false)] bool condition, string? userMessage)
+			[DoesNotReturnIf(parameterValue: false)] bool condition,
+			string? userMessage) =>
 #else
-		public static void True(bool condition, string userMessage)
+			bool condition,
+			string userMessage) =>
 #endif
-		{
-			True((bool?)condition, userMessage);
-		}
+				True((bool?)condition, userMessage);
 
 		/// <summary>
 		/// Verifies that an expression is true.
@@ -122,10 +130,13 @@ namespace Xunit
 		/// <param name="condition">The condition to be inspected</param>
 		/// <param name="userMessage">The message to be shown when the condition is false</param>
 		/// <exception cref="TrueException">Thrown when the condition is false</exception>
+		public static void True(
 #if XUNIT_NULLABLE
-		public static void True([DoesNotReturnIf(parameterValue: false)] bool? condition, string? userMessage)
+			[DoesNotReturnIf(parameterValue: false)] bool? condition,
+			string? userMessage)
 #else
-		public static void True(bool? condition, string userMessage)
+			bool? condition,
+			string userMessage)
 #endif
 		{
 			if (!condition.HasValue || !condition.GetValueOrDefault())

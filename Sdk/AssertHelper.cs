@@ -1,7 +1,5 @@
 #if XUNIT_NULLABLE
 #nullable enable
-
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
@@ -11,6 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Xunit.Sdk;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit.Internal
 {
@@ -23,12 +25,11 @@ namespace Xunit.Internal
 #endif
 
 #if XUNIT_NULLABLE
-		static Dictionary<string, Func<object?, object?>> GetGettersForType(Type type)
+		static Dictionary<string, Func<object?, object?>> GetGettersForType(Type type) =>
 #else
-		static Dictionary<string, Func<object, object>> GetGettersForType(Type type)
+		static Dictionary<string, Func<object, object>> GetGettersForType(Type type) =>
 #endif
-		{
-			return gettersByType.GetOrAdd(type, _type =>
+			gettersByType.GetOrAdd(type, _type =>
 			{
 				var fieldGetters =
 					_type
@@ -55,7 +56,6 @@ namespace Xunit.Internal
 						.Concat(propertyGetters)
 						.ToDictionary(g => g.name, g => g.getter);
 			});
-		}
 
 #if XUNIT_NULLABLE
 		public static EquivalentException? VerifyEquivalence(

@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -23,19 +22,15 @@ namespace Xunit.Sdk
 		/// <param name="expected">The expected string value</param>
 		/// <param name="actual">The actual value</param>
 #if XUNIT_NULLABLE
-		public StartsWithException(string? expected, string? actual)
+		public StartsWithException(
+			string? expected,
+			string? actual) :
 #else
-		public StartsWithException(string expected, string actual)
+		public StartsWithException(
+			string expected,
+			string actual) :
 #endif
-			: base(
-				string.Format(
-					CultureInfo.CurrentCulture,
-					"Assert.StartsWith() Failure:{2}Expected: {0}{2}Actual:   {1}",
-					expected ?? "(null)",
-					ShortenActual(expected, actual) ?? "(null)",
-					Environment.NewLine
-				)
-			)
+				base($"Assert.StartsWith() Failure:{Environment.NewLine}Expected: {expected ?? "(null)"}{Environment.NewLine}Actual:   {ShortenActual(expected, actual) ?? "(null)"}")
 		{ }
 
 #if XUNIT_NULLABLE

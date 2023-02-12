@@ -19,8 +19,9 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="EmptyException"/> class.
 		/// </summary>
-		public EmptyException(IEnumerable collection)
-			: base("<empty>", ArgumentFormatter.Format(collection), "Assert.Empty() Failure")
+		/// <param name="collection">The collection that was not empty</param>
+		public EmptyException(IEnumerable collection) :
+			base("<empty>", ArgumentFormatter.Format(collection), "Assert.Empty() Failure")
 		{ }
 	}
 }

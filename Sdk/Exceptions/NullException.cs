@@ -17,9 +17,9 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="NullException"/> class.
 		/// </summary>
-		/// <param name="actual"></param>
-		public NullException(object actual)
-			: base(null, actual, "Assert.Null() Failure")
+		/// <param name="actual">The actual non-<c>null</c> value</param>
+		public NullException(object actual) :
+			base(null, actual, "Assert.Null() Failure")
 		{ }
 	}
 }

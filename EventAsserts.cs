@@ -1,4 +1,4 @@
-﻿#if XUNIT_NULLABLE
+#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -24,7 +24,10 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
-		public static RaisedEvent<T> Raises<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
+		public static RaisedEvent<T> Raises<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Action testCode)
 		{
 			var raisedEvent = RaisesInternal(attach, detach, testCode);
 
@@ -46,7 +49,10 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
-		public static RaisedEvent<T> RaisesAny<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
+		public static RaisedEvent<T> RaisesAny<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Action testCode)
 		{
 			var raisedEvent = RaisesInternal(attach, detach, testCode);
 
@@ -65,7 +71,10 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
-		public static async Task<RaisedEvent<T>> RaisesAsync<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
+		public static async Task<RaisedEvent<T>> RaisesAsync<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<Task> testCode)
 		{
 			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
 
@@ -87,7 +96,10 @@ namespace Xunit
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <returns>The event sender and arguments wrapped in an object</returns>
 		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
-		public static async Task<RaisedEvent<T>> RaisesAnyAsync<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
+		public static async Task<RaisedEvent<T>> RaisesAnyAsync<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<Task> testCode)
 		{
 			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
 
@@ -98,10 +110,13 @@ namespace Xunit
 		}
 
 #if XUNIT_NULLABLE
-		static RaisedEvent<T>? RaisesInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
+		static RaisedEvent<T>? RaisesInternal<T>(
 #else
-		static RaisedEvent<T> RaisesInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Action testCode)
+		static RaisedEvent<T> RaisesInternal<T>(
 #endif
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Action testCode)
 		{
 			GuardArgumentNotNull(nameof(attach), attach);
 			GuardArgumentNotNull(nameof(detach), detach);
@@ -121,10 +136,13 @@ namespace Xunit
 		}
 
 #if XUNIT_NULLABLE
-		static async Task<RaisedEvent<T>?> RaisesAsyncInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
+		static async Task<RaisedEvent<T>?> RaisesAsyncInternal<T>(
 #else
-		static async Task<RaisedEvent<T>> RaisesAsyncInternal<T>(Action<EventHandler<T>> attach, Action<EventHandler<T>> detach, Func<Task> testCode)
+		static async Task<RaisedEvent<T>> RaisesAsyncInternal<T>(
 #endif
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<Task> testCode)
 		{
 			GuardArgumentNotNull(nameof(attach), attach);
 			GuardArgumentNotNull(nameof(detach), detach);
@@ -168,11 +186,13 @@ namespace Xunit
 			/// </summary>
 			/// <param name="sender">The sender of the event.</param>
 			/// <param name="args">The event arguments</param>
+			public RaisedEvent(
 #if XUNIT_NULLABLE
-			public RaisedEvent(object? sender, T args)
+				object? sender,
 #else
-			public RaisedEvent(object sender, T args)
+				object sender,
 #endif
+				T args)
 			{
 				Sender = sender;
 				Arguments = args;

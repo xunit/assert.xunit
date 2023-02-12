@@ -1,11 +1,14 @@
-﻿#if XUNIT_SKIP
+#if XUNIT_SKIP
 
 #if XUNIT_NULLABLE
 #nullable enable
-using System.Diagnostics.CodeAnalysis;
 #endif
 
 using Xunit.Sdk;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit
 {
@@ -37,11 +40,13 @@ namespace Xunit
 		/// <param name="condition">When <c>true</c>, the test will continue to run; when <c>false</c>,
 		/// the test will be skipped</param>
 		/// <param name="reason">The message to indicate why the test was skipped</param>
+		public static void SkipUnless(
 #if XUNIT_NULLABLE
-		public static void SkipUnless([DoesNotReturnIf(false)] bool condition, string reason)
+			[DoesNotReturnIf(false)] bool condition,
 #else
-		public static void SkipUnless(bool condition, string reason)
+			bool condition,
 #endif
+			string reason)
 		{
 			GuardArgumentNotNull(nameof(reason), reason);
 
@@ -55,11 +60,13 @@ namespace Xunit
 		/// <param name="condition">When <c>true</c>, the test will be skipped; when <c>false</c>,
 		/// the test will continue to run</param>
 		/// <param name="reason">The message to indicate why the test was skipped</param>
+		public static void SkipWhen(
 #if XUNIT_NULLABLE
-		public static void SkipWhen([DoesNotReturnIf(true)] bool condition, string reason)
+			[DoesNotReturnIf(true)] bool condition,
 #else
-		public static void SkipWhen(bool condition, string reason)
+			bool condition,
 #endif
+			string reason)
 		{
 			GuardArgumentNotNull(nameof(reason), reason);
 
