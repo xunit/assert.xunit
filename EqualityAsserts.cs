@@ -218,7 +218,7 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The allowed difference in time where the two dates are considered equal</param>
-		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
+		/// <exception cref="EqualException">Thrown when the values are not within the given precision</exception>
 		public static void Equal(
 			DateTime expected,
 			DateTime actual,
@@ -227,7 +227,7 @@ namespace Xunit
 			var difference = (expected - actual).Duration();
 
 			if (difference > precision)
-				throw new EqualException($"{expected} ", $"{actual} difference {difference} is larger than {precision}");
+				throw new EqualException(expected.ToString(), $"{actual} (difference {difference} is larger than {precision})");
 		}
 
 		/// <summary>
@@ -237,7 +237,7 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <param name="precision">The allowed difference in time where the two dates are considered equal</param>
-		/// <exception cref="EqualException">Thrown when the values are not equal</exception>
+		/// <exception cref="EqualException">Thrown when the values are not within the given precision</exception>
 		public static void Equal(
 			DateTimeOffset expected,
 			DateTimeOffset actual,
@@ -246,7 +246,7 @@ namespace Xunit
 			var difference = (expected - actual).Duration();
 
 			if (difference > precision)
-				throw new EqualException($"{expected} ", $"{actual} difference {difference} is larger than {precision}");
+				throw new EqualException(expected.ToString(), $"{actual} (difference {difference} is larger than {precision})");
 		}
 
 		/// <summary>
