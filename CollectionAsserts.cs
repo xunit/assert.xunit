@@ -285,6 +285,23 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that a collection contains a given object. This function behaves identical to ISet.Contains.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="expected">The object expected to be in the collection</param>
+		/// <param name="collection">The collection to be inspected</param>
+		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
+		public static void Contains<T>(
+			T expected,
+			ISet<T> collection)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
+			if (!collection.Contains(expected))
+				throw new ContainsException(expected, collection);
+		}
+
+		/// <summary>
 		/// Verifies that a dictionary contains a given key.
 		/// </summary>
 		/// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
