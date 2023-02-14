@@ -465,8 +465,9 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(expected), expected);
 			GuardArgumentNotNull(nameof(collection), collection);
-
-			DoesNotContain(expected, collection.Keys);
+			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
+			if (collection.ContainsKey(expected))
+				throw new ContainsException(expected, collection.Keys);
 		}
 
 		/// <summary>
@@ -486,8 +487,9 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(expected), expected);
 			GuardArgumentNotNull(nameof(collection), collection);
-
-			DoesNotContain(expected, collection.Keys);
+			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
+			if (collection.ContainsKey(expected))
+				throw new ContainsException(expected, collection.Keys);
 		}
 
 		/// <summary>
