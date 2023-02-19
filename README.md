@@ -1,6 +1,7 @@
 # About This Project
 
 This project contains the xUnit.net assertion library source code, intended to be used as a Git submodule. Code here has a minimum target-framework of `netstandard1.1`, `net452`, or `netcoreapp1.0`.
+By default code here should be compliant with C# 6.0 which is enforced by the [suggested workflow](CONTRIBUTING.md#suggested-workflow).
 
 To open an issue for this project, please visit the [core xUnit.net project issue tracker](https://github.com/xunit/xunit/issues).
 
