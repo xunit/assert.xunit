@@ -22,6 +22,8 @@ Please note that this project is released with a [Contributor Code of Conduct](h
 
 ## Contributing Changes
 
+We share the assertion library between the `main` branch (v3) and the `v2` branch of `xunit/xunit`. This includes the tests. The workflow below suggests the best way to ensure you are writing code that will work for both v2 and v3, as the build tools in the `main` branch enforce all the necessary rules. _If you attempt to issue a PR against the `v2` branch, we will ask you to redo the changes against `main` before accepting them._
+
 ### Suggested Workflow
 
 1. Pick an existing issue or create a new one.
