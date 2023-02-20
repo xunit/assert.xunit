@@ -9,6 +9,10 @@ To open an issue for this project, please visit the [core xUnit.net project issu
 
 The following pre-processor directives can be used to influence the resulting code contained in this repository:
 
+### `XUNIT_IMMUTABLE_COLLECTIONS` (min: C# 6.0, xUnit.net v2)
+
+There are assertions that target immutable collections. If you are using a target framework that is compatible with [`System.Collections.Immutable`](https://www.nuget.org/packages/System.Collections.Immutable), you should define `XUNIT_IMMUTABLE_COLLECTIONS` to enable the additional versions of those assertions that will consume immutable collections.
+
 ### `XUNIT_NULLABLE` (min: C# 9.0, xUnit.net v2)
 
 Projects that consume this repository as source, which wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
