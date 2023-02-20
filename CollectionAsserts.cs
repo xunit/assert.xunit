@@ -230,14 +230,24 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			// If an equality comparer is not explicitly provided, call into ICollection<T>.Contains which may
-			// use the collection's equality comparer for types like HashSet and Dictionary.
-			var icollection = collection as ICollection<T>;
-			if (icollection != null && icollection.Contains(expected))
-				return;
+			// If an equality comparer is not explicitly provided, call into ICollection<T>.Contains or
+			// IReadOnlyCollection<T>.Contains which may use the collection's equality comparer for types
+			// like HashSet and Dictionary. HashSet and Dictionary are normally handled explicitly, but
+			// the developer may end up in the IEnumerable<> override because the variable is not an explicit
+			// enough type.
+			var readWriteCollection = collection as ICollection<T>;
+			if (readWriteCollection != null)
+			{
+				if (readWriteCollection.Contains(expected))
+					return;
+			}
+			else
+			{
+				var readOnlyCollection = collection as IReadOnlyCollection<T>;
+				if (readOnlyCollection != null && readOnlyCollection.Contains(expected))
+					return;
+			}
 
-			// We don't throw if either ICollection<T>.Contains or our custom equality comparer says the collection
-			// has the item.
 			Contains(expected, collection, GetEqualityComparer<T>());
 		}
 
@@ -285,80 +295,11 @@ namespace Xunit
 		}
 
 		/// <summary>
-		/// Verifies that a collection contains a given object. This function behaves identical to ISet.Contains.
-		/// </summary>
-		/// <typeparam name="T">The type of the object to be verified</typeparam>
-		/// <param name="expected">The object expected to be in the collection</param>
-		/// <param name="collection">The collection to be inspected</param>
-		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static void Contains<T>(
-			T expected,
-			ISet<T> collection)
-		{
-			GuardArgumentNotNull(nameof(collection), collection);
-			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
-			if (!collection.Contains(expected))
-				throw new ContainsException(expected, collection);
-		}
-
-		/// <summary>
-		/// Verifies that a dictionary contains a given key.
-		/// </summary>
-		/// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
-		/// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
-		/// <param name="expected">The object expected to be in the collection.</param>
-		/// <param name="collection">The collection to be inspected.</param>
-		/// <returns>The value associated with <paramref name="expected"/>.</returns>
-		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static TValue Contains<TKey, TValue>(
-			TKey expected,
-			IReadOnlyDictionary<TKey, TValue> collection)
-#if XUNIT_NULLABLE
-				where TKey : notnull
-#endif
-		{
-			GuardArgumentNotNull(nameof(expected), expected);
-			GuardArgumentNotNull(nameof(collection), collection);
-
-			var value = default(TValue);
-			if (!collection.TryGetValue(expected, out value))
-				throw new ContainsException(expected, collection.Keys);
-
-			return value;
-		}
-
-		/// <summary>
-		/// Verifies that a dictionary contains a given key.
-		/// </summary>
-		/// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
-		/// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
-		/// <param name="expected">The object expected to be in the collection.</param>
-		/// <param name="collection">The collection to be inspected.</param>
-		/// <returns>The value associated with <paramref name="expected"/>.</returns>
-		/// <exception cref="ContainsException">Thrown when the object is not present in the collection</exception>
-		public static TValue Contains<TKey, TValue>(
-			TKey expected,
-			IDictionary<TKey, TValue> collection)
-#if XUNIT_NULLABLE
-				where TKey : notnull
-#endif
-		{
-			GuardArgumentNotNull(nameof(expected), expected);
-			GuardArgumentNotNull(nameof(collection), collection);
-
-			var value = default(TValue);
-			if (!collection.TryGetValue(expected, out value))
-				throw new ContainsException(expected, collection.Keys);
-
-			return value;
-		}
-
-		/// <summary>
 		/// Verifies that a collection contains each object only once.
 		/// </summary>
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
-		/// <exception cref="DoesNotContainException">Thrown when an object is present inside the container more than once</exception>
+		/// <exception cref="ContainsDuplicateException">Thrown when an object is present inside the container more than once</exception>
 		public static void Distinct<T>(IEnumerable<T> collection) =>
 			Distinct<T>(collection, EqualityComparer<T>.Default);
 
@@ -368,7 +309,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
-		/// <exception cref="DoesNotContainException">Thrown when an object is present inside the container more than once</exception>
+		/// <exception cref="ContainsDuplicateException">Thrown when an object is present inside the container more than once</exception>
 		public static void Distinct<T>(
 			IEnumerable<T> collection,
 			IEqualityComparer<T> comparer)
@@ -396,14 +337,24 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			// If an equality comparer is not explicitly provided, call into ICollection<T>.Contains which may
-			// use the collection's equality comparer for types like HashSet and Dictionary.
-			var icollection = collection as ICollection<T>;
-			if (icollection != null && icollection.Contains(expected))
-				throw new DoesNotContainException(expected, collection);
+			// If an equality comparer is not explicitly provided, call into ICollection<T>.Contains or
+			// IReadOnlyCollection<T>.Contains which may use the collection's equality comparer for types
+			// like HashSet and Dictionary. HashSet and Dictionary are normally handled explicitly, but
+			// the developer may end up in the IEnumerable<> override because the variable is not an explicit
+			// enough type.
+			var readWriteCollection = collection as ICollection<T>;
+			if (readWriteCollection != null)
+			{
+				if (readWriteCollection.Contains(expected))
+					throw new DoesNotContainException(expected, collection);
+			}
+			else
+			{
+				var readOnlyCollection = collection as IReadOnlyCollection<T>;
+				if (readOnlyCollection != null && readOnlyCollection.Contains(expected))
+					throw new DoesNotContainException(expected, collection);
+			}
 
-			// We don't throw only if both ICollection<T>.Contains and our custom equality comparer say the collection
-			// doesn't have the item.
 			DoesNotContain(expected, collection, GetEqualityComparer<T>());
 		}
 
@@ -446,67 +397,6 @@ namespace Xunit
 			foreach (var item in collection)
 				if (filter(item))
 					throw new DoesNotContainException("(filter expression)", collection);
-		}
-
-		/// <summary>
-		/// Verifies that a dictionary does not contain a given key.
-		/// </summary>
-		/// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
-		/// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
-		/// <param name="expected">The object expected to be in the collection.</param>
-		/// <param name="collection">The collection to be inspected.</param>
-		/// <exception cref="DoesNotContainException">Thrown when the object is present in the collection</exception>
-		public static void DoesNotContain<TKey, TValue>(
-			TKey expected,
-			IReadOnlyDictionary<TKey, TValue> collection)
-#if XUNIT_NULLABLE
-				where TKey : notnull
-#endif
-		{
-			GuardArgumentNotNull(nameof(expected), expected);
-			GuardArgumentNotNull(nameof(collection), collection);
-			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
-			if (collection.ContainsKey(expected))
-				throw new ContainsException(expected, collection.Keys);
-		}
-
-		/// <summary>
-		/// Verifies that a dictionary does not contain a given key.
-		/// </summary>
-		/// <typeparam name="TKey">The type of the keys of the object to be verified.</typeparam>
-		/// <typeparam name="TValue">The type of the values of the object to be verified.</typeparam>
-		/// <param name="expected">The object expected to be in the collection.</param>
-		/// <param name="collection">The collection to be inspected.</param>
-		/// <exception cref="DoesNotContainException">Thrown when the object is present in the collection</exception>
-		public static void DoesNotContain<TKey, TValue>(
-			TKey expected,
-			IDictionary<TKey, TValue> collection)
-#if XUNIT_NULLABLE
-				where TKey : notnull
-#endif
-		{
-			GuardArgumentNotNull(nameof(expected), expected);
-			GuardArgumentNotNull(nameof(collection), collection);
-			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
-			if (collection.ContainsKey(expected))
-				throw new ContainsException(expected, collection.Keys);
-		}
-
-		/// <summary>
-		/// Verifies that a collection does not contain a given item. This function behaves identical to !ISet.Contains.
-		/// </summary>
-		/// <typeparam name="T">The type of the object to be compared</typeparam>
-		/// <param name="expected">The object that is expected not to be in the collection</param>
-		/// <param name="collection">The collection to be inspected</param>
-		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
-		public static void DoesNotContain<T>(
-			T expected,
-			ISet<T> collection)
-		{
-			GuardArgumentNotNull(nameof(collection), collection);
-			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
-			if (collection.Contains(expected))
-				throw new DoesNotContainException(expected, collection);
 		}
 
 		/// <summary>
