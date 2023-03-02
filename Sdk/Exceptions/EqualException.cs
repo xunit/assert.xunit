@@ -103,6 +103,8 @@ namespace Xunit.Sdk
 			string? actual,
 			int expectedIndex,
 			int actualIndex,
+			string? expectedLength,
+			string? actualLength,
 			string? expectedType,
 			string? actualType,
 			int? pointerPosition) :
@@ -111,12 +113,16 @@ namespace Xunit.Sdk
 			string actual,
 			int expectedIndex,
 			int actualIndex,
+			string expectedLength,
+			string actualLength,
 			string expectedType,
 			string actualType,
 			int? pointerPosition) :
 #endif
 				this(expected, actual, expectedIndex, actualIndex, pointerPosition)
 		{
+			ActualLength = actualLength;
+			ExpectedLength = expectedLength;
 			ActualType = actualType;
 			ExpectedType = expectedType;
 		}
@@ -153,6 +159,26 @@ namespace Xunit.Sdk
 		public string ExpectedType { get; }
 #endif
 
+		/// <summary>
+		/// Gets the length of the actual collection.
+		/// Returns null if the length was not provided.
+		/// </summary>
+#if XUNIT_NULLABLE
+		public string? ActualLength { get; }
+#else
+		public string ActualLength { get; }
+#endif
+
+		/// <summary>
+		/// Gets the length of the expected collection.
+		/// Returns null if the length was not provided.
+		/// </summary>
+#if XUNIT_NULLABLE
+		public string? ExpectedLength { get; }
+#else
+		public string ExpectedLength { get; }
+#endif
+
 		/// <inheritdoc/>
 		public override string Message
 		{
@@ -180,8 +206,13 @@ namespace Xunit.Sdk
 			var actualTypeMessage = undefinedType || ExpectedType == ActualType ? string.Empty : ActualType;
 			var expectedTypeMessage = undefinedType || ExpectedType == ActualType ? string.Empty : ExpectedType;
 
-			var printedExpected = ShortenAndEncode(Expected, expectedTypeMessage, PointerPosition ?? ExpectedIndex, '↓', ExpectedIndex);
-			var printedActual = ShortenAndEncode(Actual, actualTypeMessage, PointerPosition ?? ActualIndex, '↑', ActualIndex);
+			var undefinedLength = string.IsNullOrEmpty(ActualLength) || string.IsNullOrEmpty(ExpectedLength);
+
+			var actualLengthMessage = undefinedLength || ExpectedLength == ActualLength ? string.Empty : ActualLength;
+			var expectedLengthMessage = undefinedLength || ExpectedLength == ActualLength ? string.Empty : ExpectedLength;
+
+			var printedExpected = ShortenAndEncode(Expected, expectedTypeMessage, expectedLengthMessage, PointerPosition ?? ExpectedIndex, '↓', ExpectedIndex);
+			var printedActual = ShortenAndEncode(Actual, actualTypeMessage, actualLengthMessage, PointerPosition ?? ActualIndex, '↑', ActualIndex);
 
 			var sb = new StringBuilder();
 			sb.Append(UserMessage);
@@ -239,10 +270,14 @@ namespace Xunit.Sdk
 			var expectedEnumerable = expected?.Cast<object>();
 			var actualEnumerable = actual?.Cast<object>();
 
+			bool mismatchLength = expectedEnumerable?.Count() != actualEnumerable?.Count();
+			var expectedLength = mismatchLength ? expectedEnumerable?.Count().ToString() : string.Empty;
+			var actualLength = mismatchLength ? actualEnumerable?.Count().ToString() : string.Empty;
+
 			var expectedType = mismatchIndex < expectedEnumerable?.Count() ? expectedEnumerable.ElementAt(mismatchIndex)?.GetType().FullName : string.Empty;
 			var actualType = mismatchIndex < actualEnumerable?.Count() ? actualEnumerable.ElementAt(mismatchIndex)?.GetType().FullName : string.Empty;
 
-			return new EqualException(expectedText, actualText, mismatchIndex, mismatchIndex, expectedType, actualType, pointerPosition);
+			return new EqualException(expectedText, actualText, mismatchIndex, mismatchIndex, expectedLength, actualLength, expectedType, actualType, pointerPosition);
 		}
 
 
@@ -250,9 +285,11 @@ namespace Xunit.Sdk
 #if XUNIT_NULLABLE
 			string? value,
 			string? type,
+			string? length,
 #else
 			string value,
 			string type,
+			string length,
 #endif
 			int position,
 			char pointer,
@@ -297,10 +334,12 @@ namespace Xunit.Sdk
 					printedPointer.Append(' ', paddingLength);
 				else if (idx == position)
 				{
-					if (string.IsNullOrEmpty(type))
-						printedPointer.AppendFormat("{0} (pos {1})", pointer, index);
-					else
-						printedPointer.AppendFormat("{0} (pos {1}, type {2})", pointer, index, type);
+					printedPointer.AppendFormat("{0} (pos {1}", pointer, index);
+					if (!string.IsNullOrEmpty(type))
+						printedPointer.AppendFormat(", type {0}", type);
+					if (!string.IsNullOrEmpty(length))
+						printedPointer.AppendFormat(", length {0}", length);
+					printedPointer.Append(')');
 				}
 			}
 
