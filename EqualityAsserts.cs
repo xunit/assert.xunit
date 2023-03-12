@@ -463,5 +463,20 @@ namespace Xunit
 			T actual) =>
 				NotEqual(expected, actual, EqualityComparer<T>.Default);
 #endif
+		/// <summary>
+		/// Verifies two collections are values are equals are same, using given custom function.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="comparerFunc">Func used to assert the given values</param>
+		/// <typeparam name="T"></typeparam>
+		public static void Equal<T>(IEnumerable<T> expected, IEnumerable<T> actual, Func<IEnumerable<T>, IEnumerable<T>, bool> comparerFunc)
+		{
+			GuardArgumentNotNull(nameof(expected), expected);
+			GuardArgumentNotNull(nameof(actual), actual);
+			GuardArgumentNotNull(nameof(comparerFunc), comparerFunc);
+			
+			True(comparerFunc(expected, actual));
+		}
 	}
 }
