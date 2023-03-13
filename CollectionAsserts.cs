@@ -458,6 +458,35 @@ namespace Xunit
 				Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
 
 		/// <summary>
+		/// Verifies two collections are values are equals are same, using given custom function.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="comparerFunc">Func used to assert the given values</param>
+		/// <typeparam name="T"></typeparam>
+		public static void Equal<T>(
+#if XUNIT_NULLABLE
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual,
+#else
+			IEnumerable<T> expected,
+			IEnumerable<T> actual,
+#endif
+			Func<T, T, bool> comparerFunc)
+		{
+			
+			var expectedCount = expected?.Count();
+			var actualCount = actual?.Count();
+			Equal(expectedCount, actualCount);
+			if (expected == null || actual == null)
+				return;
+			for (int index = 0; index < expectedCount; index++)
+			{
+				True(comparerFunc(expected.ElementAt(index), actual.ElementAt(index)));
+			}
+		}
+
+		/// <summary>
 		/// Verifies that a collection is not empty.
 		/// </summary>
 		/// <param name="collection">The collection to be inspected</param>
