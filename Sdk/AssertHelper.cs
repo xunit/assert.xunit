@@ -44,7 +44,7 @@ namespace Xunit.Internal
 				var propertyGetters =
 					_type
 						.GetRuntimeProperties()
-						.Where(p => p.CanRead && p.GetMethod != null && p.GetMethod.IsPublic && !p.GetMethod.IsStatic)
+						.Where(p => p.CanRead && p.GetMethod != null && p.GetMethod.IsPublic && !p.GetMethod.IsStatic && p.GetIndexParameters().Length == 0)
 #if XUNIT_NULLABLE
 						.Select(p => new { name = p.Name, getter = (Func<object?, object?>)p.GetValue });
 #else
