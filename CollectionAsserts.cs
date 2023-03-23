@@ -462,7 +462,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
-		/// <param name="comparerFunc">Func used to assert the given values</param>
+		/// <param name="assertAction">Action used to assert the given values</param>
 		/// <typeparam name="T"></typeparam>
 		public static void Equal<T>(
 #if XUNIT_NULLABLE
@@ -472,7 +472,7 @@ namespace Xunit
 			IEnumerable<T> expected,
 			IEnumerable<T> actual,
 #endif
-			Func<T, T, bool> comparerFunc)
+			Action<T, T> assertAction)
 		{
 			
 			var expectedCount = expected?.Count();
@@ -482,7 +482,7 @@ namespace Xunit
 				return;
 			for (int index = 0; index < expectedCount; index++)
 			{
-				True(comparerFunc(expected.ElementAt(index), actual.ElementAt(index)));
+				assertAction(expected.ElementAt(index), actual.ElementAt(index));
 			}
 		}
 
