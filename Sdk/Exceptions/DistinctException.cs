@@ -16,15 +16,15 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class ContainsDuplicateException : XunitException
+	class DistinctException : XunitException
 	{
 
 		/// <summary>
-		/// Creates a new instance of the <see cref="ContainsDuplicateException"/> class.
+		/// Creates a new instance of the <see cref="DistinctException"/> class.
 		/// </summary>
 		/// <param name="duplicateObject">The object that was present twice in the collection.</param>
 		/// <param name="collection">The collection that was checked for duplicate entries.</param>
-		public ContainsDuplicateException(
+		public DistinctException(
 #if XUNIT_NULLABLE
 			object? duplicateObject,
 			IEnumerable collection) :

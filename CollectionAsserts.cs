@@ -299,7 +299,7 @@ namespace Xunit
 		/// </summary>
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
-		/// <exception cref="ContainsDuplicateException">Thrown when an object is present inside the container more than once</exception>
+		/// <exception cref="DistinctException">Thrown when an object is present inside the container more than once</exception>
 		public static void Distinct<T>(IEnumerable<T> collection) =>
 			Distinct<T>(collection, EqualityComparer<T>.Default);
 
@@ -309,7 +309,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
-		/// <exception cref="ContainsDuplicateException">Thrown when an object is present inside the container more than once</exception>
+		/// <exception cref="DistinctException">Thrown when an object is present inside the container more than once</exception>
 		public static void Distinct<T>(
 			IEnumerable<T> collection,
 			IEqualityComparer<T> comparer)
@@ -321,7 +321,7 @@ namespace Xunit
 
 			foreach (var x in collection)
 				if (!set.Add(x))
-					throw new ContainsDuplicateException(x, collection);
+					throw new DistinctException(x, collection);
 		}
 
 		/// <summary>
