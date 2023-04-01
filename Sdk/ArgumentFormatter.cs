@@ -18,8 +18,9 @@ namespace Xunit.Sdk
 	/// </summary>
 	static class ArgumentFormatter
 	{
-		const int MAX_DEPTH = 3;
-		const int MAX_ENUMERABLE_LENGTH = 5;
+		internal const int MAX_DEPTH = 3;
+		internal const int MAX_ENUMERABLE_LENGTH = 5;
+		internal const int MAX_ENUMERABLE_LENGTH_HALF = 2;
 		const int MAX_OBJECT_PARAMETER_COUNT = 5;
 		const int MAX_STRING_LENGTH = 50;
 
@@ -84,7 +85,7 @@ namespace Xunit.Sdk
 			return Format(value, 1, out _, errorIndex);
 		}
 
-		static string FormatInner(
+		internal static string FormatInner(
 #if XUNIT_NULLABLE
 			object? value,
 #else
