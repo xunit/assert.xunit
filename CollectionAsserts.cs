@@ -146,24 +146,28 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
 
-			var elements = collection.ToArray();
-			var expectedCount = elementInspectors.Length;
-			var actualCount = elements.Length;
+			var tracker = new CollectionTracker<T>(collection);
+			var index = 0;
 
-			if (expectedCount != actualCount)
-				throw new CollectionException(collection, expectedCount, actualCount);
-
-			for (var idx = 0; idx < actualCount; idx++)
+			foreach (var item in tracker)
 			{
 				try
 				{
-					elementInspectors[idx](elements[idx]);
+					if (index < elementInspectors.Length)
+						elementInspectors[index](item);
 				}
 				catch (Exception ex)
 				{
-					throw new CollectionException(collection, expectedCount, actualCount, idx, ex);
+					int pointerIndent;
+					var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
+					throw CollectionException.ForMismatchedItem(ex, index, pointerIndent, formattedCollection);
 				}
+
+				index++;
 			}
+
+			if (tracker.IterationCount != elementInspectors.Length)
+				throw CollectionException.ForMismatchedItemCount(elementInspectors.Length, tracker.IterationCount, tracker.FormatStart());
 		}
 
 #if XUNIT_VALUETASK
@@ -182,22 +186,28 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
 
-			var elements = collection.ToArray();
-			var expectedCount = elementInspectors.Length;
-			var actualCount = elements.Length;
+			var tracker = new CollectionTracker<T>(collection);
+			var index = 0;
 
-			if (expectedCount != actualCount)
-				throw new CollectionException(collection, expectedCount, actualCount);
-
-			for (var idx = 0; idx < actualCount; idx++)
+			foreach (var item in tracker)
+			{
 				try
 				{
-					await elementInspectors[idx](elements[idx]);
+					if (index < elementInspectors.Length)
+						await elementInspectors[index](item);
 				}
 				catch (Exception ex)
 				{
-					throw new CollectionException(collection, expectedCount, actualCount, idx, ex);
+					int pointerIndent;
+					var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
+					throw CollectionException.ForMismatchedItem(ex, index, pointerIndent, formattedCollection);
 				}
+
+				index++;
+			}
+
+			if (tracker.IterationCount != elementInspectors.Length)
+				throw CollectionException.ForMismatchedItemCount(elementInspectors.Length, tracker.IterationCount, tracker.FormatStart());
 		}
 #endif
 
