@@ -18,53 +18,53 @@ namespace Xunit.Sdk
 #endif
 	class AllException : XunitException
 	{
-#if XUNIT_NULLABLE
-		readonly IReadOnlyList<Tuple<int, object?, Exception>> errors;
-#else
-		readonly IReadOnlyList<Tuple<int, object, Exception>> errors;
-#endif
-		readonly int totalItems;
+		AllException(string message) :
+			base(message)
+		{ }
+
+		///// <inheritdoc/>
+		//public override string Message
+		//{
+		//	get
+		//	{
+		//		var formattedErrors = ;
+
+		//		return $"{base.Message}: {errors.Count} out of {totalItems} items in the collection did not pass.{Environment.NewLine}{string.Join(Environment.NewLine, formattedErrors)}";
+		//	}
+		//}
 
 		/// <summary>
-		/// Creates a new instance of the <see cref="AllException"/> class.
+		/// Creates a new instance of the <see cref="AllException"/> class to be thrown when one or
+		/// more items failed during <see cref="Assert.All{T}(IEnumerable{T}, Action{T})"/>,
+		/// <see cref="Assert.All{T}(IEnumerable{T}, Action{T, int})"/>,
+		/// <see cref="Assert.AllAsync{T}(IEnumerable{T}, Func{T, System.Threading.Tasks.ValueTask})"/>,
+		/// or <see cref="Assert.AllAsync{T}(IEnumerable{T}, Func{T, int, System.Threading.Tasks.ValueTask})"/>.
 		/// </summary>
-		/// <param name="totalItems">The total number of items that were in the collection.</param>
-		/// <param name="errors">The list of errors that occurred during the test pass.</param>
-		public AllException(
-#if XUNIT_NULLABLE
+		/// <param name="totalItems">The total number of items in the collection</param>
+		/// <param name="errors">The list of failures (as index, value, and exception)</param>
+		public static AllException ForFailures(
 			int totalItems,
-			Tuple<int, object?, Exception>[] errors) :
-#else
-			int totalItems,
-			Tuple<int, object, Exception>[] errors) :
-#endif
-				base("Assert.All() Failure")
+			IReadOnlyList<Tuple<int, string, Exception>> errors)
 		{
-			this.errors = errors;
-			this.totalItems = totalItems;
-		}
+			var maxItemIndexLength = errors.Max(x => x.Item1).ToString().Length + 4; // "[#]: "
+			var indexSpaces = new string(' ', maxItemIndexLength);
+			var maxWrapIndent = maxItemIndexLength + 7; // "Item:  " and "Error: "
+			var wrapSpaces = Environment.NewLine + new string(' ', maxWrapIndent);
 
-		/// <summary>
-		/// The errors that occurred during execution of the test.
-		/// </summary>
-		public IReadOnlyList<Exception> Failures =>
-			errors.Select(t => t.Item3).ToList();
+			var message =
+				$"Assert.All() Failure: {errors.Count} out of {totalItems} items in the collection did not pass." + Environment.NewLine +
+				string.Join(
+					Environment.NewLine,
+					errors.Select(error =>
+					{
+						var indexString = $"[{error.Item1}]:".PadRight(maxItemIndexLength);
 
-		/// <inheritdoc/>
-		public override string Message
-		{
-			get
-			{
-				var formattedErrors = errors.Select(error =>
-				{
-					var indexString = $"[{error.Item1}]: ";
-					var spaces = Environment.NewLine + "".PadRight(indexString.Length);
+						return $"{indexString}Item:  {error.Item2.Replace(Environment.NewLine, wrapSpaces)}" + Environment.NewLine +
+							   $"{indexSpaces}Error: {error.Item3.Message.Replace(Environment.NewLine, wrapSpaces)}";
+					})
+				);
 
-					return $"{indexString}Item: {error.Item2?.ToString()?.Replace(Environment.NewLine, spaces)}{spaces}{error.Item3.ToString().Replace(Environment.NewLine, spaces)}";
-				});
-
-				return $"{base.Message}: {errors.Count} out of {totalItems} items in the collection did not pass.{Environment.NewLine}{string.Join(Environment.NewLine, formattedErrors)}";
-			}
+			return new AllException(message);
 		}
 	}
 }

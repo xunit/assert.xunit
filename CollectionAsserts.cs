@@ -54,11 +54,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
 
-#if XUNIT_NULLABLE
-			var errors = new Stack<Tuple<int, object?, Exception>>();
-#else
-			var errors = new Stack<Tuple<int, object, Exception>>();
-#endif
+			var errors = new List<Tuple<int, string, Exception>>();
 			var idx = 0;
 
 			foreach (var item in collection)
@@ -69,18 +65,14 @@ namespace Xunit
 				}
 				catch (Exception ex)
 				{
-#if XUNIT_NULLABLE
-					errors.Push(new Tuple<int, object?, Exception>(idx, item, ex));
-#else
-					errors.Push(new Tuple<int, object, Exception>(idx, item, ex));
-#endif
+					errors.Add(new Tuple<int, string, Exception>(idx, ArgumentFormatter.Format(item), ex));
 				}
 
 				++idx;
 			}
 
 			if (errors.Count > 0)
-				throw new AllException(idx, errors.ToArray());
+				throw AllException.ForFailures(idx, errors);
 		}
 
 #if XUNIT_VALUETASK
@@ -117,11 +109,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
 
-#if XUNIT_NULLABLE
-			var errors = new Stack<Tuple<int, object?, Exception>>();
-#else
-			var errors = new Stack<Tuple<int, object, Exception>>();
-#endif
+			var errors = new List<Tuple<int, string, Exception>>();
 			var idx = 0;
 
 			foreach (var item in collection)
@@ -132,18 +120,14 @@ namespace Xunit
 				}
 				catch (Exception ex)
 				{
-#if XUNIT_NULLABLE
-					errors.Push(new Tuple<int, object?, Exception>(idx, item, ex));
-#else
-					errors.Push(new Tuple<int, object, Exception>(idx, item, ex));
-#endif
+					errors.Add(new Tuple<int, string, Exception>(idx, ArgumentFormatter.Format(item), ex));
 				}
 
 				++idx;
 			}
 
 			if (errors.Count > 0)
-				throw new AllException(idx, errors.ToArray());
+				throw AllException.ForFailures(idx, errors.ToArray());
 		}
 #endif
 
