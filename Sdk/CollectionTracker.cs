@@ -31,18 +31,15 @@ namespace Xunit.Sdk
 			out int pointerIndent,
 			int depth = 0)
 		{
-			if (enumerator == null)
-				enumerator = new Enumerator(collection.GetEnumerator());
-
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 			{
 				pointerIndent = 1;
 				return "[···]";
 			}
 
-			pointerIndent = 0;
+			if (enumerator == null)
+				enumerator = new Enumerator(collection.GetEnumerator());
 
-			var printedValues = new StringBuilder("[");
 			var startIndex = Math.Max(0, mismatchedIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH_HALF);
 			var endIndex = startIndex + ArgumentFormatter.MAX_ENUMERABLE_LENGTH - 1;
 
@@ -53,6 +50,65 @@ namespace Xunit.Sdk
 
 			endIndex = enumerator.CurrentIndex;
 			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+
+			return FormatIndexedMismatch(
+				enumerator.CurrentItems,
+				() => enumerator.MoveNext(),
+				startIndex,
+				endIndex,
+				mismatchedIndex,
+				out pointerIndent,
+				depth
+			);
+		}
+
+#if XUNIT_SPAN
+		internal static string FormatIndexedMismatch(
+			ReadOnlySpan<T> span,
+			int mismatchedIndex,
+			out int pointerIndent,
+			int depth = 0)
+		{
+			if (depth == ArgumentFormatter.MAX_DEPTH)
+			{
+				pointerIndent = 1;
+				return "[···]";
+			}
+
+			var startIndex = Math.Max(0, mismatchedIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH_HALF);
+			var endIndex = Math.Min(span.Length - 1, startIndex + ArgumentFormatter.MAX_ENUMERABLE_LENGTH - 1);
+			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+
+			var moreItemsPastEndIndex = endIndex < span.Length - 1;
+			var items = new Dictionary<int, T>();
+
+			for (var idx = startIndex; idx <= endIndex; ++idx)
+				items[idx] = span[idx];
+
+			return FormatIndexedMismatch(
+				items,
+				() => moreItemsPastEndIndex,
+				startIndex,
+				endIndex,
+				mismatchedIndex,
+				out pointerIndent,
+				depth
+			);
+		}
+#endif
+
+		static string FormatIndexedMismatch(
+			Dictionary<int, T> items,
+			Func<bool> moreItemsPastEndIndex,
+			int startIndex,
+			int endIndex,
+			int mismatchedIndex,
+			out int pointerIndent,
+			int depth)
+		{
+			pointerIndent = 0;
+
+			var printedValues = new StringBuilder("[");
 			if (startIndex != 0)
 				printedValues.Append("···, ");
 
@@ -64,10 +120,10 @@ namespace Xunit.Sdk
 				if (idx == mismatchedIndex)
 					pointerIndent = printedValues.Length;
 
-				printedValues.Append(ArgumentFormatter.FormatInner(enumerator.CurrentItems[idx], depth + 1));
+				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth + 1));
 			}
 
-			if (enumerator.MoveNext())
+			if (moreItemsPastEndIndex())
 				printedValues.Append(", ···");
 
 			printedValues.Append(']');
@@ -140,8 +196,8 @@ namespace Xunit.Sdk
 		}
 #endif
 
-		internal static string FormatStart(
-			List<T> startItems,
+		static string FormatStart(
+			List<T> items,
 			int currentIndex,
 			int depth)
 		{
@@ -153,7 +209,7 @@ namespace Xunit.Sdk
 				if (idx != 0)
 					printedValues.Append(", ");
 
-				printedValues.Append(ArgumentFormatter.FormatInner(startItems[idx], depth + 1));
+				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth + 1));
 			}
 
 			if (currentIndex >= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
