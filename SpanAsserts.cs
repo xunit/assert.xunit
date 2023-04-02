@@ -347,6 +347,105 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			Span<char> expectedEndSpan,
+			Span<char> actualSpan) =>
+				EndsWith((ReadOnlySpan<char>)expectedEndSpan, (ReadOnlySpan<char>)actualSpan, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			Span<char> expectedEndSpan,
+			ReadOnlySpan<char> actualSpan) =>
+				EndsWith((ReadOnlySpan<char>)expectedEndSpan, actualSpan, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			ReadOnlySpan<char> expectedEndSpan,
+			Span<char> actualSpan) =>
+				EndsWith(expectedEndSpan, (ReadOnlySpan<char>)actualSpan, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			ReadOnlySpan<char> expectedEndSpan,
+			ReadOnlySpan<char> actualSpan) =>
+				EndsWith(expectedEndSpan, actualSpan, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			Span<char> expectedEndSpan,
+			Span<char> actualSpan,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				EndsWith((ReadOnlySpan<char>)expectedEndSpan, (ReadOnlySpan<char>)actualSpan, comparisonType);
+
+		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			Span<char> expectedEndSpan,
+			ReadOnlySpan<char> actualSpan,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				EndsWith((ReadOnlySpan<char>)expectedEndSpan, actualSpan, comparisonType);
+
+		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			ReadOnlySpan<char> expectedEndSpan,
+			Span<char> actualSpan,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				EndsWith(expectedEndSpan, (ReadOnlySpan<char>)actualSpan, comparisonType);
+
+		/// <summary>
+		/// Verifies that a span ends with a given sub-span, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
+		/// <param name="actualSpan">The span to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
+		public static void EndsWith(
+			ReadOnlySpan<char> expectedEndSpan,
+			ReadOnlySpan<char> actualSpan,
+			StringComparison comparisonType = StringComparison.CurrentCulture)
+		{
+			if (!actualSpan.EndsWith(expectedEndSpan, comparisonType))
+				throw EndsWithException.ForStringNotFound(expectedEndSpan.ToString(), actualSpan.ToString());
+		}
+
+		/// <summary>
 		/// Verifies that a span starts with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
 		/// </summary>
 		/// <param name="expectedStartSpan">The sub-span expected to be at the start of the span</param>
@@ -443,105 +542,6 @@ namespace Xunit
 		{
 			if (!actualSpan.StartsWith(expectedStartSpan, comparisonType))
 				throw new StartsWithException(expectedStartSpan.ToString(), actualSpan.ToString());
-		}
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			Span<char> expectedEndSpan,
-			Span<char> actualSpan) =>
-				EndsWith((ReadOnlySpan<char>)expectedEndSpan, (ReadOnlySpan<char>)actualSpan, StringComparison.CurrentCulture);
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			Span<char> expectedEndSpan,
-			ReadOnlySpan<char> actualSpan) =>
-				EndsWith((ReadOnlySpan<char>)expectedEndSpan, actualSpan, StringComparison.CurrentCulture);
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			ReadOnlySpan<char> expectedEndSpan,
-			Span<char> actualSpan) =>
-				EndsWith(expectedEndSpan, (ReadOnlySpan<char>)actualSpan, StringComparison.CurrentCulture);
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the default StringComparison.CurrentCulture comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			ReadOnlySpan<char> expectedEndSpan,
-			ReadOnlySpan<char> actualSpan) =>
-				EndsWith(expectedEndSpan, actualSpan, StringComparison.CurrentCulture);
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the given comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			Span<char> expectedEndSpan,
-			Span<char> actualSpan,
-			StringComparison comparisonType = StringComparison.CurrentCulture) =>
-				EndsWith((ReadOnlySpan<char>)expectedEndSpan, (ReadOnlySpan<char>)actualSpan, comparisonType);
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the given comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			Span<char> expectedEndSpan,
-			ReadOnlySpan<char> actualSpan,
-			StringComparison comparisonType = StringComparison.CurrentCulture) =>
-				EndsWith((ReadOnlySpan<char>)expectedEndSpan, actualSpan, comparisonType);
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the given comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			ReadOnlySpan<char> expectedEndSpan,
-			Span<char> actualSpan,
-			StringComparison comparisonType = StringComparison.CurrentCulture) =>
-				EndsWith(expectedEndSpan, (ReadOnlySpan<char>)actualSpan, comparisonType);
-
-		/// <summary>
-		/// Verifies that a span ends with a given sub-span, using the given comparison type.
-		/// </summary>
-		/// <param name="expectedEndSpan">The sub-span expected to be at the end of the span</param>
-		/// <param name="actualSpan">The span to be inspected</param>
-		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the span does not end with the expected subspan</exception>
-		public static void EndsWith(
-			ReadOnlySpan<char> expectedEndSpan,
-			ReadOnlySpan<char> actualSpan,
-			StringComparison comparisonType = StringComparison.CurrentCulture)
-		{
-			if (!actualSpan.EndsWith(expectedEndSpan, comparisonType))
-				throw new EndsWithException(expectedEndSpan.ToString(), actualSpan.ToString());
 		}
 
 		/// <summary>
