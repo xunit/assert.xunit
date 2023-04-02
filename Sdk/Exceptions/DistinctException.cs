@@ -2,14 +2,14 @@
 #nullable enable
 #endif
 
-using System.Collections;
+using System;
 
 namespace Xunit.Sdk
 {
 	/// <summary>
 	/// Exception thrown when <see cref="Assert.Distinct{T}(System.Collections.Generic.IEnumerable{T})" />
 	/// or <see cref="Assert.Distinct{T}(System.Collections.Generic.IEnumerable{T}, System.Collections.Generic.IEqualityComparer{T})" />
-	/// finds a duplicate entry in the collection
+	/// finds a duplicate entry in the collection.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
@@ -18,42 +18,23 @@ namespace Xunit.Sdk
 #endif
 	class DistinctException : XunitException
 	{
+		DistinctException(string message) :
+			base(message)
+		{ }
 
 		/// <summary>
-		/// Creates a new instance of the <see cref="DistinctException"/> class.
+		/// Creates an instance of the <see cref="DistinctException"/> class that is thrown
+		/// when a duplicate item is found in a collection.
 		/// </summary>
-		/// <param name="duplicateObject">The object that was present twice in the collection.</param>
-		/// <param name="collection">The collection that was checked for duplicate entries.</param>
-		public DistinctException(
-#if XUNIT_NULLABLE
-			object? duplicateObject,
-			IEnumerable collection) :
-#else
-			object duplicateObject,
-			IEnumerable collection) :
-#endif
-				base("Assert.Distinct() Failure")
-		{
-			DuplicateObject = duplicateObject;
-			Collection = collection;
-		}
-
-		/// <summary>
-		/// Gets the collection that was checked for duplicate entries.
-		/// </summary>
-		public IEnumerable Collection { get; }
-
-		/// <summary>
-		/// Gets the object that was present more than once in the collection.
-		/// </summary>
-#if XUNIT_NULLABLE
-		public object? DuplicateObject { get; }
-#else
-		public object DuplicateObject { get; }
-#endif
-
-		/// <inheritdoc/>
-		public override string Message =>
-			$"{base.Message}: The item {ArgumentFormatter.Format(DuplicateObject)} occurs multiple times in {ArgumentFormatter.Format(Collection)}.";
+		/// <param name="item">The duplicate item</param>
+		/// <param name="collection">The collection</param>
+		public static DistinctException ForDuplicateItem(
+			string item,
+			string collection) =>
+				new DistinctException(
+					"Assert.Distinct() Failure: Duplicate item found" + Environment.NewLine +
+					"Collection: " + collection + Environment.NewLine +
+					"Item:       " + item
+				);
 	}
 }

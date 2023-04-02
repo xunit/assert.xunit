@@ -301,11 +301,12 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
+			var tracker = new CollectionTracker<T>(collection);
 			var set = new HashSet<T>(comparer);
 
-			foreach (var x in collection)
-				if (!set.Add(x))
-					throw new DistinctException(x, collection);
+			foreach (var item in tracker)
+				if (!set.Add(item))
+					throw DistinctException.ForDuplicateItem(ArgumentFormatter.Format(item), tracker.FormatStart());
 		}
 
 		/// <summary>
