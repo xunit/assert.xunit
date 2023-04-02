@@ -8,16 +8,21 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Xunit.Sdk;
-
-#if XUNIT_NULLABLE
-using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace Xunit.Internal
 {
 	internal static class AssertHelper
 	{
+		static readonly Dictionary<char, string> encodings = new Dictionary<char, string>
+		{
+			{ '\r', "\\r" },
+			{ '\n', "\\n" },
+			{ '\t', "\\t" },
+			{ '\0', "\\0" }
+		};
+
 #if XUNIT_NULLABLE
 		static ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>>();
 #else
@@ -56,6 +61,72 @@ namespace Xunit.Internal
 						.Concat(propertyGetters)
 						.ToDictionary(g => g.name, g => g.getter);
 			});
+
+#if XUNIT_NULLABLE
+		internal static string ShortenAndEncodeString(string? value)
+#else
+		internal static string ShortenAndEncodeString(string value)
+#endif
+		{
+			int pointerIndent;
+
+			return ShortenAndEncodeString(value, 0, out pointerIndent);
+		}
+
+		internal static string ShortenAndEncodeString(
+#if XUNIT_NULLABLE
+			string? value,
+#else
+			string value,
+#endif
+			int index,
+			out int pointerIndent)
+		{
+			pointerIndent = 0;
+
+			if (value == null)
+				return "(null)";
+			if (value == string.Empty)
+				return "(empty string)";
+
+			var start = Math.Max(index - 20, 0);
+			var end = Math.Min(index + 41, value.Length);
+			var printedValue = new StringBuilder(100);
+
+			if (start > 0)
+			{
+				printedValue.Append("···");
+				pointerIndent += 3;
+			}
+
+			for (var idx = start; idx < end; ++idx)
+			{
+				var c = value[idx];
+				var paddingLength = 1;
+
+#if XUNIT_NULLABLE
+				string? encoding;
+#else
+				string encoding;
+#endif
+
+				if (encodings.TryGetValue(c, out encoding))
+				{
+					printedValue.Append(encoding);
+					paddingLength = encoding.Length;
+				}
+				else
+					printedValue.Append(c);
+
+				if (idx < index)
+					pointerIndent += paddingLength;
+			}
+
+			if (end < value.Length)
+				printedValue.Append("···");
+
+			return printedValue.ToString();
+		}
 
 #if XUNIT_NULLABLE
 		public static EquivalentException? VerifyEquivalence(

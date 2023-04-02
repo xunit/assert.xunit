@@ -3,6 +3,7 @@
 #endif
 
 using System;
+using Xunit.Internal;
 
 namespace Xunit.Sdk
 {
@@ -117,8 +118,8 @@ namespace Xunit.Sdk
 			string @string) =>
 				new ContainsException(
 					"Assert.Contains() Failure: Sub-string not found" + Environment.NewLine +
-					"String:    " + (@string.Length == 0 ? "(empty string)" : @string) + Environment.NewLine +
-					"Not found: " + expectedSubString
+					"String:    " + AssertHelper.ShortenAndEncodeString(@string) + Environment.NewLine +
+					"Not found: " + AssertHelper.ShortenAndEncodeString(expectedSubString)
 				);
 	}
 }
