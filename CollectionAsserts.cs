@@ -224,25 +224,13 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			// If an equality comparer is not explicitly provided, call into ICollection<T>.Contains or
-			// IReadOnlyCollection<T>.Contains which may use the collection's equality comparer for types
-			// like HashSet and Dictionary. HashSet and Dictionary are normally handled explicitly, but
-			// the developer may end up in the IEnumerable<> override because the variable is not an explicit
-			// enough type.
-			var readWriteCollection = collection as ICollection<T>;
-			if (readWriteCollection != null)
-			{
-				if (readWriteCollection.Contains(expected))
-					return;
-			}
+			// We special case HashSet<T> because it has a custom Contains implementation that is based on the comparer
+			// passed into their constructors, which we don't have access to.
+			var hashSet = collection as HashSet<T>;
+			if (hashSet != null)
+				Contains(expected, hashSet);
 			else
-			{
-				var readOnlyCollection = collection as IReadOnlyCollection<T>;
-				if (readOnlyCollection != null && readOnlyCollection.Contains(expected))
-					return;
-			}
-
-			Contains(expected, collection, GetEqualityComparer<T>());
+				Contains(expected, collection, GetEqualityComparer<T>());
 		}
 
 		/// <summary>
@@ -261,10 +249,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			if (collection.Contains(expected, comparer))
-				return;
+			var tracker = new CollectionTracker<T>(collection);
 
-			throw new ContainsException(expected, collection);
+			if (!tracker.Contains(expected, comparer))
+				throw ContainsException.ForCollectionItemNotFound(ArgumentFormatter.Format(expected), tracker.FormatStart());
 		}
 
 		/// <summary>
@@ -281,11 +269,13 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(filter), filter);
 
-			foreach (var item in collection)
+			var tracker = new CollectionTracker<T>(collection);
+
+			foreach (var item in tracker)
 				if (filter(item))
 					return;
 
-			throw new ContainsException("(filter expression)", collection);
+			throw ContainsException.ForCollectionFilterNotMatched(tracker.FormatStart());
 		}
 
 		/// <summary>

@@ -176,7 +176,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedSubMemory), expectedSubMemory);
 
 			if (actualMemory.Span.IndexOf(expectedSubMemory.Span) < 0)
-				throw new ContainsException(expectedSubMemory, actualMemory);
+				throw ContainsException.ForSubMemoryNotFound(
+					CollectionTracker<T>.FormatStart(expectedSubMemory.Span),
+					CollectionTracker<T>.FormatStart(actualMemory.Span)
+				);
 		}
 
 		/// <summary>

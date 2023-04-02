@@ -33,7 +33,10 @@ namespace Xunit
 
 			// Do not forward to DoesNotContain(expected, set.Keys) as we want the default SDK behavior
 			if (!set.Contains(expected))
-				throw new ContainsException(expected, set);
+				throw ContainsException.ForSetItemNotFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<T>.FormatStart(set)
+				);
 		}
 
 #if NET5_0_OR_GREATER
@@ -52,7 +55,10 @@ namespace Xunit
 
 			// Do not forward to DoesNotContain(expected, set.Keys) as we want the default SDK behavior
 			if (!set.Contains(expected))
-				throw new ContainsException(expected, set);
+				throw ContainsException.ForSetItemNotFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<T>.FormatStart(set)
+				);
 		}
 #endif
 

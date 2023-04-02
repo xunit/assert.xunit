@@ -49,7 +49,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedSubstring), expectedSubstring);
 
 			if (actualString == null || actualString.IndexOf(expectedSubstring, comparisonType) < 0)
-				throw new ContainsException(expectedSubstring, actualString);
+				throw ContainsException.ForSubStringNotFound(expectedSubstring, actualString ?? "(null)");
 		}
 
 		/// <summary>

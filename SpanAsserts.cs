@@ -123,7 +123,10 @@ namespace Xunit
 			StringComparison comparisonType = StringComparison.CurrentCulture)
 		{
 			if (actualSpan.IndexOf(expectedSubSpan, comparisonType) < 0)
-				throw new ContainsException(expectedSubSpan.ToString(), actualSpan.ToString());
+				throw ContainsException.ForSubStringNotFound(
+					expectedSubSpan.ToString(),
+					actualSpan.ToString()
+				);
 		}
 
 		/// <summary>
@@ -174,7 +177,10 @@ namespace Xunit
 				where T : IEquatable<T>
 		{
 			if (actualSpan.IndexOf(expectedSubSpan) < 0)
-				throw new ContainsException(expectedSubSpan.ToArray(), actualSpan.ToArray());
+				throw ContainsException.ForSubSpanNotFound(
+					CollectionTracker<T>.FormatStart(expectedSubSpan),
+					CollectionTracker<T>.FormatStart(actualSpan)
+				);
 		}
 
 		/// <summary>

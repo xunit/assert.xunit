@@ -40,7 +40,10 @@ namespace Xunit
 
 			var value = default(TValue);
 			if (!collection.TryGetValue(expected, out value))
-				throw new ContainsException(expected, collection.Keys);
+				throw ContainsException.ForKeyNotFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<TKey>.FormatStart(collection.Keys)
+				);
 
 			return value;
 		}
@@ -66,7 +69,10 @@ namespace Xunit
 
 			var value = default(TValue);
 			if (!collection.TryGetValue(expected, out value))
-				throw new ContainsException(expected, collection.Keys);
+				throw ContainsException.ForKeyNotFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<TKey>.FormatStart(collection.Keys)
+				);
 
 			return value;
 		}
