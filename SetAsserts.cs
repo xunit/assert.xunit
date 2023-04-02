@@ -102,7 +102,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(set), set);
 
 			if (set.Contains(expected))
-				throw new DoesNotContainException(expected, set);
+				throw DoesNotContainException.ForSetItemFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<T>.FormatStart(set)
+				);
 		}
 
 #if NET5_0_OR_GREATER
@@ -120,7 +123,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(set), set);
 
 			if (set.Contains(expected))
-				throw new DoesNotContainException(expected, set);
+				throw DoesNotContainException.ForSetItemFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<T>.FormatStart(set)
+				);
 		}
 #endif
 

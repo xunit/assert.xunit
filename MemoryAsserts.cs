@@ -331,8 +331,18 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(expectedSubMemory), expectedSubMemory);
 
-			if (actualMemory.Span.IndexOf(expectedSubMemory.Span) > -1)
-				throw new DoesNotContainException(expectedSubMemory, actualMemory);
+			var expectedSpan = expectedSubMemory.Span;
+			var actualSpan = actualMemory.Span;
+			var idx = actualSpan.IndexOf(expectedSpan);
+
+			if (idx > -1)
+			{
+				int failurePointerIndent;
+				var formattedExpected = CollectionTracker<T>.FormatStart(expectedSpan);
+				var formattedActual = CollectionTracker<T>.FormatIndexedMismatch(actualSpan, idx, out failurePointerIndent);
+
+				throw DoesNotContainException.ForSubMemoryFound(formattedExpected, idx, failurePointerIndent, formattedActual);
+			}
 		}
 
 		/// <summary>

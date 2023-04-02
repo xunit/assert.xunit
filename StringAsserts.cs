@@ -85,8 +85,12 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(expectedSubstring), expectedSubstring);
 
-			if (actualString != null && actualString.IndexOf(expectedSubstring, comparisonType) >= 0)
-				throw new DoesNotContainException(expectedSubstring, actualString);
+			if (actualString != null)
+			{
+				var idx = actualString.IndexOf(expectedSubstring, comparisonType);
+				if (idx >= 0)
+					throw DoesNotContainException.ForSubStringFound(expectedSubstring, idx, actualString);
+			}
 		}
 
 		/// <summary>

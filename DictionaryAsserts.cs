@@ -156,7 +156,10 @@ namespace Xunit
 
 			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
 			if (collection.ContainsKey(expected))
-				throw new DoesNotContainException(expected, collection.Keys);
+				throw DoesNotContainException.ForKeyFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<TKey>.FormatStart(collection.Keys)
+				);
 		}
 
 		/// <summary>
@@ -179,7 +182,10 @@ namespace Xunit
 
 			// Do not forward to DoesNotContain(expected, collection.Keys) as we want the default SDK behavior
 			if (collection.ContainsKey(expected))
-				throw new DoesNotContainException(expected, collection.Keys);
+				throw DoesNotContainException.ForKeyFound(
+					ArgumentFormatter.Format(expected),
+					CollectionTracker<TKey>.FormatStart(collection.Keys)
+				);
 		}
 
 		/// <summary>

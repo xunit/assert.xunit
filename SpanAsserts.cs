@@ -278,8 +278,9 @@ namespace Xunit
 			ReadOnlySpan<char> actualSpan,
 			StringComparison comparisonType = StringComparison.CurrentCulture)
 		{
-			if (actualSpan.IndexOf(expectedSubSpan, comparisonType) > -1)
-				throw new DoesNotContainException(expectedSubSpan.ToString(), actualSpan.ToString());
+			var idx = actualSpan.IndexOf(expectedSubSpan, comparisonType);
+			if (idx > -1)
+				throw DoesNotContainException.ForSubStringFound(expectedSubSpan.ToString(), idx, actualSpan.ToString());
 		}
 
 		/// <summary>
@@ -329,8 +330,20 @@ namespace Xunit
 			ReadOnlySpan<T> actualSpan)
 				where T : IEquatable<T>
 		{
-			if (actualSpan.IndexOf(expectedSubSpan) > -1)
-				throw new DoesNotContainException(expectedSubSpan.ToArray(), actualSpan.ToArray());
+			var idx = actualSpan.IndexOf(expectedSubSpan);
+			if (idx > -1)
+			{
+				int failurePointerIndent;
+				var formattedExpected = CollectionTracker<T>.FormatStart(expectedSubSpan);
+				var formattedActual = CollectionTracker<T>.FormatIndexedMismatch(actualSpan, idx, out failurePointerIndent);
+
+				throw DoesNotContainException.ForSubSpanFound(
+					formattedExpected,
+					idx,
+					failurePointerIndent,
+					formattedActual
+				);
+			}
 		}
 
 		/// <summary>

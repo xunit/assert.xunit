@@ -322,25 +322,13 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			// If an equality comparer is not explicitly provided, call into ICollection<T>.Contains or
-			// IReadOnlyCollection<T>.Contains which may use the collection's equality comparer for types
-			// like HashSet and Dictionary. HashSet and Dictionary are normally handled explicitly, but
-			// the developer may end up in the IEnumerable<> override because the variable is not an explicit
-			// enough type.
-			var readWriteCollection = collection as ICollection<T>;
-			if (readWriteCollection != null)
-			{
-				if (readWriteCollection.Contains(expected))
-					throw new DoesNotContainException(expected, collection);
-			}
+			// We special case HashSet<T> because it has a custom Contains implementation that is based on the comparer
+			// passed into their constructors, which we don't have access to.
+			var hashSet = collection as HashSet<T>;
+			if (hashSet != null)
+				DoesNotContain(expected, hashSet);
 			else
-			{
-				var readOnlyCollection = collection as IReadOnlyCollection<T>;
-				if (readOnlyCollection != null && readOnlyCollection.Contains(expected))
-					throw new DoesNotContainException(expected, collection);
-			}
-
-			DoesNotContain(expected, collection, GetEqualityComparer<T>());
+				DoesNotContain(expected, collection, GetEqualityComparer<T>());
 		}
 
 		/// <summary>
@@ -359,10 +347,26 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			if (!collection.Contains(expected, comparer))
-				return;
+			var tracker = new CollectionTracker<T>(collection);
+			var index = 0;
 
-			throw new DoesNotContainException(expected, collection);
+			foreach (var item in tracker)
+			{
+				if (comparer.Equals(item, expected))
+				{
+					int failurePointerIndent;
+					var formattedCollection = tracker.FormatIndexedMismatch(index, out failurePointerIndent);
+
+					throw DoesNotContainException.ForCollectionItemFound(
+						ArgumentFormatter.Format(expected),
+						index,
+						failurePointerIndent,
+						formattedCollection
+					);
+				}
+
+				++index;
+			}
 		}
 
 		/// <summary>
@@ -379,9 +383,25 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(filter), filter);
 
-			foreach (var item in collection)
+			var tracker = new CollectionTracker<T>(collection);
+			var index = 0;
+
+			foreach (var item in tracker)
+			{
 				if (filter(item))
-					throw new DoesNotContainException("(filter expression)", collection);
+				{
+					int failurePointerIndent;
+					var formattedCollection = tracker.FormatIndexedMismatch(index, out failurePointerIndent);
+
+					throw DoesNotContainException.ForCollectionFilterMatched(
+						index,
+						failurePointerIndent,
+						formattedCollection
+					);
+				}
+
+				++index;
+			}
 		}
 
 		/// <summary>

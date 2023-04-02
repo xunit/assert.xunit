@@ -106,7 +106,7 @@ namespace Xunit.Sdk
 			out int pointerIndent,
 			int depth)
 		{
-			pointerIndent = 0;
+			pointerIndent = 1;
 
 			var printedValues = new StringBuilder("[");
 			if (startIndex != 0)
