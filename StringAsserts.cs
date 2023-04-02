@@ -155,6 +155,20 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that a string is empty.
+		/// </summary>
+		/// <param name="value">The string value to be inspected</param>
+		/// <exception cref="ArgumentNullException">Thrown when the string is null</exception>
+		/// <exception cref="EmptyException">Thrown when the string is not empty</exception>
+		public static void Empty(string value)
+		{
+			GuardArgumentNotNull(nameof(value), value);
+
+			if (value.Length != 0)
+				throw EmptyException.ForNonEmptyString(value);
+		}
+
+		/// <summary>
 		/// Verifies that a string starts with a given string, using the current culture.
 		/// </summary>
 		/// <param name="expectedStartString">The string expected to be at the start of the string</param>

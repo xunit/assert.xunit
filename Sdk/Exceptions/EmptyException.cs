@@ -2,7 +2,7 @@
 #nullable enable
 #endif
 
-using System.Collections;
+using System;
 
 namespace Xunit.Sdk
 {
@@ -14,14 +14,32 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class EmptyException : AssertActualExpectedException
+	class EmptyException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="EmptyException"/> class.
-		/// </summary>
-		/// <param name="collection">The collection that was not empty</param>
-		public EmptyException(IEnumerable collection) :
-			base("<empty>", ArgumentFormatter.Format(collection), "Assert.Empty() Failure")
+		EmptyException(string message) :
+			base(message)
 		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="EmptyException"/> to be thrown
+		/// when the collection is not empty.
+		/// </summary>
+		/// <param name="collection">The non-empty collection</param>
+		public static EmptyException ForNonEmptyCollection(string collection) =>
+			new EmptyException(
+				"Assert.Empty() Failure: Collection was not empty" + Environment.NewLine +
+				"Collection: " + collection
+			);
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="EmptyException"/> to be thrown
+		/// when the string is not empty.
+		/// </summary>
+		/// <param name="value">The non-empty string value</param>
+		public static EmptyException ForNonEmptyString(string value) =>
+			new EmptyException(
+				"Assert.Empty() Failure: String was not empty" + Environment.NewLine +
+				"String: " + value
+			);
 	}
 }
