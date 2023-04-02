@@ -62,17 +62,6 @@ namespace Xunit.Internal
 						.ToDictionary(g => g.name, g => g.getter);
 			});
 
-#if XUNIT_NULLABLE
-		internal static string ShortenAndEncodeString(string? value)
-#else
-		internal static string ShortenAndEncodeString(string value)
-#endif
-		{
-			int pointerIndent;
-
-			return ShortenAndEncodeString(value, 0, out pointerIndent);
-		}
-
 		internal static string ShortenAndEncodeString(
 #if XUNIT_NULLABLE
 			string? value,
@@ -90,7 +79,8 @@ namespace Xunit.Internal
 				return "(empty string)";
 
 			var start = Math.Max(index - 20, 0);
-			var end = Math.Min(index + 41, value.Length);
+			var end = Math.Min(start + 41, value.Length);
+			start = Math.Max(end - 41, 0);
 			var printedValue = new StringBuilder(100);
 
 			if (start > 0)
@@ -126,6 +116,28 @@ namespace Xunit.Internal
 				printedValue.Append("···");
 
 			return printedValue.ToString();
+		}
+
+#if XUNIT_NULLABLE
+		internal static string ShortenAndEncodeString(string? value)
+#else
+		internal static string ShortenAndEncodeString(string value)
+#endif
+		{
+			int pointerIndent;
+
+			return ShortenAndEncodeString(value, 0, out pointerIndent);
+		}
+
+#if XUNIT_NULLABLE
+		internal static string ShortenAndEncodeStringEnd(string? value)
+#else
+		internal static string ShortenAndEncodeStringEnd(string value)
+#endif
+		{
+			int pointerIndent;
+
+			return ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out pointerIndent);
 		}
 
 #if XUNIT_NULLABLE
