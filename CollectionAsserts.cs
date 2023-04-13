@@ -146,7 +146,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
 
-			var tracker = new CollectionTracker<T>(collection);
+			var tracker = collection.AsTracker();
 			var index = 0;
 
 			foreach (var item in tracker)
@@ -186,7 +186,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(elementInspectors), elementInspectors);
 
-			var tracker = new CollectionTracker<T>(collection);
+			var tracker = collection.AsTracker();
 			var index = 0;
 
 			foreach (var item in tracker)
@@ -249,7 +249,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			var tracker = new CollectionTracker<T>(collection);
+			var tracker = collection.AsTracker();
 
 			if (!tracker.Contains(expected, comparer))
 				throw ContainsException.ForCollectionItemNotFound(ArgumentFormatter.Format(expected), tracker.FormatStart());
@@ -269,7 +269,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(filter), filter);
 
-			var tracker = new CollectionTracker<T>(collection);
+			var tracker = collection.AsTracker();
 
 			foreach (var item in tracker)
 				if (filter(item))
@@ -301,7 +301,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			var tracker = new CollectionTracker<T>(collection);
+			var tracker = collection.AsTracker();
 			var set = new HashSet<T>(comparer);
 
 			foreach (var item in tracker)
@@ -347,7 +347,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			var tracker = new CollectionTracker<T>(collection);
+			var tracker = collection.AsTracker();
 			var index = 0;
 
 			foreach (var item in tracker)
@@ -383,7 +383,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(filter), filter);
 
-			var tracker = new CollectionTracker<T>(collection);
+			var tracker = collection.AsTracker();
 			var index = 0;
 
 			foreach (var item in tracker)
@@ -414,7 +414,8 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			var tracker = new CollectionTracker<object>(collection.Cast<object>());
+			var tracker = collection.AsTracker();
+
 			using (var enumerator = tracker.GetEnumerator())
 				if (enumerator.MoveNext())
 					throw EmptyException.ForNonEmptyCollection(tracker.FormatStart());

@@ -18,7 +18,7 @@ namespace Xunit.Sdk
 		Enumerator enumerator = null;
 #endif
 
-		public CollectionTracker(IEnumerable<T> collection)
+		CollectionTracker(IEnumerable<T> collection)
 		{
 			this.collection = collection;
 		}
@@ -230,6 +230,15 @@ namespace Xunit.Sdk
 
 		IEnumerator IEnumerable.GetEnumerator() =>
 			GetEnumerator();
+
+		public override string ToString() =>
+			ToString(1);
+
+		public string ToString(int depth) =>
+			FormatStart(depth);
+
+		internal static CollectionTracker<T> Wrap(IEnumerable<T> collection) =>
+			new CollectionTracker<T>(collection);
 
 		class Enumerator : IEnumerator<T>
 		{
