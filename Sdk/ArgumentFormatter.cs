@@ -156,7 +156,7 @@ namespace Xunit.Sdk
 					if (stringParameter.Length > MAX_STRING_LENGTH)
 					{
 						var displayed = stringParameter.Substring(0, MAX_STRING_LENGTH);
-						return $"\"{displayed}\"...";
+						return $"\"{displayed}\"···";
 					}
 
 					return $"\"{stringParameter}\"";
@@ -229,7 +229,7 @@ namespace Xunit.Sdk
 			Type type)
 		{
 			if (depth == MAX_DEPTH)
-				return $"{type.Name} {{ ... }}";
+				return $"{type.Name} {{ ··· }}";
 
 			var fields =
 				type
@@ -256,7 +256,7 @@ namespace Xunit.Sdk
 			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_PARAMETER_COUNT).Select(p => $"{p.name} = {p.value}"));
 
 			if (parameters.Count > MAX_OBJECT_PARAMETER_COUNT)
-				formattedParameters += ", ...";
+				formattedParameters += ", ···";
 
 			return $"{type.Name} {{ {formattedParameters} }}";
 		}
@@ -270,7 +270,7 @@ namespace Xunit.Sdk
 			pointerPostion = null;
 
 			if (depth == MAX_DEPTH)
-				return "[...]";
+				return "[···]";
 
 			var printedValues = string.Empty;
 
@@ -286,7 +286,7 @@ namespace Xunit.Sdk
 				var leftCount = neededIndex.Value - startIndex;
 
 				if (startIndex != 0)
-					printedValues += "..., ";
+					printedValues += "···, ";
 
 				var leftValues = enumeratedValues.Skip(startIndex).Take(leftCount).ToList();
 				var rightValues = enumeratedValues.Skip(startIndex + leftCount).Take(MAX_ENUMERABLE_LENGTH - leftCount + 1).ToList();
@@ -305,14 +305,14 @@ namespace Xunit.Sdk
 				// Difference value and values to the right
 				printedValues += string.Join(", ", rightValues.Take(MAX_ENUMERABLE_LENGTH - leftCount).Select(x => FormatInner(x, depth + 1)));
 				if (leftValues.Count + rightValues.Count > MAX_ENUMERABLE_LENGTH)
-					printedValues += ", ...";
+					printedValues += ", ···";
 			}
 			else
 			{
 				var values = enumerableValues.Take(MAX_ENUMERABLE_LENGTH + 1).ToList();
 				printedValues += string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => FormatInner(x, depth + 1)));
 				if (values.Count > MAX_ENUMERABLE_LENGTH)
-					printedValues += ", ...";
+					printedValues += ", ···";
 			}
 
 			return $"[{printedValues}]";
