@@ -68,7 +68,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="item">The expected item</param>
 		/// <param name="set">The set</param>
-		public static Exception ForSetItemNotFound(
+		public static ContainsException ForSetItemNotFound(
 			string item,
 			string set) =>
 				new ContainsException(
@@ -83,7 +83,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expectedSubMemory">The expected sub-memory</param>
 		/// <param name="memory">The memory</param>
-		public static Exception ForSubMemoryNotFound(
+		public static ContainsException ForSubMemoryNotFound(
 			string expectedSubMemory,
 			string memory) =>
 				new ContainsException(
@@ -98,7 +98,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expectedSubSpan">The expected sub-span</param>
 		/// <param name="span">The span</param>
-		public static Exception ForSubSpanNotFound(
+		public static ContainsException ForSubSpanNotFound(
 			string expectedSubSpan,
 			string span) =>
 				new ContainsException(
@@ -113,7 +113,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expectedSubString">The expected sub-string</param>
 		/// <param name="string">The string</param>
-		public static Exception ForSubStringNotFound(
+		public static ContainsException ForSubStringNotFound(
 			string expectedSubString,
 			string @string) =>
 				new ContainsException(

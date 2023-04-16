@@ -28,7 +28,7 @@ namespace Xunit.Sdk
 
 		internal string FormatIndexedMismatch(
 			int mismatchedIndex,
-			out int pointerIndent,
+			out int? pointerIndent,
 			int depth = 0)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
@@ -66,7 +66,7 @@ namespace Xunit.Sdk
 		internal static string FormatIndexedMismatch(
 			ReadOnlySpan<T> span,
 			int mismatchedIndex,
-			out int pointerIndent,
+			out int? pointerIndent,
 			int depth = 0)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
@@ -103,10 +103,10 @@ namespace Xunit.Sdk
 			int startIndex,
 			int endIndex,
 			int mismatchedIndex,
-			out int pointerIndent,
+			out int? pointerIndent,
 			int depth)
 		{
-			pointerIndent = 1;
+			pointerIndent = null;
 
 			var printedValues = new StringBuilder("[");
 			if (startIndex != 0)

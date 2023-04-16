@@ -337,7 +337,7 @@ namespace Xunit
 
 			if (idx > -1)
 			{
-				int failurePointerIndent;
+				int? failurePointerIndent;
 				var formattedExpected = CollectionTracker<T>.FormatStart(expectedSpan);
 				var formattedActual = CollectionTracker<T>.FormatIndexedMismatch(actualSpan, idx, out failurePointerIndent);
 

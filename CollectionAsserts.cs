@@ -158,7 +158,7 @@ namespace Xunit
 				}
 				catch (Exception ex)
 				{
-					int pointerIndent;
+					int? pointerIndent;
 					var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
 					throw CollectionException.ForMismatchedItem(ex, index, pointerIndent, formattedCollection);
 				}
@@ -198,7 +198,7 @@ namespace Xunit
 				}
 				catch (Exception ex)
 				{
-					int pointerIndent;
+					int? pointerIndent;
 					var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
 					throw CollectionException.ForMismatchedItem(ex, index, pointerIndent, formattedCollection);
 				}
@@ -354,7 +354,7 @@ namespace Xunit
 			{
 				if (comparer.Equals(item, expected))
 				{
-					int failurePointerIndent;
+					int? failurePointerIndent;
 					var formattedCollection = tracker.FormatIndexedMismatch(index, out failurePointerIndent);
 
 					throw DoesNotContainException.ForCollectionItemFound(
@@ -390,7 +390,7 @@ namespace Xunit
 			{
 				if (filter(item))
 				{
-					int failurePointerIndent;
+					int? failurePointerIndent;
 					var formattedCollection = tracker.FormatIndexedMismatch(index, out failurePointerIndent);
 
 					throw DoesNotContainException.ForCollectionFilterMatched(

@@ -333,7 +333,7 @@ namespace Xunit
 			var idx = actualSpan.IndexOf(expectedSubSpan);
 			if (idx > -1)
 			{
-				int failurePointerIndent;
+				int? failurePointerIndent;
 				var formattedExpected = CollectionTracker<T>.FormatStart(expectedSubSpan);
 				var formattedActual = CollectionTracker<T>.FormatIndexedMismatch(actualSpan, idx, out failurePointerIndent);
 

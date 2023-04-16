@@ -49,14 +49,18 @@ namespace Xunit.Sdk
 		public static CollectionException ForMismatchedItem(
 			Exception exception,
 			int indexFailurePoint,
-			int failurePointerIndent,
-			string formattedCollection) =>
-				new CollectionException(
-					"Assert.Collection() Failure: Item comparison failure" + Environment.NewLine +
-					"            " + new string(' ', failurePointerIndent) + "↓ (pos " + indexFailurePoint + ")" + Environment.NewLine +
-					"Collection: " + formattedCollection + Environment.NewLine +
-					"Error:      " + FormatInnerException(exception)
-				);
+			int? failurePointerIndent,
+			string formattedCollection)
+		{
+			var message = "Assert.Collection() Failure: Item comparison failure";
+
+			if (failurePointerIndent.HasValue)
+				message += $"{Environment.NewLine}            {new string(' ', failurePointerIndent.Value)}↓ (pos {indexFailurePoint})";
+
+			message += $"{Environment.NewLine}Collection: {formattedCollection}{Environment.NewLine}Error:      {FormatInnerException(exception)}";
+
+			return new CollectionException(message);
+		}
 
 		/// <summary>
 		/// Creates an instance of the <see cref="CollectionException"/> class to be thrown
