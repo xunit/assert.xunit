@@ -237,6 +237,26 @@ namespace Xunit.Sdk
 		public string ToString(int depth) =>
 			FormatStart(depth);
 
+#if XUNIT_NULLABLE
+		public string? TypeAt(int value)
+#else
+		public string TypeAt(int value)
+#endif
+		{
+			if (enumerator == null)
+				return null;
+
+#if XUNIT_NULLABLE
+			T? item;
+#else
+			T item;
+#endif
+			if (!enumerator.CurrentItems.TryGetValue(value, out item))
+				return null;
+
+			return item?.GetType().FullName;
+		}
+
 		internal static CollectionTracker<T> Wrap(IEnumerable<T> collection) =>
 			new CollectionTracker<T>(collection);
 
