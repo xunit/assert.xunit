@@ -71,23 +71,26 @@ namespace Xunit.Internal
 			int index,
 			out int pointerIndent)
 		{
-			pointerIndent = 0;
-
 			if (value == null)
-				return "(null)";
-			if (value == string.Empty)
-				return "(empty string)";
+			{
+				pointerIndent = -1;
+				return "null";
+			}
 
 			var start = Math.Max(index - 20, 0);
 			var end = Math.Min(start + 41, value.Length);
 			start = Math.Max(end - 41, 0);
 			var printedValue = new StringBuilder(100);
+			pointerIndent = 0;
 
 			if (start > 0)
 			{
 				printedValue.Append("···");
 				pointerIndent += 3;
 			}
+
+			printedValue.Append('\"');
+			pointerIndent++;
 
 			for (var idx = start; idx < end; ++idx)
 			{
@@ -111,6 +114,8 @@ namespace Xunit.Internal
 				if (idx < index)
 					pointerIndent += paddingLength;
 			}
+
+			printedValue.Append('\"');
 
 			if (end < value.Length)
 				printedValue.Append("···");

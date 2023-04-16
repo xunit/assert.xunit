@@ -115,7 +115,11 @@ namespace Xunit.Sdk
 		/// <param name="string">The string</param>
 		public static ContainsException ForSubStringNotFound(
 			string expectedSubString,
+#if XUNIT_NULLABLE
+			string? @string) =>
+#else
 			string @string) =>
+#endif
 				new ContainsException(
 					"Assert.Contains() Failure: Sub-string not found" + Environment.NewLine +
 					"String:    " + AssertHelper.ShortenAndEncodeString(@string) + Environment.NewLine +

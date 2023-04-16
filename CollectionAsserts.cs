@@ -354,13 +354,13 @@ namespace Xunit
 			{
 				if (comparer.Equals(item, expected))
 				{
-					int? failurePointerIndent;
-					var formattedCollection = tracker.FormatIndexedMismatch(index, out failurePointerIndent);
+					int? pointerIndent;
+					var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
 
 					throw DoesNotContainException.ForCollectionItemFound(
 						ArgumentFormatter.Format(expected),
 						index,
-						failurePointerIndent,
+						pointerIndent,
 						formattedCollection
 					);
 				}
@@ -390,12 +390,12 @@ namespace Xunit
 			{
 				if (filter(item))
 				{
-					int? failurePointerIndent;
-					var formattedCollection = tracker.FormatIndexedMismatch(index, out failurePointerIndent);
+					int? pointerIndent;
+					var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
 
 					throw DoesNotContainException.ForCollectionFilterMatched(
 						index,
-						failurePointerIndent,
+						pointerIndent,
 						formattedCollection
 					);
 				}

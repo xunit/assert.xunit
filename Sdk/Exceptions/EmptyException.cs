@@ -3,6 +3,7 @@
 #endif
 
 using System;
+using Xunit.Internal;
 
 namespace Xunit.Sdk
 {
@@ -39,7 +40,7 @@ namespace Xunit.Sdk
 		public static EmptyException ForNonEmptyString(string value) =>
 			new EmptyException(
 				"Assert.Empty() Failure: String was not empty" + Environment.NewLine +
-				"String: " + value
+				"String: " + AssertHelper.ShortenAndEncodeString(value)
 			);
 	}
 }

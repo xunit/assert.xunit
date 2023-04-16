@@ -27,7 +27,7 @@ namespace Xunit.Sdk
 			enumerator == null ? 0 : enumerator.CurrentIndex + 1;
 
 		internal string FormatIndexedMismatch(
-			int mismatchedIndex,
+			int? mismatchedIndex,
 			out int? pointerIndent,
 			int depth = 0)
 		{
@@ -37,19 +37,35 @@ namespace Xunit.Sdk
 				return "[···]";
 			}
 
+			int startIndex;
+			int endIndex;
+
+			GetMismatchExtents(mismatchedIndex, out startIndex, out endIndex);
+
+			return FormatIndexedMismatch(
+#if XUNIT_NULLABLE
+				enumerator!.CurrentItems,
+#else
+				enumerator.CurrentItems,
+#endif
+				() => enumerator.MoveNext(),
+				startIndex,
+				endIndex,
+				mismatchedIndex,
+				out pointerIndent,
+				depth
+			);
+		}
+
+		public string FormatIndexedMismatch(
+			int startIndex,
+			int endIndex,
+			int? mismatchedIndex,
+			out int? pointerIndent,
+			int depth = 0)
+		{
 			if (enumerator == null)
-				enumerator = new Enumerator(collection.GetEnumerator());
-
-			var startIndex = Math.Max(0, mismatchedIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH_HALF);
-			var endIndex = startIndex + ArgumentFormatter.MAX_ENUMERABLE_LENGTH - 1;
-
-			// Make sure our window starts with startIndex and ends with endIndex, as appropriate
-			while (enumerator.CurrentIndex < endIndex)
-				if (!enumerator.MoveNext())
-					break;
-
-			endIndex = enumerator.CurrentIndex;
-			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+				throw new InvalidOperationException("Called FormatIndexedMismatch with indices without calling GetMismatchExtents first");
 
 			return FormatIndexedMismatch(
 				enumerator.CurrentItems,
@@ -65,7 +81,7 @@ namespace Xunit.Sdk
 #if XUNIT_SPAN
 		internal static string FormatIndexedMismatch(
 			ReadOnlySpan<T> span,
-			int mismatchedIndex,
+			int? mismatchedIndex,
 			out int? pointerIndent,
 			int depth = 0)
 		{
@@ -75,7 +91,7 @@ namespace Xunit.Sdk
 				return "[···]";
 			}
 
-			var startIndex = Math.Max(0, mismatchedIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH_HALF);
+			var startIndex = Math.Max(0, (mismatchedIndex ?? 0) - ArgumentFormatter.MAX_ENUMERABLE_LENGTH_HALF);
 			var endIndex = Math.Min(span.Length - 1, startIndex + ArgumentFormatter.MAX_ENUMERABLE_LENGTH - 1);
 			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
 
@@ -102,7 +118,7 @@ namespace Xunit.Sdk
 			Func<bool> moreItemsPastEndIndex,
 			int startIndex,
 			int endIndex,
-			int mismatchedIndex,
+			int? mismatchedIndex,
 			out int? pointerIndent,
 			int depth)
 		{
@@ -231,6 +247,26 @@ namespace Xunit.Sdk
 		IEnumerator IEnumerable.GetEnumerator() =>
 			GetEnumerator();
 
+		internal void GetMismatchExtents(
+			int? mismatchedIndex,
+			out int startIndex,
+			out int endIndex)
+		{
+			if (enumerator == null)
+				enumerator = new Enumerator(collection.GetEnumerator());
+
+			startIndex = Math.Max(0, (mismatchedIndex ?? 0) - ArgumentFormatter.MAX_ENUMERABLE_LENGTH_HALF);
+			endIndex = startIndex + ArgumentFormatter.MAX_ENUMERABLE_LENGTH - 1;
+
+			// Make sure our window starts with startIndex and ends with endIndex, as appropriate
+			while (enumerator.CurrentIndex < endIndex)
+				if (!enumerator.MoveNext())
+					break;
+
+			endIndex = enumerator.CurrentIndex;
+			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+		}
+
 		public override string ToString() =>
 			ToString(1);
 
@@ -238,12 +274,12 @@ namespace Xunit.Sdk
 			FormatStart(depth);
 
 #if XUNIT_NULLABLE
-		public string? TypeAt(int value)
+		public string? TypeAt(int? value)
 #else
-		public string TypeAt(int value)
+		public string TypeAt(int? value)
 #endif
 		{
-			if (enumerator == null)
+			if (enumerator == null || !value.HasValue)
 				return null;
 
 #if XUNIT_NULLABLE
@@ -251,7 +287,7 @@ namespace Xunit.Sdk
 #else
 			T item;
 #endif
-			if (!enumerator.CurrentItems.TryGetValue(value, out item))
+			if (!enumerator.CurrentItems.TryGetValue(value.Value, out item))
 				return null;
 
 			return item?.GetType().FullName;

@@ -50,7 +50,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedSubstring), expectedSubstring);
 
 			if (actualString == null || actualString.IndexOf(expectedSubstring, comparisonType) < 0)
-				throw ContainsException.ForSubStringNotFound(expectedSubstring, actualString ?? "(null)");
+				throw ContainsException.ForSubStringNotFound(expectedSubstring, actualString);
 		}
 
 		/// <summary>
@@ -325,7 +325,7 @@ namespace Xunit
 			if (expected == null && actual == null)
 				return;
 			if (expected == null || actual == null)
-				throw new EqualException(expected, actual, -1, -1);
+				throw EqualException.ForMismatchedStrings(expected, actual, -1, -1);
 
 			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 #else
@@ -396,7 +396,7 @@ namespace Xunit
 			}
 
 			if (expectedIndex < expectedLength || actualIndex < actualLength)
-				throw new EqualException(expected, actual, expectedIndex, actualIndex);
+				throw EqualException.ForMismatchedStrings(expected, actual, expectedIndex, actualIndex);
 #endif
 		}
 

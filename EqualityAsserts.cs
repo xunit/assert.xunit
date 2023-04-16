@@ -1,15 +1,13 @@
 #if XUNIT_NULLABLE
 #nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Xunit.Sdk;
-
-#if XUNIT_NULLABLE
-using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace Xunit
 {
@@ -20,9 +18,28 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+		static Type typeofHashSet = typeof(HashSet<>);
+		static Type typeofDictionary = typeof(Dictionary<,>);
+
+#if XUNIT_NULLABLE
+		static IEnumerable? AsNonStringEnumerable(object? value) =>
+#else
+		static IEnumerable AsNonStringEnumerable(object value) =>
+#endif
+			value == null || value is string ? null : value as IEnumerable;
+
+#if XUNIT_NULLABLE
+		static CollectionTracker<object>? AsNonStringTracker(object? value) =>
+#else
+		static CollectionTracker<object> AsNonStringTracker(object value) =>
+#endif
+			AsNonStringEnumerable(value).AsTracker();
+
 #if XUNIT_SPAN
 		/// <summary>
 		/// Verifies that two arrays of un-managed type T are equal, using Span&lt;T&gt;.SequenceEqual.
+		/// This can be significantly faster than generic enumerables, when the collections are actually
+		/// equal, because the system can optimize packed-memory comparisons for value type arrays.
 		/// </summary>
 		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
 		/// <param name="expected">The expected value</param>
@@ -89,25 +106,87 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			var expectedAsIEnum = expected as IEnumerable;
-			var actualAsIEnum = actual as IEnumerable;
-			var aec = comparer as AssertEqualityComparer<T>;
+			if (expected == null && actual == null)
+				return;
 
-			// if we got an AssertEqualityComparer<T> we can invoke it to get the mismatched index.
-			if (aec != null)
+			var expectedTracker = AsNonStringTracker(expected);
+			var actualTracker = AsNonStringTracker(actual);
+
+			// We treat collections specially, since we want to see a pointer
+			var haveCollections =
+				(expectedTracker != null && actualTracker != null) ||
+				(expectedTracker != null && actual == null) ||
+				(expected == null && actualTracker != null);
+
+			if (haveCollections)
 			{
-				int? mismatchedIndex;
+				int? mismatchedIndex = null;
+				bool equal;
 
-				if (!aec.Equals(expected, actual, out mismatchedIndex))
+				// TODO: We have trackers here, but we don't use them, because neither AssertEqualityComparer<T> nor
+				// IEqualityComparer<T> can accept them. To prevent double-enumeration, we will need to find another
+				// way to safely enumerate the collection and compare the items. This may mean all this logic ends
+				// up in the comparer-less overload, and the version with the comparer here will never attempt to
+				// print enumerable values (we're going to have to fix ArgumentFormatter anyway so it won't print
+				// out unsafe IEnumerables; we'll have to rely on knowing that we have a safe built-in collection
+				// or an interface that allows safe re-enumeration).
+
+				// If they provided us with an AssertEqualityComparer<T>, we can use that to get the mismatched index
+				var aec = comparer as AssertEqualityComparer<T>;
+				if (aec != null)
+					equal = aec.Equals(expected, actual, out mismatchedIndex);
+				else
+					equal = comparer.Equals(expected, actual);
+
+				if (equal)
+					return;
+
+				var expectedStartIdx = -1;
+				var expectedEndIdx = -1;
+				expectedTracker?.GetMismatchExtents(mismatchedIndex, out expectedStartIdx, out expectedEndIdx);
+
+				var actualStartIdx = -1;
+				var actualEndIdx = -1;
+				actualTracker?.GetMismatchExtents(mismatchedIndex, out actualStartIdx, out actualEndIdx);
+
+				// If either located index is past the end of the collection, then we want to try to shift
+				// the too-short collection start point forward so we can align the equal values for
+				// a more readable and obvious output. See CollectionAssertTests+Equals+Arrays.Truncation
+				// for overrun examples.
+				if (mismatchedIndex.HasValue)
 				{
-					if (mismatchedIndex.HasValue)
-						throw EqualException.FromEnumerable(expectedAsIEnum, actualAsIEnum, mismatchedIndex.Value);
-					else
-						throw new EqualException(expected, actual);
+					if (expectedStartIdx > -1 && expectedEndIdx < mismatchedIndex.Value)
+						expectedStartIdx = actualStartIdx;
+					else if (actualStartIdx > -1 && actualEndIdx < mismatchedIndex.Value)
+						actualStartIdx = expectedStartIdx;
 				}
+
+				int? expectedPointer = null;
+				var formattedExpected = expectedTracker?.FormatIndexedMismatch(expectedStartIdx, expectedEndIdx, mismatchedIndex, out expectedPointer) ?? ArgumentFormatter.Format(expected);
+				var expectedItemType = expectedTracker?.TypeAt(mismatchedIndex);
+
+				int? actualPointer = null;
+				var formattedActual = actualTracker?.FormatIndexedMismatch(actualStartIdx, actualEndIdx, mismatchedIndex, out actualPointer) ?? ArgumentFormatter.Format(actual);
+				var actualItemType = actualTracker?.TypeAt(mismatchedIndex);
+
+#if XUNIT_NULLABLE
+				string? collectionDisplay = null;
+#else
+				string collectionDisplay = null;
+#endif
+
+				var expectedTypeDefinition = SafeGetGenericTypeDefinition(expected?.GetType());
+				var actualTypeDefinition = SafeGetGenericTypeDefinition(actual?.GetType());
+
+				if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
+					collectionDisplay = "Dictionaries";
+				else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
+					collectionDisplay = "HashSets";
+
+				throw EqualException.ForMismatchedCollections(mismatchedIndex, formattedExpected, expectedPointer, expectedItemType, formattedActual, actualPointer, actualItemType, collectionDisplay);
 			}
 			else if (!comparer.Equals(expected, actual))
-				throw new EqualException(expected, actual);
+				throw EqualException.ForMismatchedValues(expected, actual);
 		}
 
 		/// <summary>
@@ -127,7 +206,7 @@ namespace Xunit
 			var actualRounded = Math.Round(actual, precision);
 
 			if (!object.Equals(expectedRounded, actualRounded))
-				throw new EqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
+				throw EqualException.ForMismatchedValues($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -149,7 +228,7 @@ namespace Xunit
 			var actualRounded = Math.Round(actual, precision, rounding);
 
 			if (!object.Equals(expectedRounded, actualRounded))
-				throw new EqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
+				throw EqualException.ForMismatchedValues($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -170,7 +249,7 @@ namespace Xunit
 				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
 
 			if (!(object.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance))
-				throw new EqualException($"{expected:G17}", $"{actual:G17}");
+				throw EqualException.ForMismatchedValues($"{expected:G17}", $"{actual:G17}");
 		}
 
 		/// <summary>
@@ -221,7 +300,7 @@ namespace Xunit
 				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
 
 			if (!(object.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance))
-				throw new EqualException($"{expected:G9}", $"{actual:G9}");
+				throw EqualException.ForMismatchedValues($"{expected:G9}", $"{actual:G9}");
 		}
 
 		/// <summary>
@@ -241,7 +320,7 @@ namespace Xunit
 			var actualRounded = Math.Round(actual, precision);
 
 			if (expectedRounded != actualRounded)
-				throw new EqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
+				throw EqualException.ForMismatchedValues($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
 		}
 
 		/// <summary>
@@ -277,7 +356,7 @@ namespace Xunit
 						? actual.ToString()
 						: $"{actual} (difference {difference} is larger than {precision})";
 
-				throw new EqualException(expected.ToString(), actualValue);
+				throw EqualException.ForMismatchedValues(expected, actualValue);
 			}
 		}
 
@@ -314,27 +393,9 @@ namespace Xunit
 						? actual.ToString()
 						: $"{actual} (difference {difference} is larger than {precision})";
 
-				throw new EqualException(expected.ToString(), actualValue);
+				throw EqualException.ForMismatchedValues(expected, actualValue);
 			}
 		}
-
-		/// <summary>
-		/// Verifies that two objects are strictly equal, using the type's default comparer.
-		/// </summary>
-		/// <typeparam name="T">The type of the objects to be compared</typeparam>
-		/// <param name="expected">The expected value</param>
-		/// <param name="actual">The value to be compared against</param>
-		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
-		public static void StrictEqual<T>(
-#if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual) =>
-				Equal(expected, actual, EqualityComparer<T?>.Default);
-#else
-			T expected,
-			T actual) =>
-				Equal(expected, actual, EqualityComparer<T>.Default);
-#endif
 
 #if XUNIT_SPAN
 		/// <summary>
@@ -462,6 +523,24 @@ namespace Xunit
 			T expected,
 			T actual) =>
 				NotEqual(expected, actual, EqualityComparer<T>.Default);
+#endif
+
+		/// <summary>
+		/// Verifies that two objects are strictly equal, using the type's default comparer.
+		/// </summary>
+		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+		public static void StrictEqual<T>(
+#if XUNIT_NULLABLE
+			[AllowNull] T expected,
+			[AllowNull] T actual) =>
+				Equal(expected, actual, EqualityComparer<T?>.Default);
+#else
+			T expected,
+			T actual) =>
+				Equal(expected, actual, EqualityComparer<T>.Default);
 #endif
 	}
 }
