@@ -20,15 +20,15 @@ namespace Xunit
 		/// <summary>
 		/// Indicates that the test should immediately fail.
 		/// </summary>
-		/// <param name="message">The failure message</param>
+		/// <param name="message">The optional failure message</param>
 #if XUNIT_NULLABLE
 		[DoesNotReturn]
+		public static void Fail(string? message = null)
+#else
+		public static void Fail(string message = null)
 #endif
-		public static void Fail(string message)
 		{
-			GuardArgumentNotNull(nameof(message), message);
-
-			throw new FailException(message);
+			throw FailException.ForFailure(message);
 		}
 	}
 }

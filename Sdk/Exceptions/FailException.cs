@@ -14,12 +14,20 @@ namespace Xunit.Sdk
 #endif
 	class FailException : XunitException
 	{
+		FailException(string message) :
+			base(message)
+		{ }
+
 		/// <summary>
-		/// Creates a new instance of the <see cref="FailException"/> class.
+		/// Creates a new instance of the <see cref="FailException"/> class to be thrown when
+		/// the user calls <see cref="Assert.Fail"/>.
 		/// </summary>
 		/// <param name="message">The user's failure message.</param>
-		public FailException(string message) :
-			base($"Assert.Fail(): {message}")
-		{ }
+#if XUNIT_NULLABLE
+		public static FailException ForFailure(string? message) =>
+#else
+		public static FailException ForFailure(string message) =>
+#endif
+			new FailException(message ?? "Assert.Fail() Failure");
 	}
 }
