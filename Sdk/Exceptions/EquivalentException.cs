@@ -2,6 +2,7 @@
 #nullable enable
 #endif
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,40 +16,11 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class EquivalentException : AssertActualExpectedException
+	class EquivalentException : XunitException
 	{
-#if XUNIT_NULLABLE
-		readonly string? message;
-#else
-		readonly string message;
-#endif
-
 		EquivalentException(string message) :
-			base(null, null, null)
-		{
-			this.message = message;
-		}
-
-		EquivalentException(
-#if XUNIT_NULLABLE
-			object? expected,
-			object? actual,
-			string messageSuffix,
-			string? expectedTitle = null,
-			string? actualTitle = null) :
-#else
-			object expected,
-			object actual,
-			string messageSuffix,
-			string expectedTitle = null,
-			string actualTitle = null) :
-#endif
-				base(expected, actual, "Assert.Equivalent() Failure" + messageSuffix, expectedTitle, actualTitle)
+			base(message)
 		{ }
-
-		/// <inheritdoc/>
-		public override string Message =>
-			message ?? base.Message;
 
 		static string FormatMemberNameList(
 			IEnumerable<string> memberNames,
@@ -74,14 +46,12 @@ namespace Xunit.Sdk
 		public static EquivalentException ForMemberListMismatch(
 			IEnumerable<string> expectedMemberNames,
 			IEnumerable<string> actualMemberNames,
-			string prefix)
-		{
-			return new EquivalentException(
-				FormatMemberNameList(expectedMemberNames, prefix),
-				FormatMemberNameList(actualMemberNames, prefix),
-				": Mismatched member list"
-			);
-		}
+			string prefix) =>
+				new EquivalentException(
+					"Assert.Equivalent() Failure: Mismatched member list" + Environment.NewLine +
+					"Expected: " + FormatMemberNameList(expectedMemberNames, prefix) + Environment.NewLine +
+					"Actual:   " + FormatMemberNameList(actualMemberNames, prefix)
+				);
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
@@ -99,12 +69,29 @@ namespace Xunit.Sdk
 			object expected,
 			object actual,
 #endif
-			string memberName) =>
-				new EquivalentException(
-					expected,
-					actual,
-					memberName == string.Empty ? string.Empty : $": Mismatched value on member '{memberName}'"
-				);
+			string memberName)
+		{
+			var formattedExpected = ArgumentFormatter2.Format(expected);
+			var formattedActual = ArgumentFormatter2.Format(actual);
+
+			if (formattedExpected == formattedActual && expected != null && actual != null)
+			{
+				var expectedType = expected.GetType();
+				var actualType = actual.GetType();
+
+				if (expectedType != actualType)
+				{
+					formattedExpected += $" ({expectedType.FullName})";
+					formattedActual += $" ({actualType.FullName})";
+				}
+			}
+
+			return new EquivalentException(
+				"Assert.Equivalent() Failure" + (memberName == string.Empty ? string.Empty : $": Mismatched value on member '{memberName}'") + Environment.NewLine +
+				"Expected: " + formattedExpected + Environment.NewLine +
+				"Actual:   " + formattedActual
+			);
+		}
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
@@ -124,10 +111,9 @@ namespace Xunit.Sdk
 #endif
 			string memberName) =>
 				new EquivalentException(
-					expected,
-					ArgumentFormatter.Format(actual),
-					$": Collection value not found{(memberName == string.Empty ? string.Empty : $" in member '{memberName}'")}",
-					actualTitle: "In"
+					"Assert.Equivalent() Failure: Collection value not found" + (memberName == string.Empty ? string.Empty : $" in member '{memberName}'") + Environment.NewLine +
+					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
+					"In:       " + ArgumentFormatter2.Format(actual)
 				);
 
 		/// <summary>
@@ -154,9 +140,9 @@ namespace Xunit.Sdk
 #endif
 			string memberName) =>
 				new EquivalentException(
-					ArgumentFormatter.Format(expected),
-					$"{ArgumentFormatter.Format(actualLeftovers)} left over from {ArgumentFormatter.Format(actual)}",
-					$": Extra values found{(memberName == string.Empty ? string.Empty : $" in member '{memberName}'")}"
+					"Assert.Equivalent() Failure: Extra values found" + (memberName == string.Empty ? string.Empty : $" in member '{memberName}'") + Environment.NewLine +
+					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
+					"Actual:   " + ArgumentFormatter2.Format(actualLeftovers) + " left over from " + ArgumentFormatter2.Format(actual)
 				);
 	}
 }
