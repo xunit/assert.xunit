@@ -77,7 +77,7 @@ namespace Xunit
 #endif
 		{
 			if (!condition.HasValue || condition.GetValueOrDefault())
-				throw new FalseException(userMessage, condition);
+				throw FalseException.ForNonFalseValue(userMessage, condition);
 		}
 
 		/// <summary>
