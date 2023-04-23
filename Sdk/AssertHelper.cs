@@ -17,10 +17,15 @@ namespace Xunit.Internal
 	{
 		static readonly Dictionary<char, string> encodings = new Dictionary<char, string>
 		{
-			{ '\r', "\\r" },
-			{ '\n', "\\n" },
-			{ '\t', "\\t" },
-			{ '\0', "\\0" }
+			{ '\0', @"\0" },  // Null
+			{ '\a', @"\a" },  // Alert
+			{ '\b', @"\b" },  // Backspace
+			{ '\f', @"\f" },  // Form feed
+			{ '\n', @"\n" },  // New line
+			{ '\r', @"\r" },  // Carriage return
+			{ '\t', @"\t" },  // Horizontal tab
+			{ '\v', @"\v" },  // Vertical tab
+			{ '\\', @"\\" },  // Backslash
 		};
 
 #if XUNIT_NULLABLE
