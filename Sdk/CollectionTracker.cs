@@ -9,7 +9,12 @@ using System.Text;
 
 namespace Xunit.Sdk
 {
-	class CollectionTracker<T> : IEnumerable<T>
+	interface ICollectionTracker : IEnumerable
+	{
+		string FormatStart(int depth);
+	}
+
+	class CollectionTracker<T> : IEnumerable<T>, ICollectionTracker
 	{
 		readonly IEnumerable<T> collection;
 #if XUNIT_NULLABLE
@@ -29,7 +34,7 @@ namespace Xunit.Sdk
 		internal string FormatIndexedMismatch(
 			int? mismatchedIndex,
 			out int? pointerIndent,
-			int depth = 0)
+			int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 			{
@@ -62,7 +67,7 @@ namespace Xunit.Sdk
 			int endIndex,
 			int? mismatchedIndex,
 			out int? pointerIndent,
-			int depth = 0)
+			int depth = 1)
 		{
 			if (enumerator == null)
 				throw new InvalidOperationException("Called FormatIndexedMismatch with indices without calling GetMismatchExtents first");
@@ -83,7 +88,7 @@ namespace Xunit.Sdk
 			ReadOnlySpan<T> span,
 			int? mismatchedIndex,
 			out int? pointerIndent,
-			int depth = 0)
+			int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 			{
@@ -146,7 +151,7 @@ namespace Xunit.Sdk
 			return printedValues.ToString();
 		}
 
-		internal string FormatStart(int depth = 0)
+		public string FormatStart(int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 				return "[···]";
@@ -164,7 +169,7 @@ namespace Xunit.Sdk
 
 		internal static string FormatStart(
 			IEnumerable<T> collection,
-			int depth = 0)
+			int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 				return "[···]";
@@ -189,7 +194,7 @@ namespace Xunit.Sdk
 #if XUNIT_SPAN
 		internal static string FormatStart(
 			ReadOnlySpan<T> span,
-			int depth = 0)
+			int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 				return "[···]";
