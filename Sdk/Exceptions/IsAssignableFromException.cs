@@ -14,21 +14,29 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class IsAssignableFromException : AssertActualExpectedException
+	class IsAssignableFromException : XunitException
 	{
+		IsAssignableFromException(string message) :
+			base(message)
+		{ }
+
 		/// <summary>
-		/// Creates a new instance of the <see cref="IsTypeException"/> class.
+		/// Creates a new instance of the <see cref="IsTypeException"/> class to be thrown when
+		/// the value is not compatible with the given type.
 		/// </summary>
 		/// <param name="expected">The expected type</param>
 		/// <param name="actual">The actual object value</param>
-		public IsAssignableFromException(
+		internal static IsAssignableFromException ForIncompatibleType(
 			Type expected,
 #if XUNIT_NULLABLE
-			object? actual) :
+			object? actual) =>
 #else
-			object actual) :
+			object actual) =>
 #endif
-				base(expected, actual?.GetType(), "Assert.IsAssignableFrom() Failure")
-		{ }
+				new IsAssignableFromException(
+					"Assert.IsAssignableFrom() Failure: Value is " + (actual == null ? "null" : "an incompatible type") + Environment.NewLine +
+					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
+					"Actual:   " + ArgumentFormatter2.Format(actual?.GetType())
+				);
 	}
 }

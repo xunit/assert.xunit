@@ -53,7 +53,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
 
 			if (@object == null || !expectedType.GetTypeInfo().IsAssignableFrom(@object.GetType().GetTypeInfo()))
-				throw new IsAssignableFromException(expectedType, @object);
+				throw IsAssignableFromException.ForIncompatibleType(expectedType, @object);
 		}
 
 		/// <summary>
