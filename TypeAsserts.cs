@@ -86,7 +86,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
 
 			if (@object != null && expectedType.Equals(@object.GetType()))
-				throw new IsNotTypeException(expectedType, @object);
+				throw IsNotTypeException.ForExactType(expectedType);
 		}
 
 		/// <summary>

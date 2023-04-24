@@ -14,21 +14,26 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class IsNotTypeException : AssertActualExpectedException
+	class IsNotTypeException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="IsNotTypeException"/> class.
-		/// </summary>
-		/// <param name="expected">The expected type</param>
-		/// <param name="actual">The actual object value</param>
-		public IsNotTypeException(
-			Type expected,
-#if XUNIT_NULLABLE
-			object? actual) :
-#else
-			object actual) :
-#endif
-				base(expected, actual?.GetType(), "Assert.IsNotType() Failure")
+		IsNotTypeException(string message) :
+			base(message)
 		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="IsNotTypeException"/> class to be thrown
+		/// when the object is the exact type.
+		/// </summary>
+		/// <param name="type">The expected type</param>
+		public static IsNotTypeException ForExactType(Type type)
+		{
+			var formattedType = ArgumentFormatter2.Format(type);
+
+			return new IsNotTypeException(
+				"Assert.IsNotType() Failure: Value is the exact type" + Environment.NewLine +
+				"Expected: " + formattedType + Environment.NewLine +
+				"Actual:   " + formattedType
+			);
+		}
 	}
 }
