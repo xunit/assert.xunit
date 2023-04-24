@@ -123,21 +123,21 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
 
 			if (@object == null)
-				throw new IsTypeException(expectedType.FullName, null);
+				throw IsTypeException.ForMismatchedType(ArgumentFormatter2.Format(expectedType), null);
 
 			var actualType = @object.GetType();
 			if (expectedType != actualType)
 			{
-				var expectedTypeName = expectedType.FullName;
-				var actualTypeName = actualType.FullName;
+				var expectedTypeName = ArgumentFormatter2.Format(expectedType);
+				var actualTypeName = ArgumentFormatter2.Format(actualType);
 
 				if (expectedTypeName == actualTypeName)
 				{
-					expectedTypeName += $" ({expectedType.GetTypeInfo().Assembly.GetName().FullName})";
-					actualTypeName += $" ({actualType.GetTypeInfo().Assembly.GetName().FullName})";
+					expectedTypeName += $" (from {expectedType.GetTypeInfo().Assembly.GetName().FullName})";
+					actualTypeName += $" (from {actualType.GetTypeInfo().Assembly.GetName().FullName})";
 				}
 
-				throw new IsTypeException(expectedTypeName, actualTypeName);
+				throw IsTypeException.ForMismatchedType(expectedTypeName, actualTypeName);
 			}
 		}
 	}
