@@ -259,7 +259,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedRegexPattern), expectedRegexPattern);
 
 			if (actualString == null || !Regex.IsMatch(actualString, expectedRegexPattern))
-				throw new MatchesException(expectedRegexPattern, actualString);
+				throw MatchesException.ForMatchNotFound(expectedRegexPattern, actualString);
 		}
 
 		/// <summary>
@@ -279,7 +279,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedRegex), expectedRegex);
 
 			if (actualString == null || !expectedRegex.IsMatch(actualString))
-				throw new MatchesException(expectedRegex.ToString(), actualString);
+				throw MatchesException.ForMatchNotFound(expectedRegex.ToString(), actualString);
 		}
 
 		/// <summary>
