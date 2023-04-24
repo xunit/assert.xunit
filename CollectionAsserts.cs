@@ -471,7 +471,7 @@ namespace Xunit
 			try
 			{
 				if (!enumerator.MoveNext())
-					throw new NotEmptyException();
+					throw NotEmptyException.ForNonEmptyContainer();
 			}
 			finally
 			{

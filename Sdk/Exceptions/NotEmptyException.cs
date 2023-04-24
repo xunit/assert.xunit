@@ -14,11 +14,15 @@ namespace Xunit.Sdk
 #endif
 	class NotEmptyException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="NotEmptyException"/> class.
-		/// </summary>
-		public NotEmptyException() :
-			base("Assert.NotEmpty() Failure")
+		NotEmptyException(string message) :
+			base(message)
 		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="NotEmptyException"/> class to be thrown
+		/// when a container was unexpectedly empty.
+		/// </summary>
+		public static NotEmptyException ForNonEmptyContainer() =>
+			new NotEmptyException("Assert.NotEmpty() Failure: Container was empty");
 	}
 }
