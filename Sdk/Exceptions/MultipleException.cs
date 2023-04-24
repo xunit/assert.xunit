@@ -18,11 +18,8 @@ namespace Xunit.Sdk
 #endif
 	class MultipleException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="MultipleException"/> class.
-		/// </summary>
-		public MultipleException(IEnumerable<Exception> innerExceptions) :
-			base("Multiple failures were encountered:")
+		MultipleException(IEnumerable<Exception> innerExceptions) :
+			base("Assert.Multiple() Failure: Multiple failures were encountered")
 		{
 			if (innerExceptions == null)
 				throw new ArgumentNullException(nameof(innerExceptions));
@@ -42,5 +39,13 @@ namespace Xunit.Sdk
 		public override string StackTrace =>
 #endif
 			"Inner stack traces:";
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="MultipleException"/> class to be thrown
+		/// when <see cref="Assert.Multiple"/> caught 2 or more exceptions.
+		/// </summary>
+		/// <param name="innerExceptions">The inner exceptions</param>
+		public static Exception ForFailures(IReadOnlyCollection<Exception> innerExceptions) =>
+			new MultipleException(innerExceptions);
 	}
 }
