@@ -22,17 +22,7 @@ namespace Xunit.Sdk
 			base(message)
 		{ }
 
-		///// <inheritdoc/>
-		//public override string Message
-		//{
-		//	get
-		//	{
-		//		var formattedErrors = ;
-
-		//		return $"{base.Message}: {errors.Count} out of {totalItems} items in the collection did not pass.{Environment.NewLine}{string.Join(Environment.NewLine, formattedErrors)}";
-		//	}
-		//}
-
+#if XUNIT_VALUETASK
 		/// <summary>
 		/// Creates a new instance of the <see cref="AllException"/> class to be thrown when one or
 		/// more items failed during <see cref="Assert.All{T}(IEnumerable{T}, Action{T})"/>,
@@ -42,6 +32,15 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="totalItems">The total number of items in the collection</param>
 		/// <param name="errors">The list of failures (as index, value, and exception)</param>
+#else
+		/// <summary>
+		/// Creates a new instance of the <see cref="AllException"/> class to be thrown when one or
+		/// more items failed during <see cref="Assert.All{T}(IEnumerable{T}, Action{T})"/>
+		/// or <see cref="Assert.All{T}(IEnumerable{T}, Action{T, int})"/>.
+		/// </summary>
+		/// <param name="totalItems">The total number of items in the collection</param>
+		/// <param name="errors">The list of failures (as index, value, and exception)</param>
+#endif
 		public static AllException ForFailures(
 			int totalItems,
 			IReadOnlyList<Tuple<int, string, Exception>> errors)

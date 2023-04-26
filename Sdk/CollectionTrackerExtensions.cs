@@ -13,9 +13,7 @@ namespace Xunit.Sdk
 	static class CollectionTrackerExtensions
 	{
 #if XUNIT_NULLABLE
-#if !XUNIT_TESTS
 		[return: NotNullIfNotNull(nameof(enumerable))]
-#endif
 		public static CollectionTracker<object>? AsTracker(this IEnumerable? enumerable) =>
 #else
 		public static CollectionTracker<object> AsTracker(this IEnumerable enumerable) =>
@@ -25,9 +23,7 @@ namespace Xunit.Sdk
 				: enumerable as CollectionTracker<object> ?? CollectionTracker<object>.Wrap(enumerable.Cast<object>());
 
 #if XUNIT_NULLABLE
-#if !XUNIT_TESTS
 		[return: NotNullIfNotNull(nameof(enumerable))]
-#endif
 		public static CollectionTracker<T>? AsTracker<T>(this IEnumerable<T>? enumerable) =>
 #else
 		public static CollectionTracker<T> AsTracker<T>(this IEnumerable<T> enumerable) =>
