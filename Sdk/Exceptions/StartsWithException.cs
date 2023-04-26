@@ -42,7 +42,7 @@ namespace Xunit.Sdk
 			if (expected == null || actual == null || actual.Length <= expected.Length)
 				return actual;
 
-			return actual.Substring(0, expected.Length) + "···";
+			return actual.Substring(0, expected.Length) + ArgumentFormatter2.Ellipsis;
 		}
 	}
 }

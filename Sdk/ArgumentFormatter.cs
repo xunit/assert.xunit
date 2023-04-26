@@ -1,4 +1,4 @@
-#if XUNIT_NULLABLE
+ï»¿#if XUNIT_NULLABLE
 #nullable enable
 #endif
 
@@ -14,9 +14,11 @@ using System.Threading.Tasks;
 
 namespace Xunit.Sdk
 {
-	/// <summary>
-	/// Formats arguments for display in theories.
-	/// </summary>
+	interface ICollectionTracker : IEnumerable
+	{
+		string FormatStart(int depth);
+	}
+
 	static class ArgumentFormatter
 	{
 		internal const int MAX_DEPTH = 3;
@@ -48,13 +50,6 @@ namespace Xunit.Sdk
 			{ typeof(string).GetTypeInfo(), "string" },
 		};
 
-		/// <summary>
-		/// Format the value for presentation.
-		/// </summary>
-		/// <param name="value">The value to be formatted.</param>
-		/// <param name="pointerPosition">The position where the difference starts</param>
-		/// <param name="errorIndex"></param>
-		/// <returns>The formatted value.</returns>
 		public static string Format(
 #if XUNIT_NULLABLE
 			object? value,
@@ -67,12 +62,6 @@ namespace Xunit.Sdk
 			return Format(value, 1, out pointerPosition, errorIndex);
 		}
 
-		/// <summary>
-		/// Format the value for presentation.
-		/// </summary>
-		/// <param name="value">The value to be formatted.</param>
-		/// <param name="errorIndex"></param>
-		/// <returns>The formatted value.</returns>
 		public static string Format(
 #if XUNIT_NULLABLE
 			object? value,
@@ -157,7 +146,7 @@ namespace Xunit.Sdk
 					if (stringParameter.Length > MAX_STRING_LENGTH)
 					{
 						var displayed = stringParameter.Substring(0, MAX_STRING_LENGTH);
-						return $"\"{displayed}\"···";
+						return $"\"{displayed}\"{ArgumentFormatter2.Ellipsis}";
 					}
 
 					return $"\"{stringParameter}\"";
@@ -230,7 +219,7 @@ namespace Xunit.Sdk
 			Type type)
 		{
 			if (depth == MAX_DEPTH)
-				return $"{type.Name} {{ ··· }}";
+				return $"{type.Name} {{ {ArgumentFormatter2.Ellipsis} }}";
 
 			var fields =
 				type
@@ -257,7 +246,7 @@ namespace Xunit.Sdk
 			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_PARAMETER_COUNT).Select(p => $"{p.name} = {p.value}"));
 
 			if (parameters.Count > MAX_OBJECT_PARAMETER_COUNT)
-				formattedParameters += ", ···";
+				formattedParameters += ", " + ArgumentFormatter2.Ellipsis;
 
 			return $"{type.Name} {{ {formattedParameters} }}";
 		}
@@ -271,7 +260,7 @@ namespace Xunit.Sdk
 			pointerPostion = null;
 
 			if (depth == MAX_DEPTH)
-				return "[···]";
+				return "[" + ArgumentFormatter2.Ellipsis + "]";
 
 			var printedValues = string.Empty;
 
@@ -287,7 +276,7 @@ namespace Xunit.Sdk
 				var leftCount = neededIndex.Value - startIndex;
 
 				if (startIndex != 0)
-					printedValues += "···, ";
+					printedValues += ArgumentFormatter2.Ellipsis + ", ";
 
 				var leftValues = enumeratedValues.Skip(startIndex).Take(leftCount).ToList();
 				var rightValues = enumeratedValues.Skip(startIndex + leftCount).Take(MAX_ENUMERABLE_LENGTH - leftCount + 1).ToList();
@@ -306,14 +295,14 @@ namespace Xunit.Sdk
 				// Difference value and values to the right
 				printedValues += string.Join(", ", rightValues.Take(MAX_ENUMERABLE_LENGTH - leftCount).Select(x => FormatInner(x, depth + 1)));
 				if (leftValues.Count + rightValues.Count > MAX_ENUMERABLE_LENGTH)
-					printedValues += ", ···";
+					printedValues += ", " + ArgumentFormatter2.Ellipsis;
 			}
 			else
 			{
 				var values = enumerableValues.Take(MAX_ENUMERABLE_LENGTH + 1).ToList();
 				printedValues += string.Join(", ", values.Take(MAX_ENUMERABLE_LENGTH).Select(x => FormatInner(x, depth + 1)));
 				if (values.Count > MAX_ENUMERABLE_LENGTH)
-					printedValues += ", ···";
+					printedValues += ", " + ArgumentFormatter2.Ellipsis;
 			}
 
 			return $"[{printedValues}]";
@@ -486,6 +475,8 @@ namespace Xunit.Sdk
 
 	static class ArgumentFormatter2
 	{
+		public static string Ellipsis = new string((char)0x00B7, 3);
+
 		const int MAX_DEPTH = 3;
 		const int MAX_ENUMERABLE_LENGTH = 5;
 		const int MAX_ENUMERABLE_LENGTH_HALF = 2;
@@ -547,12 +538,6 @@ namespace Xunit.Sdk
 			return builder.ToString();
 		}
 
-		/// <summary>
-		/// Format the value for presentation.
-		/// </summary>
-		/// <param name="value">The value to be formatted.</param>
-		/// <param name="depth">The print depth. Defaults to 1. Used to determine when to print
-		/// ellipses instead of full values because maximum depth has been reached.</param>
 		public static string Format(
 #if XUNIT_NULLABLE
 			object? value,
@@ -672,7 +657,7 @@ namespace Xunit.Sdk
 			var typeName = isAnonymousType ? "" : $"{type.Name} ";
 
 			if (depth == MAX_DEPTH)
-				return $"{typeName}{{ ··· }}";
+				return $"{typeName}{{ {Ellipsis} }}";
 
 			var fields =
 				type
@@ -699,7 +684,7 @@ namespace Xunit.Sdk
 			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_PARAMETER_COUNT).Select(p => $"{p.name} = {p.value}"));
 
 			if (parameters.Count > MAX_OBJECT_PARAMETER_COUNT)
-				formattedParameters += ", ···";
+				formattedParameters += ", " + Ellipsis;
 
 			return $"{typeName}{{ {formattedParameters} }}";
 		}
@@ -726,7 +711,7 @@ namespace Xunit.Sdk
 			int depth)
 		{
 			if (depth == MAX_DEPTH)
-				return "[···]";
+				return "[" + Ellipsis + "]";
 
 			// This should only be used on values that are known to be re-enumerable
 			// safely, like collections that implement IDictionary or IList.
@@ -741,7 +726,7 @@ namespace Xunit.Sdk
 
 				if (idx == MAX_ENUMERABLE_LENGTH)
 				{
-					result.Append("···");
+					result.Append(Ellipsis);
 					break;
 				}
 
@@ -761,7 +746,7 @@ namespace Xunit.Sdk
 			if (value.Length > MAX_STRING_LENGTH)
 			{
 				var displayed = value.Substring(0, MAX_STRING_LENGTH);
-				return $"\"{displayed}\"···";
+				return $"\"{displayed}\"" + Ellipsis;
 			}
 
 			return $"\"{value}\"";
@@ -829,8 +814,8 @@ namespace Xunit.Sdk
 		static string FormatUnsafeEnumerableValue(IEnumerable enumerable)
 		{
 			// When we don't know if we can safely enumerate (and to prevent double enumeration),
-			// we just print out the container type name and the ellipses.
-			return $"{FormatTypeName(enumerable.GetType())} [···]";
+			// we just print out the container type name and the ellipsis.
+			return $"{FormatTypeName(enumerable.GetType())} [{Ellipsis}]";
 		}
 
 		static string FormatValueTypeValue(

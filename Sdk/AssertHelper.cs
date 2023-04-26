@@ -90,7 +90,7 @@ namespace Xunit.Internal
 
 			if (start > 0)
 			{
-				printedValue.Append("···");
+				printedValue.Append(ArgumentFormatter2.Ellipsis);
 				pointerIndent += 3;
 			}
 
@@ -123,7 +123,7 @@ namespace Xunit.Internal
 			printedValue.Append('\"');
 
 			if (end < value.Length)
-				printedValue.Append("···");
+				printedValue.Append(ArgumentFormatter2.Ellipsis);
 
 			return printedValue.ToString();
 		}
@@ -169,7 +169,7 @@ namespace Xunit.Internal
 			object? expected,
 			object? actual,
 #else
-		public static EquivalentException VerifyEquivalence(
+		static EquivalentException VerifyEquivalence(
 			object expected,
 			object actual,
 #endif
