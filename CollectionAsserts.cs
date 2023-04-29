@@ -2,15 +2,15 @@
 #nullable enable
 #endif
 
+#if XUNIT_VALUETASK
+using System.Threading.Tasks;
+#endif
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit.Sdk;
-
-#if XUNIT_VALUETASK
-using System.Threading.Tasks;
-#endif
 
 namespace Xunit
 {
@@ -554,7 +554,7 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter.Format(expected));
+			GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter2.Format(expected));
 		}
 
 		/// <summary>
@@ -592,31 +592,42 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(predicate), predicate);
 
-			return GetSingleResult(collection, predicate, "(filter expression)");
+			return GetSingleResult(collection, predicate, "(predicate expression)");
 		}
 
 		static T GetSingleResult<T>(
 			IEnumerable<T> collection,
 #if XUNIT_NULLABLE
 			Predicate<T>? predicate,
-			string? expectedArgument)
+			string? expected)
 #else
 			Predicate<T> predicate,
-			string expectedArgument)
+			string expected)
 #endif
 		{
 			var count = 0;
+			var index = 0;
+			var matchIndices = new List<int>();
 			var result = default(T);
+			var tracker = collection.AsTracker();
 
-			foreach (var item in collection)
+			foreach (var item in tracker)
+			{
 				if (predicate == null || predicate(item))
+				{
 					if (++count == 1)
 						result = item;
+					if (predicate != null)
+						matchIndices.Add(index);
+				}
+
+				++index;
+			}
 
 			switch (count)
 			{
 				case 0:
-					throw SingleException.Empty(expectedArgument);
+					throw SingleException.Empty(expected, tracker.FormatStart());
 				case 1:
 #if XUNIT_NULLABLE
 					return result!;
@@ -624,7 +635,7 @@ namespace Xunit
 					return result;
 #endif
 				default:
-					throw SingleException.MoreThanOne(count, expectedArgument);
+					throw SingleException.MoreThanOne(count, expected, tracker.FormatStart(), matchIndices);
 			}
 		}
 	}
