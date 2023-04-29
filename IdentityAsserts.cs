@@ -48,7 +48,10 @@ namespace Xunit
 #endif
 		{
 			if (!object.ReferenceEquals(expected, actual))
-				throw new SameException(expected, actual);
+				throw SameException.ForFailure(
+					ArgumentFormatter2.Format(expected),
+					ArgumentFormatter2.Format(actual)
+				);
 		}
 	}
 }

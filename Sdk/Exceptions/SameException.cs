@@ -2,6 +2,8 @@
 #nullable enable
 #endif
 
+using System;
+
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -12,19 +14,25 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class SameException : AssertActualExpectedException
+	class SameException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="SameException"/> class.
-		/// </summary>
-		/// <param name="expected">The expected object reference</param>
-		/// <param name="actual">The actual object reference</param>
-#if XUNIT_NULLABLE
-		public SameException(object? expected, object? actual)
-#else
-		public SameException(object expected, object actual)
-#endif
-			: base(expected, actual, "Assert.Same() Failure")
+		SameException(string message) :
+			base(message)
 		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="SameException"/> class to be thrown
+		/// when two values are not the same instance.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
+		public static SameException ForFailure(
+			string expected,
+			string actual) =>
+				new SameException(
+					"Assert.Same() Failure: Values are not the same instance" + Environment.NewLine +
+					"Expected: " + expected + Environment.NewLine +
+					"Actual:   " + actual
+				);
 	}
 }
