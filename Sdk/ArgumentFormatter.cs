@@ -486,7 +486,17 @@ namespace Xunit.Sdk
 		static readonly object[] EmptyObjects = new object[0];
 		static readonly Type[] EmptyTypes = new Type[0];
 
-		// List of system types => C# type names
+#if XUNIT_NULLABLE
+		static PropertyInfo? tupleIndexer;
+		static Type? tupleInterfaceType;
+		static PropertyInfo? tupleLength;
+#else
+		static PropertyInfo tupleIndexer;
+		static Type tupleInterfaceType;
+		static PropertyInfo tupleLength;
+#endif
+
+		// List of intrinsic types => C# type names
 		static readonly Dictionary<TypeInfo, string> TypeMappings = new Dictionary<TypeInfo, string>
 		{
 			{ typeof(bool).GetTypeInfo(), "bool" },
@@ -505,6 +515,20 @@ namespace Xunit.Sdk
 			{ typeof(ushort).GetTypeInfo(), "ushort" },
 			{ typeof(string).GetTypeInfo(), "string" },
 		};
+
+		static ArgumentFormatter2()
+		{
+			tupleInterfaceType = Type.GetType("System.Runtime.CompilerServices.ITuple");
+
+			if (tupleInterfaceType != null)
+			{
+				tupleIndexer = tupleInterfaceType.GetRuntimeProperty("Item");
+				tupleLength = tupleInterfaceType.GetRuntimeProperty("Length");
+			}
+
+			if (tupleIndexer == null || tupleLength == null)
+				tupleInterfaceType = null;
+		}
 
 		static string EscapeString(string s)
 		{
@@ -551,7 +575,7 @@ namespace Xunit.Sdk
 
 			var valueAsType = value as Type;
 			if (valueAsType != null)
-				return $"typeof({FormatTypeName(valueAsType)})";
+				return $"typeof({FormatTypeName(valueAsType, fullTypeName: true)})";
 
 			try
 			{
@@ -593,6 +617,9 @@ namespace Xunit.Sdk
 				var type = value.GetType();
 				var typeInfo = type.GetTypeInfo();
 
+				if (tupleInterfaceType != null && type.GetTypeInfo().ImplementedInterfaces.Contains(tupleInterfaceType))
+					return FormatTupleValue(value, depth);
+
 				if (typeInfo.IsValueType)
 					return FormatValueTypeValue(value, typeInfo);
 
@@ -603,6 +630,8 @@ namespace Xunit.Sdk
 					var typeName = typeParameters.Length == 0 ? "Task" : $"Task<{string.Join(",", typeParameters.Select(FormatTypeName))}>";
 					return $"{typeName} {{ Status = {task.Status} }}";
 				}
+
+				// TODO: ValueTask?
 
 				var isAnonymousType = typeInfo.IsAnonymousType();
 				if (!isAnonymousType)
@@ -730,7 +759,7 @@ namespace Xunit.Sdk
 					break;
 				}
 
-				result.Append(Format(enumerator.Current, depth + 1));
+				result.Append(Format(enumerator.Current, depth));
 
 				++idx;
 			}
@@ -752,7 +781,41 @@ namespace Xunit.Sdk
 			return $"\"{value}\"";
 		}
 
-		static string FormatTypeName(Type type)
+		static string FormatTupleValue(
+			object tupleParameter,
+			int depth)
+		{
+			var result = new StringBuilder("Tuple (");
+#if XUNIT_NULLABLE
+			var length = (int)tupleLength!.GetValue(tupleParameter)!;
+#else
+			var length = (int)tupleLength.GetValue(tupleParameter);
+#endif
+
+			for (var idx = 0; idx < length; ++idx)
+			{
+				if (idx != 0)
+					result.Append(", ");
+
+#if XUNIT_NULLABLE
+				var value = tupleIndexer!.GetValue(tupleParameter, new object[] { idx });
+#else
+				var value = tupleIndexer.GetValue(tupleParameter, new object[] { idx });
+#endif
+				result.Append(Format(value, depth + 1));
+			}
+
+			result.Append(')');
+
+			return result.ToString();
+		}
+
+		public static string FormatTypeName(Type type) =>
+			FormatTypeName(type, false);
+
+		public static string FormatTypeName(
+			Type type,
+			bool fullTypeName)
 		{
 			var typeInfo = type.GetTypeInfo();
 			var arraySuffix = "";
@@ -784,31 +847,28 @@ namespace Xunit.Sdk
 #else
 			string result;
 #endif
-			if (TypeMappings.TryGetValue(typeInfo, out result))
-				return result + arraySuffix;
+			var shortTypeInfo = typeInfo.IsGenericType ? typeInfo.GetGenericTypeDefinition().GetTypeInfo() : typeInfo;
+			if (!TypeMappings.TryGetValue(shortTypeInfo, out result))
+				result = fullTypeName ? typeInfo.FullName : typeInfo.Name;
 
-			// Strip off generic suffix
-			var name = typeInfo.FullName;
-
-			// catch special case of generic parameters not being bound to a specific type:
-			if (name == null)
+			if (result == null)
 				return typeInfo.Name;
 
-			var tickIdx = name.IndexOf('`');
+			var tickIdx = result.IndexOf('`');
 			if (tickIdx > 0)
-				name = name.Substring(0, tickIdx);
+				result = result.Substring(0, tickIdx);
 
 			if (typeInfo.IsGenericTypeDefinition)
-				name = $"{name}<{new string(',', typeInfo.GenericTypeParameters.Length - 1)}>";
+				result = $"{result}<{new string(',', typeInfo.GenericTypeParameters.Length - 1)}>";
 			else if (typeInfo.IsGenericType)
 			{
 				if (typeInfo.GetGenericTypeDefinition() == typeof(Nullable<>))
-					name = FormatTypeName(typeInfo.GenericTypeArguments[0]) + "?";
+					result = FormatTypeName(typeInfo.GenericTypeArguments[0]) + "?";
 				else
-					name = $"{name}<{string.Join(", ", typeInfo.GenericTypeArguments.Select(FormatTypeName))}>";
+					result = $"{result}<{string.Join(", ", typeInfo.GenericTypeArguments.Select(FormatTypeName))}>";
 			}
 
-			return name + arraySuffix;
+			return result + arraySuffix;
 		}
 
 		static string FormatUnsafeEnumerableValue(IEnumerable enumerable)

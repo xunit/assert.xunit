@@ -136,7 +136,7 @@ namespace Xunit.Sdk
 				if (idx == mismatchedIndex)
 					pointerIndent = printedValues.Length;
 
-				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth + 1));
+				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth));
 			}
 
 			if (moreItemsPastEndIndex())
@@ -225,7 +225,7 @@ namespace Xunit.Sdk
 				if (idx != 0)
 					printedValues.Append(", ");
 
-				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth + 1));
+				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth));
 			}
 
 			if (currentIndex >= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)

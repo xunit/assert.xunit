@@ -3,7 +3,6 @@
 #endif
 
 using System;
-using System.Collections.Generic;
 using Xunit.Internal;
 
 namespace Xunit.Sdk
@@ -18,13 +17,6 @@ namespace Xunit.Sdk
 #endif
 	class EqualException : XunitException
 	{
-		static readonly Dictionary<char, string> encodings = new Dictionary<char, string>
-		{
-			{ '\r', "\\r" },
-			{ '\n', "\\n" },
-			{ '\t', "\\t" },
-			{ '\0', "\\0" }
-		};
 		static readonly string newLineAndIndent = Environment.NewLine + new string(' ', 10);  // Length of "Expected: " and "Actual:   "
 
 		EqualException(string message) :
@@ -78,32 +70,6 @@ namespace Xunit.Sdk
 		}
 
 		/// <summary>
-		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two values
-		/// are not equal. This may be simple values (like intrinsics) or complex values (like
-		/// classes or structs).
-		/// </summary>
-		/// <param name="expected">The expected value</param>
-		/// <param name="actual">The actual value</param>
-		public static EqualException ForMismatchedValues(
-#if XUNIT_NULLABLE
-			object? expected,
-			object? actual)
-#else
-			object expected,
-			object actual)
-#endif
-		{
-			var expectedText = expected?.ToString() ?? "(null)";
-			var actualText = actual?.ToString() ?? "(null)";
-
-			return new EqualException(
-				"Assert.Equal() Failure: Values differ" + Environment.NewLine +
-				"Expected: " + expectedText.Replace(Environment.NewLine, newLineAndIndent) + Environment.NewLine +
-				"Actual:   " + actualText.Replace(Environment.NewLine, newLineAndIndent)
-			);
-		}
-
-		/// <summary>
 		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two string
 		/// values are not equal.
 		/// </summary>
@@ -141,6 +107,43 @@ namespace Xunit.Sdk
 				message += newLineAndIndent + new string(' ', actualPointer) + $"↑ (pos {actualIndex})";
 
 			return new EqualException(message);
+		}
+
+		/// <summary>
+		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two values
+		/// are not equal. This may be simple values (like intrinsics) or complex values (like
+		/// classes or structs).
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
+		/// <param name="banner">The banner to show; if <c>null</c>, then the standard
+		/// banner of "Values differ" will be used</param>
+		public static EqualException ForMismatchedValues(
+#if XUNIT_NULLABLE
+			object? expected,
+			object? actual,
+			string? banner = null)
+#else
+			object expected,
+			object actual,
+			string banner = null)
+#endif
+		{
+			// Strings normally come through ForMismatchedStrings, so we want to make sure any
+			// string value that comes through here isn't re-formatted/truncated. This is for
+			// two reasons: (a) to support Assert.Equal<object>(string1, string2) to get a full
+			// printout of the raw string values, which is useful when debugging; and (b) to
+			// allow the assertion functions to pre-format the value themselves, perhaps with
+			// additional information (like DateTime/DateTimeOffset when providing the precision
+			// of the comparison).
+			var expectedText = expected as string ?? ArgumentFormatter2.Format(expected);
+			var actualText = actual as string ?? ArgumentFormatter2.Format(actual);
+
+			return new EqualException(
+				"Assert.Equal() Failure: " + (banner ?? "Values differ") + Environment.NewLine +
+				"Expected: " + expectedText.Replace(Environment.NewLine, newLineAndIndent) + Environment.NewLine +
+				"Actual:   " + actualText.Replace(Environment.NewLine, newLineAndIndent)
+			);
 		}
 	}
 }
