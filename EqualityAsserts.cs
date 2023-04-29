@@ -734,13 +734,20 @@ namespace Xunit
 		public static void NotStrictEqual<T>(
 #if XUNIT_NULLABLE
 			[AllowNull] T expected,
-			[AllowNull] T actual) =>
-				NotEqual(expected, actual, EqualityComparer<T?>.Default);
+			[AllowNull] T actual)
 #else
 			T expected,
-			T actual) =>
-				NotEqual(expected, actual, EqualityComparer<T>.Default);
+			T actual)
 #endif
+		{
+			if (!EqualityComparer<T>.Default.Equals(expected, actual))
+				return;
+
+			throw NotStrictEqualException.ForEqualValues(
+				ArgumentFormatter2.Format(expected),
+				ArgumentFormatter2.Format(actual)
+			);
+		}
 
 		/// <summary>
 		/// Verifies that two objects are strictly equal, using the type's default comparer.
