@@ -23,6 +23,7 @@ namespace Xunit
 		static Type typeofDictionary = typeof(Dictionary<,>);
 		static Type typeofHashSet = typeof(HashSet<>);
 		static Type typeofSet = typeof(ISet<>);
+		static Type typeofString = typeof(string);
 
 #if XUNIT_NULLABLE
 		static IEnumerable? AsNonStringEnumerable(object? value) =>
@@ -505,8 +506,57 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			if (comparer.Equals(expected, actual))
-				throw new NotEqualException(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual));
+			// TODO: Use trackers for inequality testing to prevent double enumeration
+
+			if (!comparer.Equals(expected, actual))
+				return;
+
+			var expectedTracker = AsNonStringTracker(expected);
+			var actualTracker = AsNonStringTracker(actual);
+
+			var formattedExpected = expectedTracker != null ? expectedTracker.FormatStart() : ArgumentFormatter2.Format(expected);
+			var formattedActual = actualTracker != null ? actualTracker.FormatStart() : ArgumentFormatter2.Format(actual);
+
+			if (expected is IEnumerable || actual is IEnumerable)
+			{
+
+#if XUNIT_NULLABLE
+				string? collectionDisplay = null;
+#else
+				string collectionDisplay = null;
+#endif
+
+				var expectedType = expected?.GetType();
+				var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
+				var expectedInterfaceTypeDefinitions = expectedType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+				var actualType = actual?.GetType();
+				var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
+				var actualInterfaceTypeDefinitions = actualType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+
+				if (expectedType == typeofString && actualType == typeofString)
+					collectionDisplay = "Strings";
+				else if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
+					collectionDisplay = "Dictionaries";
+				else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
+					collectionDisplay = "HashSets";
+				else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
+					collectionDisplay = "Sets";
+
+				if (expectedType != actualType)
+				{
+					var expectedTypeName = expectedType == null ? "" : ArgumentFormatter2.FormatTypeName(expectedType) + " ";
+					var actualTypeName = actualType == null ? "" : ArgumentFormatter2.FormatTypeName(actualType) + " ";
+
+					var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
+
+					formattedExpected = expectedTypeName.PadRight(typeNameIndent) + formattedExpected;
+					formattedActual = actualTypeName.PadRight(typeNameIndent) + formattedActual;
+				}
+
+				throw NotEqualException.ForEqualCollections(formattedExpected, formattedActual, collectionDisplay);
+			}
+
+			throw NotEqualException.ForEqualValues(formattedExpected, formattedActual);
 		}
 
 		/// <summary>
@@ -525,7 +575,132 @@ namespace Xunit
 			var actualRounded = Math.Round(actual, precision);
 
 			if (object.Equals(expectedRounded, actualRounded))
-				throw new NotEqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
+				throw NotEqualException.ForEqualValues(
+					$"{expectedRounded:G17} (rounded from {expected:G17})",
+					$"{actualRounded:G17} (rounded from {actual:G17})",
+					$"Values are within {precision} decimal places"
+				);
+		}
+
+		/// <summary>
+		/// Verifies that two <see cref="double"/> values are not equal, within the number of decimal
+		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
+		/// The rounding method to use is given by <paramref name="rounding" />
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+		/// <param name="rounding">Rounding method to use to process a number that is midway between two numbers</param>
+		public static void NotEqual(
+			double expected,
+			double actual,
+			int precision,
+			MidpointRounding rounding)
+		{
+			var expectedRounded = Math.Round(expected, precision, rounding);
+			var actualRounded = Math.Round(actual, precision, rounding);
+
+			if (object.Equals(expectedRounded, actualRounded))
+				throw NotEqualException.ForEqualValues(
+					$"{expectedRounded:G17} (rounded from {expected:G17})",
+					$"{actualRounded:G17} (rounded from {actual:G17})",
+					$"Values are within {precision} decimal places"
+				);
+		}
+
+		/// <summary>
+		/// Verifies that two <see cref="double"/> values are not equal, within the tolerance given by
+		/// <paramref name="tolerance"/> (positive or negative).
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="tolerance">The allowed difference between values</param>
+		public static void NotEqual(
+			double expected,
+			double actual,
+			double tolerance)
+		{
+			if (double.IsNaN(tolerance) || double.IsNegativeInfinity(tolerance) || tolerance < 0.0)
+				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
+
+			if (object.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance)
+				throw NotEqualException.ForEqualValues(
+					expected.ToString("G17"),
+					actual.ToString("G17"),
+					$"Values are within tolerance {tolerance:G17}"
+				);
+		}
+
+		/// <summary>
+		/// Verifies that two <see cref="float"/> values are not equal, within the number of decimal
+		/// places given by <paramref name="precision"/>.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+		public static void NotEqual(
+			float expected,
+			float actual,
+			int precision)
+		{
+			var expectedRounded = Math.Round(expected, precision);
+			var actualRounded = Math.Round(actual, precision);
+
+			if (object.Equals(expectedRounded, actualRounded))
+				throw NotEqualException.ForEqualValues(
+					$"{expectedRounded:G9} (rounded from {expected:G9})",
+					$"{actualRounded:G9} (rounded from {actual:G9})",
+					$"Values are within {precision} decimal places"
+				);
+		}
+
+		/// <summary>
+		/// Verifies that two <see cref="float"/> values are not equal, within the number of decimal
+		/// places given by <paramref name="precision"/>. The values are rounded before comparison.
+		/// The rounding method to use is given by <paramref name="rounding" />
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="precision">The number of decimal places (valid values: 0-15)</param>
+		/// <param name="rounding">Rounding method to use to process a number that is midway between two numbers</param>
+		public static void NotEqual(
+			float expected,
+			float actual,
+			int precision,
+			MidpointRounding rounding)
+		{
+			var expectedRounded = Math.Round(expected, precision, rounding);
+			var actualRounded = Math.Round(actual, precision, rounding);
+
+			if (object.Equals(expectedRounded, actualRounded))
+				throw NotEqualException.ForEqualValues(
+					$"{expectedRounded:G9} (rounded from {expected:G9})",
+					$"{actualRounded:G9} (rounded from {actual:G9})",
+					$"Values are within {precision} decimal places"
+				);
+		}
+
+		/// <summary>
+		/// Verifies that two <see cref="float"/> values are not equal, within the tolerance given by
+		/// <paramref name="tolerance"/> (positive or negative).
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="tolerance">The allowed difference between values</param>
+		public static void NotEqual(
+			float expected,
+			float actual,
+			float tolerance)
+		{
+			if (float.IsNaN(tolerance) || float.IsNegativeInfinity(tolerance) || tolerance < 0.0)
+				throw new ArgumentException("Tolerance must be greater than or equal to zero", nameof(tolerance));
+
+			if (object.Equals(expected, actual) || Math.Abs(expected - actual) <= tolerance)
+				throw NotEqualException.ForEqualValues(
+					expected.ToString("G9"),
+					actual.ToString("G9"),
+					$"Values are within tolerance {tolerance:G9}"
+				);
 		}
 
 		/// <summary>
@@ -544,7 +719,10 @@ namespace Xunit
 			var actualRounded = Math.Round(actual, precision);
 
 			if (expectedRounded == actualRounded)
-				throw new NotEqualException($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
+				throw NotEqualException.ForEqualValues(
+					$"{expectedRounded} (rounded from {expected})",
+					$"{actualRounded} (rounded from {actual})"
+				);
 		}
 
 		/// <summary>
