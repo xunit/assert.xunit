@@ -2,7 +2,7 @@
 #nullable enable
 #endif
 
-using System.Collections;
+using System;
 
 namespace Xunit.Sdk
 {
@@ -14,17 +14,25 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class ProperSupersetException : AssertActualExpectedException
+	class ProperSupersetException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="ProperSupersetException"/> class.
-		/// </summary>
-#if XUNIT_NULLABLE
-		public ProperSupersetException(IEnumerable expected, IEnumerable? actual)
-#else
-		public ProperSupersetException(IEnumerable expected, IEnumerable actual)
-#endif
-			: base(expected, actual, "Assert.ProperSuperset() Failure")
+		ProperSupersetException(string message) :
+			base(message)
 		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="ProperSubsetException"/> class to be thrown
+		/// when a set is not a proper superset of another set
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
+		public static ProperSupersetException ForFailure(
+			string expected,
+			string actual) =>
+				new ProperSupersetException(
+					"Assert.ProperSuperset() Failure: Value is not a proper superset" + Environment.NewLine +
+					"Expected: " + expected + Environment.NewLine +
+					"Actual:   " + actual
+				);
 	}
 }
