@@ -20,7 +20,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="propertyName">The name of the property that was expected to be changed.</param>
 		public PropertyChangedException(string propertyName) :
-			base($"Assert.PropertyChanged failure: Property {propertyName} was not set")
+			base($"Assert.PropertyChanged() failure: Property '{propertyName}' was not set")
 		{ }
 	}
 }
