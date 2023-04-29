@@ -32,10 +32,10 @@ namespace Xunit
 			var raisedEvent = RaisesInternal(attach, detach, testCode);
 
 			if (raisedEvent == null)
-				throw new RaisesException(typeof(T));
+				throw RaisesException.ForNoEvent(typeof(T));
 
 			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
-				throw new RaisesException(typeof(T), raisedEvent.Arguments.GetType());
+				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
 		}
@@ -57,32 +57,7 @@ namespace Xunit
 			var raisedEvent = RaisesInternal(attach, detach, testCode);
 
 			if (raisedEvent == null)
-				throw new RaisesException(typeof(T));
-
-			return raisedEvent;
-		}
-
-		/// <summary>
-		/// Verifies that a event with the exact event args (and not a derived type) is raised.
-		/// </summary>
-		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
-		/// <param name="attach">Code to attach the event handler</param>
-		/// <param name="detach">Code to detach the event handler</param>
-		/// <param name="testCode">A delegate to the code to be tested</param>
-		/// <returns>The event sender and arguments wrapped in an object</returns>
-		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
-		public static async Task<RaisedEvent<T>> RaisesAsync<T>(
-			Action<EventHandler<T>> attach,
-			Action<EventHandler<T>> detach,
-			Func<Task> testCode)
-		{
-			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
-
-			if (raisedEvent == null)
-				throw new RaisesException(typeof(T));
-
-			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
-				throw new RaisesException(typeof(T), raisedEvent.Arguments.GetType());
+				throw RaisesAnyException.ForNoEvent(typeof(T));
 
 			return raisedEvent;
 		}
@@ -104,10 +79,87 @@ namespace Xunit
 			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
 
 			if (raisedEvent == null)
-				throw new RaisesException(typeof(T));
+				throw RaisesAnyException.ForNoEvent(typeof(T));
 
 			return raisedEvent;
 		}
+
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Verifies that an event with the exact or a derived event args is raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <returns>The event sender and arguments wrapped in an object</returns>
+		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
+		public static async ValueTask<RaisedEvent<T>> RaisesAnyAsync<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<ValueTask> testCode)
+		{
+			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
+
+			if (raisedEvent == null)
+				throw RaisesAnyException.ForNoEvent(typeof(T));
+
+			return raisedEvent;
+		}
+#endif
+
+		/// <summary>
+		/// Verifies that a event with the exact event args (and not a derived type) is raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <returns>The event sender and arguments wrapped in an object</returns>
+		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
+		public static async Task<RaisedEvent<T>> RaisesAsync<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<Task> testCode)
+		{
+			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
+
+			if (raisedEvent == null)
+				throw RaisesException.ForNoEvent(typeof(T));
+
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
+
+			return raisedEvent;
+		}
+
+#if XUNIT_VALUETASK
+		/// <summary>
+		/// Verifies that a event with the exact event args (and not a derived type) is raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <returns>The event sender and arguments wrapped in an object</returns>
+		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
+		public static async ValueTask<RaisedEvent<T>> RaisesAsync<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<ValueTask> testCode)
+		{
+			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode);
+
+			if (raisedEvent == null)
+				throw RaisesException.ForNoEvent(typeof(T));
+
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
+
+			return raisedEvent;
+		}
+
+#endif
 
 #if XUNIT_NULLABLE
 		static RaisedEvent<T>? RaisesInternal<T>(
@@ -160,6 +212,34 @@ namespace Xunit
 			detach(handler);
 			return raisedEvent;
 		}
+
+#if XUNIT_VALUETASK
+#if XUNIT_NULLABLE
+		static async ValueTask<RaisedEvent<T>?> RaisesAsyncInternal<T>(
+#else
+		static async Task<RaisedEvent<T>> RaisesAsyncInternal<T>(
+#endif
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<ValueTask> testCode)
+		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+#if XUNIT_NULLABLE
+			RaisedEvent<T>? raisedEvent = null;
+			void handler(object? s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
+#else
+			RaisedEvent<T> raisedEvent = null;
+			EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
+#endif
+			attach(handler);
+			await testCode();
+			detach(handler);
+			return raisedEvent;
+		}
+#endif
 
 		/// <summary>
 		/// Represents a raised event after the fact.
