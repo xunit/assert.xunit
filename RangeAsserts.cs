@@ -84,10 +84,13 @@ namespace Xunit
 			T high,
 			IComparer<T> comparer)
 		{
+			GuardArgumentNotNull(nameof(actual), actual);
+			GuardArgumentNotNull(nameof(low), low);
+			GuardArgumentNotNull(nameof(high), high);
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
 			if (comparer.Compare(low, actual) <= 0 && comparer.Compare(actual, high) <= 0)
-				throw new NotInRangeException(actual, low, high);
+				throw NotInRangeException.ForValueInRange(actual, low, high);
 		}
 	}
 }
