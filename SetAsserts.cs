@@ -174,7 +174,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedSubset), expectedSubset);
 
 			if (actual == null || !actual.IsProperSubsetOf(expectedSubset))
-				throw new ProperSubsetException(expectedSubset, actual);
+				throw ProperSubsetException.ForFailure(
+					CollectionTracker<T>.FormatStart(expectedSubset),
+					actual == null ? "null" : CollectionTracker<T>.FormatStart(actual)
+				);
 		}
 
 		/// <summary>
