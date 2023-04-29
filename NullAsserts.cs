@@ -44,7 +44,7 @@ namespace Xunit
 #endif
 		{
 			if (@object != null)
-				throw new NullException(@object);
+				throw NullException.ForNonNullValue(@object);
 		}
 	}
 }

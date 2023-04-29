@@ -2,6 +2,8 @@
 #nullable enable
 #endif
 
+using System;
+
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -12,14 +14,22 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class NullException : AssertActualExpectedException
+	class NullException : XunitException
 	{
+		NullException(string message) :
+			base(message)
+		{ }
+
 		/// <summary>
-		/// Creates a new instance of the <see cref="NullException"/> class.
+		/// Creates a new instance of the <see cref="NullException"/> class to be thrown
+		/// when the given value was unexpectedly not null.
 		/// </summary>
 		/// <param name="actual">The actual non-<c>null</c> value</param>
-		public NullException(object actual) :
-			base(null, actual, "Assert.Null() Failure")
-		{ }
+		public static NullException ForNonNullValue(object actual) =>
+			new NullException(
+				"Assert.Null() Failure: Value is not null" + Environment.NewLine +
+				"Expected: null" + Environment.NewLine +
+				"Actual:   " + ArgumentFormatter2.Format(actual)
+			);
 	}
 }
