@@ -28,7 +28,7 @@ namespace Xunit.Sdk
 		public static RaisesAnyException ForNoEvent(Type expected) =>
 			new RaisesAnyException(
 				"Assert.RaisesAny() Failure: No event was raised" + Environment.NewLine +
-				"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
+				"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
 				"Actual:   No event was raised"
 			);
 	}

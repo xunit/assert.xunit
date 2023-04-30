@@ -33,8 +33,8 @@ namespace Xunit.Sdk
 			object high) =>
 				new InRangeException(
 					"Assert.InRange() Failure: Value not in range" + Environment.NewLine +
-					"Range:  (" + ArgumentFormatter2.Format(low) + " - " + ArgumentFormatter2.Format(high) + ")" + Environment.NewLine +
-					"Actual: " + ArgumentFormatter2.Format(actual)
+					"Range:  (" + ArgumentFormatter.Format(low) + " - " + ArgumentFormatter.Format(high) + ")" + Environment.NewLine +
+					"Actual: " + ArgumentFormatter.Format(actual)
 				);
 	}
 }

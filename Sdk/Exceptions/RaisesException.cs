@@ -31,8 +31,8 @@ namespace Xunit.Sdk
 			Type actual) =>
 				new RaisesException(
 					"Assert.Raises() Failure: Wrong event type was raised" + Environment.NewLine +
-					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
-					"Actual:   " + ArgumentFormatter2.Format(actual)
+					"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
+					"Actual:   " + ArgumentFormatter.Format(actual)
 				);
 
 		/// <summary>
@@ -43,7 +43,7 @@ namespace Xunit.Sdk
 		public static RaisesException ForNoEvent(Type expected) =>
 			new RaisesException(
 				"Assert.Raises() Failure: No event was raised" + Environment.NewLine +
-				"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
+				"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
 				"Actual:   No event was raised"
 			);
 	}

@@ -37,8 +37,8 @@ namespace Xunit.Sdk
 			Exception actual) =>
 				new ThrowsException(
 					"Assert.Throws() Failure: Exception type was not an exact match" + Environment.NewLine +
-					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
-					"Actual:   " + ArgumentFormatter2.Format(actual.GetType()),
+					"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
+					"Actual:   " + ArgumentFormatter.Format(actual.GetType()),
 					actual
 				);
 
@@ -60,9 +60,9 @@ namespace Xunit.Sdk
 #endif
 				new ThrowsException(
 					"Assert.Throws() Failure: Incorrect parameter name" + Environment.NewLine +
-					"Exception: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
-					"Expected:  " + ArgumentFormatter2.Format(expectedParamName) + Environment.NewLine +
-					"Actual:    " + ArgumentFormatter2.Format(actualParamName)
+					"Exception: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
+					"Expected:  " + ArgumentFormatter.Format(expectedParamName) + Environment.NewLine +
+					"Actual:    " + ArgumentFormatter.Format(actualParamName)
 				);
 
 		/// <summary>
@@ -73,7 +73,7 @@ namespace Xunit.Sdk
 		public static ThrowsException ForNoException(Type expected) =>
 			new ThrowsException(
 				"Assert.Throws() Failure: No exception was thrown" + Environment.NewLine +
-				"Expected: " + ArgumentFormatter2.Format(expected)
+				"Expected: " + ArgumentFormatter.Format(expected)
 			);
 	}
 }

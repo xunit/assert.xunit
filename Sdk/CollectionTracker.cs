@@ -34,7 +34,7 @@ namespace Xunit.Sdk
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 			{
 				pointerIndent = 1;
-				return "[" + ArgumentFormatter2.Ellipsis + "]";
+				return "[" + ArgumentFormatter.Ellipsis + "]";
 			}
 
 			int startIndex;
@@ -88,7 +88,7 @@ namespace Xunit.Sdk
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 			{
 				pointerIndent = 1;
-				return "[" + ArgumentFormatter2.Ellipsis + "]";
+				return "[" + ArgumentFormatter.Ellipsis + "]";
 			}
 
 			var startIndex = Math.Max(0, (mismatchedIndex ?? 0) - ArgumentFormatter.MAX_ENUMERABLE_LENGTH_HALF);
@@ -126,7 +126,7 @@ namespace Xunit.Sdk
 
 			var printedValues = new StringBuilder("[");
 			if (startIndex != 0)
-				printedValues.Append(ArgumentFormatter2.Ellipsis + ", ");
+				printedValues.Append(ArgumentFormatter.Ellipsis + ", ");
 
 			for (var idx = startIndex; idx <= endIndex; ++idx)
 			{
@@ -136,11 +136,11 @@ namespace Xunit.Sdk
 				if (idx == mismatchedIndex)
 					pointerIndent = printedValues.Length;
 
-				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth));
+				printedValues.Append(ArgumentFormatter.Format(items[idx], depth));
 			}
 
 			if (moreItemsPastEndIndex())
-				printedValues.Append(", " + ArgumentFormatter2.Ellipsis);
+				printedValues.Append(", " + ArgumentFormatter.Ellipsis);
 
 			printedValues.Append(']');
 			return printedValues.ToString();
@@ -149,7 +149,7 @@ namespace Xunit.Sdk
 		public string FormatStart(int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
-				return "[" + ArgumentFormatter2.Ellipsis + "]";
+				return "[" + ArgumentFormatter.Ellipsis + "]";
 
 			if (enumerator == null)
 				enumerator = new Enumerator(collection.GetEnumerator());
@@ -167,7 +167,7 @@ namespace Xunit.Sdk
 			int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
-				return "[" + ArgumentFormatter2.Ellipsis + "]";
+				return "[" + ArgumentFormatter.Ellipsis + "]";
 
 			var startItems = new List<T>();
 			var currentIndex = -1;
@@ -192,7 +192,7 @@ namespace Xunit.Sdk
 			int depth = 1)
 		{
 			if (depth == ArgumentFormatter.MAX_DEPTH)
-				return "[" + ArgumentFormatter2.Ellipsis + "]";
+				return "[" + ArgumentFormatter.Ellipsis + "]";
 
 			var startItems = new List<T>();
 			var currentIndex = -1;
@@ -225,11 +225,11 @@ namespace Xunit.Sdk
 				if (idx != 0)
 					printedValues.Append(", ");
 
-				printedValues.Append(ArgumentFormatter.FormatInner(items[idx], depth));
+				printedValues.Append(ArgumentFormatter.Format(items[idx], depth));
 			}
 
 			if (currentIndex >= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
-				printedValues.Append(", " + ArgumentFormatter2.Ellipsis);
+				printedValues.Append(", " + ArgumentFormatter.Ellipsis);
 
 			printedValues.Append(']');
 			return printedValues.ToString();

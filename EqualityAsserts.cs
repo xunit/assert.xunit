@@ -192,8 +192,8 @@ namespace Xunit
 
 				if (expectedType != actualType)
 				{
-					var expectedTypeName = expectedType == null ? "" : ArgumentFormatter2.FormatTypeName(expectedType) + " ";
-					var actualTypeName = actualType == null ? "" : ArgumentFormatter2.FormatTypeName(actualType) + " ";
+					var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
+					var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
 
 					var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
 
@@ -402,7 +402,7 @@ namespace Xunit
 			if (difference > precision)
 			{
 				var actualValue =
-					ArgumentFormatter2.Format(actual) +
+					ArgumentFormatter.Format(actual) +
 					(precision == TimeSpan.Zero ? "" : $" (difference {difference} is larger than {precision})");
 
 				throw EqualException.ForMismatchedValues(expected, actualValue);
@@ -436,7 +436,7 @@ namespace Xunit
 			if (difference > precision)
 			{
 				var actualValue =
-					ArgumentFormatter2.Format(actual) +
+					ArgumentFormatter.Format(actual) +
 					(precision == TimeSpan.Zero ? "" : $" (difference {difference} is larger than {precision})");
 
 				throw EqualException.ForMismatchedValues(expected, actualValue);
@@ -514,8 +514,8 @@ namespace Xunit
 			var expectedTracker = AsNonStringTracker(expected);
 			var actualTracker = AsNonStringTracker(actual);
 
-			var formattedExpected = expectedTracker != null ? expectedTracker.FormatStart() : ArgumentFormatter2.Format(expected);
-			var formattedActual = actualTracker != null ? actualTracker.FormatStart() : ArgumentFormatter2.Format(actual);
+			var formattedExpected = expectedTracker != null ? expectedTracker.FormatStart() : ArgumentFormatter.Format(expected);
+			var formattedActual = actualTracker != null ? actualTracker.FormatStart() : ArgumentFormatter.Format(actual);
 
 			if (expected is IEnumerable || actual is IEnumerable)
 			{
@@ -544,8 +544,8 @@ namespace Xunit
 
 				if (expectedType != actualType)
 				{
-					var expectedTypeName = expectedType == null ? "" : ArgumentFormatter2.FormatTypeName(expectedType) + " ";
-					var actualTypeName = actualType == null ? "" : ArgumentFormatter2.FormatTypeName(actualType) + " ";
+					var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
+					var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
 
 					var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
 
@@ -744,8 +744,8 @@ namespace Xunit
 				return;
 
 			throw NotStrictEqualException.ForEqualValues(
-				ArgumentFormatter2.Format(expected),
-				ArgumentFormatter2.Format(actual)
+				ArgumentFormatter.Format(expected),
+				ArgumentFormatter.Format(actual)
 			);
 		}
 
@@ -768,8 +768,8 @@ namespace Xunit
 				return;
 
 			throw StrictEqualException.ForEqualValues(
-				ArgumentFormatter2.Format(expected),
-				ArgumentFormatter2.Format(actual)
+				ArgumentFormatter.Format(expected),
+				ArgumentFormatter.Format(actual)
 			);
 		}
 	}

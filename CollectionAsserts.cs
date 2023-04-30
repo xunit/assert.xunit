@@ -554,7 +554,7 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter2.Format(expected));
+			GetSingleResult(collection.Cast<object>(), item => object.Equals(item, expected), ArgumentFormatter.Format(expected));
 		}
 
 		/// <summary>

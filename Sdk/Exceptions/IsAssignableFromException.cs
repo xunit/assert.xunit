@@ -35,8 +35,8 @@ namespace Xunit.Sdk
 #endif
 				new IsAssignableFromException(
 					"Assert.IsAssignableFrom() Failure: Value is " + (actual == null ? "null" : "an incompatible type") + Environment.NewLine +
-					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
-					"Actual:   " + ArgumentFormatter2.Format(actual?.GetType())
+					"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
+					"Actual:   " + ArgumentFormatter.Format(actual?.GetType())
 				);
 	}
 }

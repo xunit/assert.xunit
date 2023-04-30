@@ -29,7 +29,7 @@ namespace Xunit.Sdk
 			new NullException(
 				"Assert.Null() Failure: Value is not null" + Environment.NewLine +
 				"Expected: null" + Environment.NewLine +
-				"Actual:   " + ArgumentFormatter2.Format(actual)
+				"Actual:   " + ArgumentFormatter.Format(actual)
 			);
 	}
 }

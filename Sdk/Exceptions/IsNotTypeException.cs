@@ -27,7 +27,7 @@ namespace Xunit.Sdk
 		/// <param name="type">The expected type</param>
 		public static IsNotTypeException ForExactType(Type type)
 		{
-			var formattedType = ArgumentFormatter2.Format(type);
+			var formattedType = ArgumentFormatter.Format(type);
 
 			return new IsNotTypeException(
 				"Assert.IsNotType() Failure: Value is the exact type" + Environment.NewLine +

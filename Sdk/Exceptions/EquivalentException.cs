@@ -71,8 +71,8 @@ namespace Xunit.Sdk
 #endif
 			string memberName)
 		{
-			var formattedExpected = ArgumentFormatter2.Format(expected);
-			var formattedActual = ArgumentFormatter2.Format(actual);
+			var formattedExpected = ArgumentFormatter.Format(expected);
+			var formattedActual = ArgumentFormatter.Format(actual);
 
 			if (formattedExpected == formattedActual && expected != null && actual != null)
 			{
@@ -112,8 +112,8 @@ namespace Xunit.Sdk
 			string memberName) =>
 				new EquivalentException(
 					"Assert.Equivalent() Failure: Collection value not found" + (memberName == string.Empty ? string.Empty : $" in member '{memberName}'") + Environment.NewLine +
-					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
-					"In:       " + ArgumentFormatter2.Format(actual)
+					"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
+					"In:       " + ArgumentFormatter.Format(actual)
 				);
 
 		/// <summary>
@@ -141,8 +141,8 @@ namespace Xunit.Sdk
 			string memberName) =>
 				new EquivalentException(
 					"Assert.Equivalent() Failure: Extra values found" + (memberName == string.Empty ? string.Empty : $" in member '{memberName}'") + Environment.NewLine +
-					"Expected: " + ArgumentFormatter2.Format(expected) + Environment.NewLine +
-					"Actual:   " + ArgumentFormatter2.Format(actualLeftovers) + " left over from " + ArgumentFormatter2.Format(actual)
+					"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
+					"Actual:   " + ArgumentFormatter.Format(actualLeftovers) + " left over from " + ArgumentFormatter.Format(actual)
 				);
 	}
 }

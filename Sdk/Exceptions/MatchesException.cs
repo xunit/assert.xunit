@@ -35,8 +35,8 @@ namespace Xunit.Sdk
 #endif
 				new MatchesException(
 					"Assert.Matches() Failure: Pattern not found in value" + Environment.NewLine +
-					"Regex: " + ArgumentFormatter2.Format(expectedRegexPattern) + Environment.NewLine +
-					"Value: " + ArgumentFormatter2.Format(actual)
+					"Regex: " + ArgumentFormatter.Format(expectedRegexPattern) + Environment.NewLine +
+					"Value: " + ArgumentFormatter.Format(actual)
 				);
 	}
 }

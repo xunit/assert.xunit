@@ -90,7 +90,7 @@ namespace Xunit.Internal
 
 			if (start > 0)
 			{
-				printedValue.Append(ArgumentFormatter2.Ellipsis);
+				printedValue.Append(ArgumentFormatter.Ellipsis);
 				pointerIndent += 3;
 			}
 
@@ -123,7 +123,7 @@ namespace Xunit.Internal
 			printedValue.Append('\"');
 
 			if (end < value.Length)
-				printedValue.Append(ArgumentFormatter2.Ellipsis);
+				printedValue.Append(ArgumentFormatter.Ellipsis);
 
 			return printedValue.ToString();
 		}

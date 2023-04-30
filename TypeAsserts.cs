@@ -123,13 +123,13 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
 
 			if (@object == null)
-				throw IsTypeException.ForMismatchedType(ArgumentFormatter2.Format(expectedType), null);
+				throw IsTypeException.ForMismatchedType(ArgumentFormatter.Format(expectedType), null);
 
 			var actualType = @object.GetType();
 			if (expectedType != actualType)
 			{
-				var expectedTypeName = ArgumentFormatter2.Format(expectedType);
-				var actualTypeName = ArgumentFormatter2.Format(actualType);
+				var expectedTypeName = ArgumentFormatter.Format(expectedType);
+				var actualTypeName = ArgumentFormatter.Format(actualType);
 
 				if (expectedTypeName == actualTypeName)
 				{

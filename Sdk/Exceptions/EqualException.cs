@@ -136,8 +136,8 @@ namespace Xunit.Sdk
 			// allow the assertion functions to pre-format the value themselves, perhaps with
 			// additional information (like DateTime/DateTimeOffset when providing the precision
 			// of the comparison).
-			var expectedText = expected as string ?? ArgumentFormatter2.Format(expected);
-			var actualText = actual as string ?? ArgumentFormatter2.Format(actual);
+			var expectedText = expected as string ?? ArgumentFormatter.Format(expected);
+			var actualText = actual as string ?? ArgumentFormatter.Format(actual);
 
 			return new EqualException(
 				"Assert.Equal() Failure: " + (banner ?? "Values differ") + Environment.NewLine +
