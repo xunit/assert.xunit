@@ -246,7 +246,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedSuperset), expectedSuperset);
 
 			if (actual == null || !actual.IsSupersetOf(expectedSuperset))
-				throw new SupersetException(expectedSuperset, actual);
+				throw SupersetException.ForFailure(
+					CollectionTracker<T>.FormatStart(expectedSuperset),
+					actual == null ? "null" : CollectionTracker<T>.FormatStart(actual)
+				);
 		}
 	}
 }
