@@ -17,14 +17,8 @@ namespace Xunit.Sdk
 #endif
 	class CollectionException : XunitException
 	{
-		CollectionException(
-			string message,
-#if XUNIT_NULLABLE
-			string? stackTrace = null) :
-#else
-			string stackTrace = null) :
-#endif
-				base(message, stackTrace)
+		CollectionException(string message) :
+			base(message)
 		{ }
 
 		static string FormatInnerException(Exception innerException)
