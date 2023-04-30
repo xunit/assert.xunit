@@ -758,12 +758,19 @@ namespace Xunit
 		public static void StrictEqual<T>(
 #if XUNIT_NULLABLE
 			[AllowNull] T expected,
-			[AllowNull] T actual) =>
-				Equal(expected, actual, EqualityComparer<T?>.Default);
+			[AllowNull] T actual)
 #else
 			T expected,
-			T actual) =>
-				Equal(expected, actual, EqualityComparer<T>.Default);
+			T actual)
 #endif
+		{
+			if (EqualityComparer<T>.Default.Equals(expected, actual))
+				return;
+
+			throw StrictEqualException.ForEqualValues(
+				ArgumentFormatter2.Format(expected),
+				ArgumentFormatter2.Format(actual)
+			);
+		}
 	}
 }
