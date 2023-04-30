@@ -7,14 +7,15 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// The base assert exception class
+	/// The base assert exception class. It marks itself with <see cref="IAssertionException"/> which is how
+	/// the framework differentiates between assertion fails and general exceptions.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class XunitException : Exception, IAssertionException
+	partial class XunitException : Exception, IAssertionException
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="XunitException"/> class.

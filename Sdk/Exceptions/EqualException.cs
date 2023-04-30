@@ -8,14 +8,14 @@ using Xunit.Internal;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when two values are unexpectedly not equal.
+	/// Exception thrown when Assert.Equal fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class EqualException : XunitException
+	partial class EqualException : XunitException
 	{
 		static readonly string newLineAndIndent = Environment.NewLine + new string(' ', 10);  // Length of "Expected: " and "Actual:   "
 

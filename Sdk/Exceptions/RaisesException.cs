@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when code unexpectedly fails to raise an event.
+	/// Exception thrown when Assert.Raises fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class RaisesException : XunitException
+	partial class RaisesException : XunitException
 	{
 		RaisesException(string message) :
 			base(message)

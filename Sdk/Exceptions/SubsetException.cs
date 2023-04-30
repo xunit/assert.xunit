@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a set is not a subset of another set.
+	/// Exception thrown when Assert.Subset fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class SubsetException : XunitException
+	partial class SubsetException : XunitException
 	{
 		SubsetException(string message) :
 			base(message)

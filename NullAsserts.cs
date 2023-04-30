@@ -29,7 +29,7 @@ namespace Xunit
 #endif
 		{
 			if (@object == null)
-				throw new NotNullException();
+				throw NotNullException.ForNullValue();
 		}
 
 		/// <summary>

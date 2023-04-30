@@ -7,21 +7,21 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a set is not a proper superset of another set.
+	/// Exception thrown when Assert.ProperSuperset fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class ProperSupersetException : XunitException
+	partial class ProperSupersetException : XunitException
 	{
 		ProperSupersetException(string message) :
 			base(message)
 		{ }
 
 		/// <summary>
-		/// Creates a new instance of the <see cref="ProperSubsetException"/> class to be thrown
+		/// Creates a new instance of the <see cref="ProperSupersetException"/> class to be thrown
 		/// when a set is not a proper superset of another set
 		/// </summary>
 		/// <param name="expected">The expected value</param>

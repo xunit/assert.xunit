@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a string does not match a regular expression.
+	/// Exception thrown when Assert.Matches fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class MatchesException : XunitException
+	partial class MatchesException : XunitException
 	{
 		MatchesException(string message) :
 			base(message)

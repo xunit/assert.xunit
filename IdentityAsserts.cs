@@ -29,7 +29,7 @@ namespace Xunit
 #endif
 		{
 			if (object.ReferenceEquals(expected, actual))
-				throw new NotSameException();
+				throw NotSameException.ForSameValues();
 		}
 
 		/// <summary>

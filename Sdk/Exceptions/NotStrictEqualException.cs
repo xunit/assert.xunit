@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when two values are unexpectedly strictly equal.
+	/// Exception thrown when Assert.NotStrictEqual fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class NotStrictEqualException : XunitException
+	partial class NotStrictEqualException : XunitException
 	{
 		NotStrictEqualException(string message) :
 			base(message)

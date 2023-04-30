@@ -8,14 +8,14 @@ using Xunit.Internal;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a string does not end with the expected value.
+	/// Exception thrown when Assert.EndsWith fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class EndsWithException : XunitException
+	partial class EndsWithException : XunitException
 	{
 		EndsWithException(string message) :
 			base(message)

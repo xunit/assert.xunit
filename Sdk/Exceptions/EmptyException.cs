@@ -8,14 +8,14 @@ using Xunit.Internal;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a collection is unexpectedly not empty.
+	/// Exception thrown when Assert.Empty fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class EmptyException : XunitException
+	partial class EmptyException : XunitException
 	{
 		EmptyException(string message) :
 			base(message)

@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when code unexpectedly fails to throw an exception.
+	/// Exception thrown when Assert.Throws fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class ThrowsException : XunitException
+	partial class ThrowsException : XunitException
 	{
 		ThrowsException(
 			string message,

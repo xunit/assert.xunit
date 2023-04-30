@@ -43,7 +43,7 @@ namespace Xunit
 			{
 				testCode();
 				if (!propertyChangeHappened)
-					throw new PropertyChangedException(propertyName);
+					throw PropertyChangedException.ForUnsetProperty(propertyName);
 			}
 			finally
 			{
@@ -102,7 +102,7 @@ namespace Xunit
 			{
 				await testCode();
 				if (!propertyChangeHappened)
-					throw new PropertyChangedException(propertyName);
+					throw PropertyChangedException.ForUnsetProperty(propertyName);
 			}
 			finally
 			{
@@ -138,7 +138,7 @@ namespace Xunit
 			{
 				await testCode();
 				if (!propertyChangeHappened)
-					throw new PropertyChangedException(propertyName);
+					throw PropertyChangedException.ForUnsetProperty(propertyName);
 			}
 			finally
 			{

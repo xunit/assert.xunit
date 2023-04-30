@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a value is unexpectedly true.
+	/// Exception thrown when Assert.False fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class FalseException : XunitException
+	partial class FalseException : XunitException
 	{
 		FalseException(string message) :
 			base(message)

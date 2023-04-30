@@ -15,7 +15,7 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class CollectionException : XunitException
+	partial class CollectionException : XunitException
 	{
 		CollectionException(string message) :
 			base(message)

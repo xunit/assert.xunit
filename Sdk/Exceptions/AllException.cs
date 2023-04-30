@@ -9,14 +9,14 @@ using System.Linq;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when an All assertion has one or more items fail an assertion.
+	/// Exception thrown when Assert.All fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class AllException : XunitException
+	partial class AllException : XunitException
 	{
 		AllException(string message) :
 			base(message)

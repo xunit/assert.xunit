@@ -8,14 +8,14 @@ using System.Collections.Generic;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when the collection did not contain exactly one element.
+	/// Exception thrown when Assert.Single fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class SingleException : XunitException
+	partial class SingleException : XunitException
 	{
 		SingleException(string errorMessage)
 			: base(errorMessage)

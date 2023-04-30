@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when an object reference is unexpectedly not null.
+	/// Exception thrown when Assert.Null fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class NullException : XunitException
+	partial class NullException : XunitException
 	{
 		NullException(string message) :
 			base(message)

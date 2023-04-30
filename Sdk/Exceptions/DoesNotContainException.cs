@@ -8,14 +8,14 @@ using Xunit.Internal;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a collection unexpectedly does not contain the expected value.
+	/// Exception thrown when Assert.DoesNotContain fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class DoesNotContainException : XunitException
+	partial class DoesNotContainException : XunitException
 	{
 		DoesNotContainException(string message) :
 			base(message)

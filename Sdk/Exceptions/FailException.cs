@@ -5,14 +5,14 @@
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when the user calls <see cref="Assert"/>.<see cref="Assert.Fail(string)"/>.
+	/// Exception thrown when Assert.Fail is called.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class FailException : XunitException
+	partial class FailException : XunitException
 	{
 		FailException(string message) :
 			base(message)

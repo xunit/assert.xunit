@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when the value is unexpectedly of the exact given type.
+	/// Exception thrown when Assert.IsNotType fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class IsNotTypeException : XunitException
+	partial class IsNotTypeException : XunitException
 	{
 		IsNotTypeException(string message) :
 			base(message)

@@ -5,20 +5,24 @@
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when an object is unexpectedly null.
+	/// Exception thrown when Assert.NotNull fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class NotNullException : XunitException
+	partial class NotNullException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="NotNullException"/> class.
-		/// </summary>
-		public NotNullException() :
-			base("Assert.NotNull() Failure: Value is null")
+		NotNullException(string message) :
+			base(message)
 		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="NotNullException"/> class to be
+		/// thrown when a value is <c>null</c>.
+		/// </summary>
+		public static NotNullException ForNullValue() =>
+			new NotNullException("Assert.NotNull() Failure: Value is null");
 	}
 }

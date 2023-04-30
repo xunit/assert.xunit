@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when two object references are unexpectedly not the same instance.
+	/// Exception thrown when Assert.Same fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class SameException : XunitException
+	partial class SameException : XunitException
 	{
 		SameException(string message) :
 			base(message)

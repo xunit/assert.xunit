@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a value is unexpectedly in the given range.
+	/// Exception thrown when Assert.NotInRange fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class NotInRangeException : XunitException
+	partial class NotInRangeException : XunitException
 	{
 		NotInRangeException(string message) :
 			base(message)

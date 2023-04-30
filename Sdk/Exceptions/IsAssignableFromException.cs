@@ -7,14 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when the value is unexpectedly not of the given type or a derived type.
+	/// Exception thrown when Assert.IsAssignableFrom fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class IsAssignableFromException : XunitException
+	partial class IsAssignableFromException : XunitException
 	{
 		IsAssignableFromException(string message) :
 			base(message)

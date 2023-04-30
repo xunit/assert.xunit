@@ -5,14 +5,14 @@
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a collection is unexpectedly empty.
+	/// Exception thrown when Assert.NotEmpty fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class NotEmptyException : XunitException
+	partial class NotEmptyException : XunitException
 	{
 		NotEmptyException(string message) :
 			base(message)

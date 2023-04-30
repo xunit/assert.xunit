@@ -7,16 +7,14 @@ using System;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when <see cref="Assert.Distinct{T}(System.Collections.Generic.IEnumerable{T})" />
-	/// or <see cref="Assert.Distinct{T}(System.Collections.Generic.IEnumerable{T}, System.Collections.Generic.IEqualityComparer{T})" />
-	/// finds a duplicate entry in the collection.
+	/// Exception thrown when Assert.Distinct fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class DistinctException : XunitException
+	partial class DistinctException : XunitException
 	{
 		DistinctException(string message) :
 			base(message)

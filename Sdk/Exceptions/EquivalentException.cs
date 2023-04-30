@@ -9,14 +9,14 @@ using System.Linq;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when two values are unexpectedly not equal.
+	/// Exception thrown when Assert.Equivalent fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class EquivalentException : XunitException
+	partial class EquivalentException : XunitException
 	{
 		EquivalentException(string message) :
 			base(message)

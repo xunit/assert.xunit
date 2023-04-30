@@ -8,21 +8,21 @@ using Xunit.Internal;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// Exception thrown when a string does not start with the expected value.
+	/// Exception thrown when Assert.StartsWith fails.
 	/// </summary>
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class StartsWithException : XunitException
+	partial class StartsWithException : XunitException
 	{
 		StartsWithException(string message) :
 			base(message)
 		{ }
 
 		/// <summary>
-		/// Creates an instance of the <see cref="EndsWithException"/> class to be thrown
+		/// Creates an instance of the <see cref="StartsWithException"/> class to be thrown
 		/// when a string does not start with the given value.
 		/// </summary>
 		/// <param name="expected">The expected start</param>
