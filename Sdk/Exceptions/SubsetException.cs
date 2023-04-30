@@ -2,7 +2,7 @@
 #nullable enable
 #endif
 
-using System.Collections;
+using System;
 
 namespace Xunit.Sdk
 {
@@ -14,17 +14,25 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	class SubsetException : AssertActualExpectedException
+	class SubsetException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="SubsetException"/> class.
-		/// </summary>
-#if XUNIT_NULLABLE
-		public SubsetException(IEnumerable expected, IEnumerable? actual)
-#else
-		public SubsetException(IEnumerable expected, IEnumerable actual)
-#endif
-			: base(expected, actual, "Assert.Subset() Failure")
+		SubsetException(string message) :
+			base(message)
 		{ }
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="SubsetException"/> class to be thrown
+		/// when a set is not a subset of another set
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
+		public static SubsetException ForFailure(
+			string expected,
+			string actual) =>
+				new SubsetException(
+					"Assert.Subset() Failure: Value is not a subset" + Environment.NewLine +
+					"Expected: " + expected + Environment.NewLine +
+					"Actual:   " + actual
+				);
 	}
 }

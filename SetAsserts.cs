@@ -222,7 +222,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedSubset), expectedSubset);
 
 			if (actual == null || !actual.IsSubsetOf(expectedSubset))
-				throw new SubsetException(expectedSubset, actual);
+				throw SubsetException.ForFailure(
+					CollectionTracker<T>.FormatStart(expectedSubset),
+					actual == null ? "null" : CollectionTracker<T>.FormatStart(actual)
+				);
 		}
 
 		/// <summary>
