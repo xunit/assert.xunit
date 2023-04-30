@@ -140,7 +140,7 @@ namespace Xunit
 #endif
 		{
 			if (!condition.HasValue || !condition.GetValueOrDefault())
-				throw new TrueException(userMessage, condition);
+				throw TrueException.ForNonTrueValue(userMessage, condition);
 		}
 	}
 }
