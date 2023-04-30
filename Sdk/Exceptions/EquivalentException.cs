@@ -69,29 +69,12 @@ namespace Xunit.Sdk
 			object expected,
 			object actual,
 #endif
-			string memberName)
-		{
-			var formattedExpected = ArgumentFormatter.Format(expected);
-			var formattedActual = ArgumentFormatter.Format(actual);
-
-			if (formattedExpected == formattedActual && expected != null && actual != null)
-			{
-				var expectedType = expected.GetType();
-				var actualType = actual.GetType();
-
-				if (expectedType != actualType)
-				{
-					formattedExpected += $" ({expectedType.FullName})";
-					formattedActual += $" ({actualType.FullName})";
-				}
-			}
-
-			return new EquivalentException(
-				"Assert.Equivalent() Failure" + (memberName == string.Empty ? string.Empty : $": Mismatched value on member '{memberName}'") + Environment.NewLine +
-				"Expected: " + formattedExpected + Environment.NewLine +
-				"Actual:   " + formattedActual
-			);
-		}
+			string memberName) =>
+				new EquivalentException(
+					"Assert.Equivalent() Failure" + (memberName == string.Empty ? string.Empty : $": Mismatched value on member '{memberName}'") + Environment.NewLine +
+					"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
+					"Actual:   " + ArgumentFormatter.Format(actual)
+				);
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates

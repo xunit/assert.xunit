@@ -1,5 +1,7 @@
 #if XUNIT_NULLABLE
 #nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 #endif
 
 using System;
@@ -150,6 +152,19 @@ namespace Xunit.Internal
 			return ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out pointerIndent);
 		}
 
+		static bool TryConvert(
+			object value,
+			Type targetType,
+#if XUNIT_NULLABLE
+			[NotNullWhen(true)] out object? converted)
+#else
+			out object converted)
+#endif
+		{
+			converted = Convert.ChangeType(value, targetType);
+			return converted != null;
+		}
+
 #if XUNIT_NULLABLE
 		public static EquivalentException? VerifyEquivalence(
 			object? expected,
@@ -209,10 +224,7 @@ namespace Xunit.Internal
 
 				// Primitive types, enums and strings should just fall back to their Equals implementation
 				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string))
-					return
-						expected.Equals(actual)
-							? null
-							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+					return VerifyEquivalenceIntrinsics(expected, actual, prefix);
 
 				// IComparable value types should fall back to their CompareTo implementation
 				if (expectedTypeInfo.IsValueType)
@@ -279,6 +291,26 @@ namespace Xunit.Internal
 				return EquivalentException.ForExtraCollectionValue(expectedValues, actualOriginalValues, actualValues, prefix);
 
 			return null;
+		}
+
+#if XUNIT_NULLABLE
+		static EquivalentException? VerifyEquivalenceIntrinsics(
+#else
+		static EquivalentException VerifyEquivalenceIntrinsics(
+#endif
+			object expected,
+			object actual,
+			string prefix)
+		{
+			var result = expected.Equals(actual);
+
+			var converted = default(object);
+			if (!result && TryConvert(expected, actual.GetType(), out converted))
+				result = converted.Equals(actual);
+			if (!result && TryConvert(actual, expected.GetType(), out converted))
+				result = converted.Equals(expected);
+
+			return result ? null : EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
 		}
 
 #if XUNIT_NULLABLE
