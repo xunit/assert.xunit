@@ -764,7 +764,7 @@ namespace Xunit
 			StringComparison comparisonType = StringComparison.CurrentCulture)
 		{
 			if (!actualSpan.StartsWith(expectedStartSpan, comparisonType))
-				throw new StartsWithException(expectedStartSpan.ToString(), actualSpan.ToString());
+				throw StartsWithException.ForStringNotFound(expectedStartSpan.ToString(), actualSpan.ToString());
 		}
 
 		// ReadOnlySpan<char> helper methods

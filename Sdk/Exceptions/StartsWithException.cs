@@ -3,6 +3,7 @@
 #endif
 
 using System;
+using Xunit.Internal;
 
 namespace Xunit.Sdk
 {
@@ -16,33 +17,29 @@ namespace Xunit.Sdk
 #endif
 	class StartsWithException : XunitException
 	{
-		/// <summary>
-		/// Creates a new instance of the <see cref="StartsWithException"/> class.
-		/// </summary>
-		/// <param name="expected">The expected string value</param>
-		/// <param name="actual">The actual value</param>
-#if XUNIT_NULLABLE
-		public StartsWithException(
-			string? expected,
-			string? actual) :
-#else
-		public StartsWithException(
-			string expected,
-			string actual) :
-#endif
-				base($"Assert.StartsWith() Failure:{Environment.NewLine}Expected: {expected ?? "(null)"}{Environment.NewLine}Actual:   {ShortenActual(expected, actual) ?? "(null)"}")
+		StartsWithException(string message) :
+			base(message)
 		{ }
 
+		/// <summary>
+		/// Creates an instance of the <see cref="EndsWithException"/> class to be thrown
+		/// when a string does not start with the given value.
+		/// </summary>
+		/// <param name="expected">The expected start</param>
+		/// <param name="actual">The actual value</param>
+		/// <returns></returns>
+		public static StartsWithException ForStringNotFound(
 #if XUNIT_NULLABLE
-		static string? ShortenActual(string? expected, string? actual)
+			string? expected,
+			string? actual) =>
 #else
-		static string ShortenActual(string expected, string actual)
+			string expected,
+			string actual) =>
 #endif
-		{
-			if (expected == null || actual == null || actual.Length <= expected.Length)
-				return actual;
-
-			return actual.Substring(0, expected.Length) + ArgumentFormatter2.Ellipsis;
-		}
+				new StartsWithException(
+					"Assert.StartsWith() Failure: String start does not match" + Environment.NewLine +
+					"String:         " + AssertHelper.ShortenAndEncodeString(actual) + Environment.NewLine +
+					"Expected start: " + AssertHelper.ShortenAndEncodeString(expected)
+				);
 	}
 }

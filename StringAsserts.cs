@@ -239,7 +239,7 @@ namespace Xunit
 			StringComparison comparisonType)
 		{
 			if (expectedStartString == null || actualString == null || !actualString.StartsWith(expectedStartString, comparisonType))
-				throw new StartsWithException(expectedStartString, actualString);
+				throw StartsWithException.ForStringNotFound(expectedStartString, actualString);
 		}
 
 		/// <summary>
