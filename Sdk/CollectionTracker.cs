@@ -5,10 +5,259 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Xunit.Sdk
 {
+	static class CollectionTracker
+	{
+		static MethodInfo openGenericCompareTypedSetsMethod =
+			typeof(CollectionTracker)
+				.GetRuntimeMethods()
+				.Single(m => m.Name == nameof(CompareTypedSets));
+
+		internal static bool AreCollectionsEqual(
+#if XUNIT_NULLABLE
+			object? expected,
+			IEnumerable? expectedTracker,
+			object? actual,
+			IEnumerable? actualTracker,
+#else
+			object expected,
+			IEnumerable expectedTracker,
+			object actual,
+			IEnumerable actualTracker,
+#endif
+			IEqualityComparer itemComparer,
+			out int? mismatchedIndex)
+		{
+			mismatchedIndex = null;
+
+			return
+				CheckIfDictionariesAreEqual(expected, actual, itemComparer) ??
+				CheckIfSetsAreEqual(expected, actual) ??
+				CheckIfArraysAreEqual(expected, expectedTracker, actual, actualTracker, itemComparer, out mismatchedIndex) ??
+				CheckIfEnumerablesAreEqual(expectedTracker, actualTracker, itemComparer, out mismatchedIndex);
+		}
+
+		static bool? CheckIfArraysAreEqual(
+#if XUNIT_NULLABLE
+			object? expected,
+			IEnumerable? expectedTracker,
+			object? actual,
+			IEnumerable? actualTracker,
+#else
+			object expected,
+			IEnumerable expectedTracker,
+			object actual,
+			IEnumerable actualTracker,
+#endif
+			IEqualityComparer itemComparer,
+			out int? mismatchedIndex)
+		{
+			mismatchedIndex = null;
+
+			var expectedArray = expected as Array;
+			var actualArray = actual as Array;
+
+			if (expectedArray == null || actualArray == null || expectedTracker == null || actualTracker == null)
+				return null;
+
+			// If we have single-dimensional zero-based arrays, then we delegate to the enumerable
+			// version, since that's uses the trackers and gets us the mismatch pointer.
+			if (expectedArray.Rank == 1 && expectedArray.GetLowerBound(0) == 0 &&
+				actualArray.Rank == 1 && actualArray.GetLowerBound(0) == 0)
+				return CheckIfEnumerablesAreEqual(expectedTracker, actualTracker, itemComparer, out mismatchedIndex);
+
+			if (expectedArray.Rank != actualArray.Rank)
+				return false;
+
+			// Differing bounds, aka object[2,1] vs. object[1,2]
+			// You can also have non-zero-based arrays, so we don't just check lengths
+			for (var rank = 0; rank < expectedArray.Rank; rank++)
+				if (expectedArray.GetLowerBound(rank) != actualArray.GetLowerBound(rank) || expectedArray.GetUpperBound(rank) != actualArray.GetUpperBound(rank))
+					return false;
+
+			// Enumeration will flatten everything identically, so just enumerate at this point
+			var expectedEnumerator = expectedTracker.GetEnumerator();
+			var actualEnumerator = actualTracker.GetEnumerator();
+
+			while (true)
+			{
+				var hasExpected = expectedEnumerator.MoveNext();
+				var hasActual = actualEnumerator.MoveNext();
+
+				if (!hasExpected || !hasActual)
+					return hasExpected == hasActual;
+
+				if (!itemComparer.Equals(expectedEnumerator.Current, actualEnumerator.Current))
+					return false;
+			}
+		}
+
+		static bool? CheckIfDictionariesAreEqual(
+#if XUNIT_NULLABLE
+			object? x,
+			object? y,
+#else
+			object x,
+			object y,
+#endif
+			IEqualityComparer itemComparer)
+		{
+			var dictionaryX = x as IDictionary;
+			var dictionaryY = y as IDictionary;
+
+			if (dictionaryX == null || dictionaryY == null)
+				return null;
+
+			if (dictionaryX.Count != dictionaryY.Count)
+				return false;
+
+			var dictionaryYKeys = new HashSet<object>(dictionaryY.Keys.Cast<object>());
+
+			foreach (var key in dictionaryX.Keys.Cast<object>())
+			{
+				if (!dictionaryYKeys.Contains(key))
+					return false;
+
+				var valueX = dictionaryX[key];
+				var valueY = dictionaryY[key];
+
+				if (!itemComparer.Equals(valueX, valueY))
+					return false;
+
+				dictionaryYKeys.Remove(key);
+			}
+
+			return dictionaryYKeys.Count == 0;
+		}
+
+		static bool CheckIfEnumerablesAreEqual(
+#if XUNIT_NULLABLE
+			IEnumerable? x,
+			IEnumerable? y,
+#else
+			IEnumerable x,
+			IEnumerable y,
+#endif
+			IEqualityComparer itemComparer,
+			out int? mismatchIndex)
+		{
+			mismatchIndex = null;
+
+			if (x == null)
+				return y == null;
+			if (y == null)
+				return false;
+
+			var enumeratorX = x.GetEnumerator();
+			var enumeratorY = y.GetEnumerator();
+
+			mismatchIndex = 0;
+
+			while (true)
+			{
+				var hasNextX = enumeratorX.MoveNext();
+				var hasNextY = enumeratorY.MoveNext();
+
+				if (!hasNextX || !hasNextY)
+				{
+					if (hasNextX == hasNextY)
+					{
+						mismatchIndex = null;
+						return true;
+					}
+
+					return false;
+				}
+
+				var expectedCurrent = enumeratorX.Current;
+				var expectedCurrentEnumerable = expectedCurrent as IEnumerable;
+				var actualCurrent = enumeratorY.Current;
+				var actualCurrentEnumerable = actualCurrent as IEnumerable;
+
+				if (expectedCurrentEnumerable != null && actualCurrentEnumerable != null)
+				{
+					int? _;
+					var innerCompare = CheckIfEnumerablesAreEqual(expectedCurrentEnumerable, actualCurrentEnumerable, EqualityComparer<object>.Default, out _);
+					if (innerCompare == false)
+						return false;
+				}
+				else if (!itemComparer.Equals(expectedCurrent, actualCurrent))
+					return false;
+
+				mismatchIndex++;
+			}
+		}
+
+		static bool? CheckIfSetsAreEqual(
+#if XUNIT_NULLABLE
+			object? x,
+			object? y)
+#else
+			object x,
+			object y)
+#endif
+		{
+			var elementTypeX = GetSetElementType(x);
+			var elementTypeY = GetSetElementType(y);
+
+			if (x == null || elementTypeX == null || y == null || elementTypeY == null)
+				return null;
+
+			if (elementTypeX != elementTypeY)
+				return false;
+
+			var genericCompareMethod = openGenericCompareTypedSetsMethod.MakeGenericMethod(elementTypeX);
+#if XUNIT_NULLABLE
+			return (bool)genericCompareMethod.Invoke(null, new[] { x, y })!;
+#else
+			return (bool)genericCompareMethod.Invoke(null, new[] { x, y });
+#endif
+		}
+
+		static bool CompareTypedSets<TSet>(
+			IEnumerable enumX,
+			IEnumerable enumY)
+		{
+			var setX = new HashSet<TSet>(enumX.Cast<TSet>());
+			var setY = new HashSet<TSet>(enumY.Cast<TSet>());
+
+			return setX.SetEquals(setY);
+		}
+
+#if XUNIT_NULLABLE
+		internal static Type? GetSetElementType(object? obj)
+#else
+		internal static Type GetSetElementType(object obj)
+#endif
+		{
+			if (obj == null)
+				return null;
+
+			var setInterface = (from @interface in obj.GetType().GetTypeInfo().ImplementedInterfaces
+								where @interface.GetTypeInfo().IsGenericType
+								let genericTypeDefinition = @interface.GetGenericTypeDefinition()
+								where genericTypeDefinition == typeof(ISet<>)
+								select @interface.GetTypeInfo()).FirstOrDefault();
+
+			return setInterface == null ? null : setInterface.GenericTypeArguments[0];
+		}
+
+#if XUNIT_NULLABLE
+		internal static bool SafeToMultiEnumerate(object? collection) =>
+#else
+		internal  static bool SafeToMultiEnumerate(object collection) =>
+#endif
+			collection is Array ||
+			collection is IList ||
+			collection is IDictionary ||
+			GetSetElementType(collection) != null;
+	}
+
 	class CollectionTracker<T> : IEnumerable<T>, ICollectionTracker
 	{
 		readonly IEnumerable<T> collection;
@@ -25,6 +274,9 @@ namespace Xunit.Sdk
 
 		public int IterationCount =>
 			enumerator == null ? 0 : enumerator.CurrentIndex + 1;
+
+		public void Dispose() =>
+			enumerator?.Dispose();
 
 		internal string FormatIndexedMismatch(
 			int? mismatchedIndex,
@@ -266,12 +518,6 @@ namespace Xunit.Sdk
 			endIndex = enumerator.CurrentIndex;
 			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
 		}
-
-		public override string ToString() =>
-			ToString(1);
-
-		public string ToString(int depth) =>
-			FormatStart(depth);
 
 #if XUNIT_NULLABLE
 		public string? TypeAt(int? value)

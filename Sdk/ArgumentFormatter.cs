@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Xunit.Sdk
 {
-	interface ICollectionTracker : IEnumerable
+	interface ICollectionTracker : IEnumerable, IDisposable
 	{
 		string FormatStart(int depth);
 	}

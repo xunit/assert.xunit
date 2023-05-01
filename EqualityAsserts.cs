@@ -23,7 +23,7 @@ namespace Xunit
 		static Type typeofDictionary = typeof(Dictionary<,>);
 		static Type typeofHashSet = typeof(HashSet<>);
 		static Type typeofSet = typeof(ISet<>);
-		static Type typeofString = typeof(string);
+		static string unsafeEnumerableDisplay = "[" + ArgumentFormatter.Ellipsis + "]";
 
 #if XUNIT_NULLABLE
 		static IEnumerable? AsNonStringEnumerable(object? value) =>
@@ -66,8 +66,9 @@ namespace Xunit
 			if (expected == null && actual == null)
 				return;
 
-			// Call into Equal<object> so we get proper formatting of the sequence
 			if (expected == null || actual == null || !expected.AsSpan().SequenceEqual(actual))
+				// Call into Equal<object> (even though we'll re-enumerate) so we get proper formatting
+				// of the sequence, including the "first mismatch" pointer
 				Equal<object>(expected, actual);
 		}
 #endif
@@ -113,103 +114,137 @@ namespace Xunit
 			var expectedTracker = AsNonStringTracker(expected);
 			var actualTracker = AsNonStringTracker(actual);
 
-			// We treat collections specially, since we want to see a pointer
-			var haveCollections =
-				(expectedTracker != null && actualTracker != null) ||
-				(expectedTracker != null && actual == null) ||
-				(expected == null && actualTracker != null);
-
-			if (haveCollections)
+			try
 			{
-				int? mismatchedIndex = null;
-				bool equal;
+				var haveCollections =
+					(expectedTracker != null && actualTracker != null) ||
+					(expectedTracker != null && actual == null) ||
+					(expected == null && actualTracker != null);
 
-				// TODO: We have trackers here, but we don't use them, because neither AssertEqualityComparer<T> nor
-				// IEqualityComparer<T> can accept them. To prevent double-enumeration, we will need to find another
-				// way to safely enumerate the collection and compare the items. This may mean all this logic ends
-				// up in the comparer-less overload, and the version with the comparer here will never attempt to
-				// print enumerable values (we're going to have to fix ArgumentFormatter anyway so it won't print
-				// out unsafe IEnumerables; we'll have to rely on knowing that we have a safe built-in collection
-				// or an interface that allows safe re-enumeration).
-
-				// If they provided us with an AssertEqualityComparer<T>, we can use that to get the mismatched index
-				var aec = comparer as AssertEqualityComparer<T>;
-				if (aec != null)
-					equal = aec.Equals(expected, actual, out mismatchedIndex);
-				else
-					equal = comparer.Equals(expected, actual);
-
-				if (equal)
-					return;
-
-				var expectedStartIdx = -1;
-				var expectedEndIdx = -1;
-				expectedTracker?.GetMismatchExtents(mismatchedIndex, out expectedStartIdx, out expectedEndIdx);
-
-				var actualStartIdx = -1;
-				var actualEndIdx = -1;
-				actualTracker?.GetMismatchExtents(mismatchedIndex, out actualStartIdx, out actualEndIdx);
-
-				// If either located index is past the end of the collection, then we want to try to shift
-				// the too-short collection start point forward so we can align the equal values for
-				// a more readable and obvious output. See CollectionAssertTests+Equals+Arrays.Truncation
-				// for overrun examples.
-				if (mismatchedIndex.HasValue)
+				if (!haveCollections)
 				{
-					if (expectedStartIdx > -1 && expectedEndIdx < mismatchedIndex.Value)
-						expectedStartIdx = actualStartIdx;
-					else if (actualStartIdx > -1 && actualEndIdx < mismatchedIndex.Value)
-						actualStartIdx = expectedStartIdx;
+					if (!comparer.Equals(expected, actual))
+						throw EqualException.ForMismatchedValues(expected, actual);
 				}
+				else
+				{
+					int? mismatchedIndex = null;
 
-				int? expectedPointer = null;
-				var formattedExpected = expectedTracker?.FormatIndexedMismatch(expectedStartIdx, expectedEndIdx, mismatchedIndex, out expectedPointer) ?? ArgumentFormatter.Format(expected);
-				var expectedItemType = expectedTracker?.TypeAt(mismatchedIndex);
+					// If we have "known" comparers, we can ignore them and instead do our own thing, since we know
+					// we want to be able to consume the tracker, and that's not type compatible.
+					var itemComparer = default(IEqualityComparer);
 
-				int? actualPointer = null;
-				var formattedActual = actualTracker?.FormatIndexedMismatch(actualStartIdx, actualEndIdx, mismatchedIndex, out actualPointer) ?? ArgumentFormatter.Format(actual);
-				var actualItemType = actualTracker?.TypeAt(mismatchedIndex);
+					var aec = comparer as AssertEqualityComparer<T>;
+					if (aec != null)
+						itemComparer = aec.InnerComparer;
+					else if (comparer == EqualityComparer<T>.Default)
+						itemComparer = EqualityComparer<object>.Default;
 
+					string formattedExpected;
+					string formattedActual;
+					int? expectedPointer = null;
+					int? actualPointer = null;
 #if XUNIT_NULLABLE
-				string? collectionDisplay = null;
+					string? expectedItemType = null;
+					string? actualItemType = null;
 #else
-				string collectionDisplay = null;
+					string expectedItemType = null;
+					string actualItemType = null;
 #endif
 
-				var expectedType = expected?.GetType();
-				var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
-				var expectedInterfaceTypeDefinitions = expectedType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
-				var actualType = actual?.GetType();
-				var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
-				var actualInterfaceTypeDefinitions = actualType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+					if (itemComparer != null)
+					{
+						if (CollectionTracker.AreCollectionsEqual(expected, expectedTracker, actual, actualTracker, itemComparer, out mismatchedIndex))
+							return;
 
-				if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
-					collectionDisplay = "Dictionaries";
-				else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
-					collectionDisplay = "HashSets";
-				else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
-					collectionDisplay = "Sets";
+						var expectedStartIdx = -1;
+						var expectedEndIdx = -1;
+						expectedTracker?.GetMismatchExtents(mismatchedIndex, out expectedStartIdx, out expectedEndIdx);
 
-				if (expectedType != actualType)
-				{
-					var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
-					var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
+						var actualStartIdx = -1;
+						var actualEndIdx = -1;
+						actualTracker?.GetMismatchExtents(mismatchedIndex, out actualStartIdx, out actualEndIdx);
 
-					var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
+						// If either located index is past the end of the collection, then we want to try to shift
+						// the too-short collection start point forward so we can align the equal values for
+						// a more readable and obvious output. See CollectionAssertTests+Equals+Arrays.Truncation
+						// for overrun examples.
+						if (mismatchedIndex.HasValue)
+						{
+							if (expectedStartIdx > -1 && expectedEndIdx < mismatchedIndex.Value)
+								expectedStartIdx = actualStartIdx;
+							else if (actualStartIdx > -1 && actualEndIdx < mismatchedIndex.Value)
+								actualStartIdx = expectedStartIdx;
+						}
 
-					formattedExpected = expectedTypeName.PadRight(typeNameIndent) + formattedExpected;
-					formattedActual = actualTypeName.PadRight(typeNameIndent) + formattedActual;
+						expectedPointer = null;
+						formattedExpected = expectedTracker?.FormatIndexedMismatch(expectedStartIdx, expectedEndIdx, mismatchedIndex, out expectedPointer) ?? ArgumentFormatter.Format(expected);
+						expectedItemType = expectedTracker?.TypeAt(mismatchedIndex);
 
-					if (expectedPointer != null)
-						expectedPointer += typeNameIndent;
-					if (actualPointer != null)
-						actualPointer += typeNameIndent;
+						actualPointer = null;
+						formattedActual = actualTracker?.FormatIndexedMismatch(actualStartIdx, actualEndIdx, mismatchedIndex, out actualPointer) ?? ArgumentFormatter.Format(actual);
+						actualItemType = actualTracker?.TypeAt(mismatchedIndex);
+					}
+					else
+					{
+						if (comparer.Equals(expected, actual))
+							return;
+
+						formattedExpected =
+							expectedTracker == null
+								? "null"
+								: (CollectionTracker.SafeToMultiEnumerate(expected) ? expectedTracker.FormatStart() : unsafeEnumerableDisplay);
+						formattedActual =
+							actualTracker == null
+								? "null"
+								: (CollectionTracker.SafeToMultiEnumerate(actual) ? actualTracker.FormatStart() : unsafeEnumerableDisplay);
+					}
+
+#if XUNIT_NULLABLE
+					string? collectionDisplay = null;
+#else
+					string collectionDisplay = null;
+#endif
+
+					var expectedType = expected?.GetType();
+					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
+					var expectedInterfaceTypeDefinitions = expectedType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+
+					var actualType = actual?.GetType();
+					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
+					var actualInterfaceTypeDefinitions = actualType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+
+					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
+						collectionDisplay = "Dictionaries";
+					else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
+						collectionDisplay = "HashSets";
+					else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
+						collectionDisplay = "Sets";
+
+					if (expectedType != actualType)
+					{
+						var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
+						var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
+
+						var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
+
+						formattedExpected = expectedTypeName.PadRight(typeNameIndent) + formattedExpected;
+						formattedActual = actualTypeName.PadRight(typeNameIndent) + formattedActual;
+
+						if (expectedPointer != null)
+							expectedPointer += typeNameIndent;
+						if (actualPointer != null)
+							actualPointer += typeNameIndent;
+					}
+
+					throw EqualException.ForMismatchedCollections(mismatchedIndex, formattedExpected, expectedPointer, expectedItemType, formattedActual, actualPointer, actualItemType, collectionDisplay);
 				}
-
-				throw EqualException.ForMismatchedCollections(mismatchedIndex, formattedExpected, expectedPointer, expectedItemType, formattedActual, actualPointer, actualItemType, collectionDisplay);
 			}
-			else if (!comparer.Equals(expected, actual))
-				throw EqualException.ForMismatchedValues(expected, actual);
+			finally
+			{
+				expectedTracker?.Dispose();
+				actualTracker?.Dispose();
+			}
 		}
 
 		/// <summary>
@@ -506,57 +541,115 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			// TODO: Use trackers for inequality testing to prevent double enumeration
-
-			if (!comparer.Equals(expected, actual))
-				return;
-
 			var expectedTracker = AsNonStringTracker(expected);
 			var actualTracker = AsNonStringTracker(actual);
 
-			var formattedExpected = expectedTracker != null ? expectedTracker.FormatStart() : ArgumentFormatter.Format(expected);
-			var formattedActual = actualTracker != null ? actualTracker.FormatStart() : ArgumentFormatter.Format(actual);
-
-			if (expected is IEnumerable || actual is IEnumerable)
+			try
 			{
+				var haveCollections =
+					(expectedTracker != null && actualTracker != null) ||
+					(expectedTracker != null && actual == null) ||
+					(expected == null && actualTracker != null);
+
+				if (!haveCollections)
+				{
+					if (comparer.Equals(expected, actual))
+					{
+						var formattedExpected = ArgumentFormatter.Format(expected);
+						var formattedActual = ArgumentFormatter.Format(actual);
+
+						var expectedIsString = expected is string;
+						var actualIsString = actual is string;
+						var isStrings =
+							(expectedIsString && actual == null) ||
+							(actualIsString && expected == null) ||
+							(expectedIsString && actualIsString);
+
+						if (isStrings)
+							throw NotEqualException.ForEqualCollections(formattedExpected, formattedActual, "Strings");
+						else
+							throw NotEqualException.ForEqualValues(formattedExpected, formattedActual);
+					}
+				}
+				else
+				{
+					// If we have "known" comparers, we can ignore them and instead do our own thing, since we know
+					// we want to be able to consume the tracker, and that's not type compatible.
+					var itemComparer = default(IEqualityComparer);
+
+					var aec = comparer as AssertEqualityComparer<T>;
+					if (aec != null)
+						itemComparer = aec.InnerComparer;
+					else if (comparer == EqualityComparer<T>.Default)
+						itemComparer = EqualityComparer<object>.Default;
+
+					string formattedExpected;
+					string formattedActual;
+
+					if (itemComparer != null)
+					{
+						int? mismatchedIndex;
+						if (!CollectionTracker.AreCollectionsEqual(expected, expectedTracker, actual, actualTracker, itemComparer, out mismatchedIndex))
+							return;
+
+						formattedExpected = expectedTracker?.FormatStart() ?? "null";
+						formattedActual = actualTracker?.FormatStart() ?? "null";
+					}
+					else
+					{
+						if (!comparer.Equals(expected, actual))
+							return;
+
+						formattedExpected =
+							expectedTracker == null
+								? "null"
+								: (CollectionTracker.SafeToMultiEnumerate(expected) ? expectedTracker.FormatStart() : unsafeEnumerableDisplay);
+						formattedActual =
+							actualTracker == null
+								? "null"
+								: (CollectionTracker.SafeToMultiEnumerate(actual) ? actualTracker.FormatStart() : unsafeEnumerableDisplay);
+					}
 
 #if XUNIT_NULLABLE
-				string? collectionDisplay = null;
+					string? collectionDisplay = null;
 #else
-				string collectionDisplay = null;
+					string collectionDisplay = null;
 #endif
 
-				var expectedType = expected?.GetType();
-				var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
-				var expectedInterfaceTypeDefinitions = expectedType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
-				var actualType = actual?.GetType();
-				var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
-				var actualInterfaceTypeDefinitions = actualType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+					var expectedType = expected?.GetType();
+					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
+					var expectedInterfaceTypeDefinitions = expectedType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
-				if (expectedType == typeofString && actualType == typeofString)
-					collectionDisplay = "Strings";
-				else if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
-					collectionDisplay = "Dictionaries";
-				else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
-					collectionDisplay = "HashSets";
-				else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
-					collectionDisplay = "Sets";
+					var actualType = actual?.GetType();
+					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
+					var actualInterfaceTypeDefinitions = actualType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
-				if (expectedType != actualType)
-				{
-					var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
-					var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
+					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
+						collectionDisplay = "Dictionaries";
+					else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
+						collectionDisplay = "HashSets";
+					else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
+						collectionDisplay = "Sets";
 
-					var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
+					if (expectedType != actualType)
+					{
+						var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
+						var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
 
-					formattedExpected = expectedTypeName.PadRight(typeNameIndent) + formattedExpected;
-					formattedActual = actualTypeName.PadRight(typeNameIndent) + formattedActual;
+						var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
+
+						formattedExpected = expectedTypeName.PadRight(typeNameIndent) + formattedExpected;
+						formattedActual = actualTypeName.PadRight(typeNameIndent) + formattedActual;
+					}
+
+					throw NotEqualException.ForEqualCollections(formattedExpected, formattedActual, collectionDisplay);
 				}
-
-				throw NotEqualException.ForEqualCollections(formattedExpected, formattedActual, collectionDisplay);
 			}
-
-			throw NotEqualException.ForEqualValues(formattedExpected, formattedActual);
+			finally
+			{
+				expectedTracker?.Dispose();
+				actualTracker?.Dispose();
+			}
 		}
 
 		/// <summary>
