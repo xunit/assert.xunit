@@ -145,10 +145,46 @@ namespace Xunit.Sdk
 			return object.Equals(x, y);
 		}
 
+		public static IEqualityComparer<T> FromComparer(Func<T, T, bool> comparer) =>
+			new FuncEqualityComparer(comparer);
+
 		/// <inheritdoc/>
 		public int GetHashCode(T obj)
 		{
 			throw new NotImplementedException();
+		}
+
+		class FuncEqualityComparer : IEqualityComparer<T>
+		{
+			readonly Func<T, T, bool> comparer;
+
+			public FuncEqualityComparer(Func<T, T, bool> comparer)
+			{
+				this.comparer = comparer;
+			}
+
+			public bool Equals(
+#if XUNIT_NULLABLE
+				T? x,
+				T? y)
+#else
+				T x,
+				T y)
+#endif
+			{
+				if (x == null)
+					return y == null;
+
+				if (y == null)
+					return false;
+
+				return comparer(x, y);
+			}
+
+			public int GetHashCode(T obj)
+			{
+				throw new NotImplementedException();
+			}
 		}
 
 		class TypeErasedEqualityComparer : IEqualityComparer

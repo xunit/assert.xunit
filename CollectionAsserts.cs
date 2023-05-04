@@ -458,6 +458,25 @@ namespace Xunit
 				Equal(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
 
 		/// <summary>
+		/// Verifies that two collections are equal, using a comparer function against
+		/// items in the two collections.
+		/// </summary>
+		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="comparer">The function to compare two items for equality</param>
+		public static void Equal<T>(
+#if XUNIT_NULLABLE
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual,
+#else
+			IEnumerable<T> expected,
+			IEnumerable<T> actual,
+#endif
+			Func<T, T, bool> comparer) =>
+				Equal(expected, actual, AssertEqualityComparer<T>.FromComparer(comparer));
+
+		/// <summary>
 		/// Verifies that a collection is not empty.
 		/// </summary>
 		/// <param name="collection">The collection to be inspected</param>
@@ -514,6 +533,25 @@ namespace Xunit
 #endif
 			IEqualityComparer<T> comparer) =>
 				NotEqual(expected, actual, GetEqualityComparer<IEnumerable<T>>(new AssertEqualityComparerAdapter<T>(comparer)));
+
+		/// <summary>
+		/// Verifies that two collections are not equal, using a comparer function against
+		/// items in the two collections.
+		/// </summary>
+		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="comparer">The function to compare two items for equality</param>
+		public static void NotEqual<T>(
+#if XUNIT_NULLABLE
+			IEnumerable<T>? expected,
+			IEnumerable<T>? actual,
+#else
+			IEnumerable<T> expected,
+			IEnumerable<T> actual,
+#endif
+			Func<T, T, bool> comparer) =>
+				NotEqual(expected, actual, AssertEqualityComparer<T>.FromComparer(comparer));
 
 		/// <summary>
 		/// Verifies that the given collection contains only a single
