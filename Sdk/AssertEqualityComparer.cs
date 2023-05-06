@@ -168,6 +168,9 @@ namespace Xunit.Sdk
 
 			public FuncEqualityComparer(Func<T, T, bool> comparer)
 			{
+				if (comparer == null)
+					throw new ArgumentNullException(nameof(comparer));
+
 				this.comparer = comparer;
 			}
 
