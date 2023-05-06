@@ -145,7 +145,11 @@ namespace Xunit.Sdk
 			return object.Equals(x, y);
 		}
 
+#if XUNIT_NULLABLE
+		public static IEqualityComparer<T?> FromComparer(Func<T, T, bool> comparer) =>
+#else
 		public static IEqualityComparer<T> FromComparer(Func<T, T, bool> comparer) =>
+#endif
 			new FuncEqualityComparer(comparer);
 
 		/// <inheritdoc/>
@@ -154,7 +158,11 @@ namespace Xunit.Sdk
 			throw new NotImplementedException();
 		}
 
+#if XUNIT_NULLABLE
+		class FuncEqualityComparer : IEqualityComparer<T?>
+#else
 		class FuncEqualityComparer : IEqualityComparer<T>
+#endif
 		{
 			readonly Func<T, T, bool> comparer;
 
@@ -181,7 +189,11 @@ namespace Xunit.Sdk
 				return comparer(x, y);
 			}
 
+#if XUNIT_NULLABLE
+			public int GetHashCode(T? obj)
+#else
 			public int GetHashCode(T obj)
+#endif
 			{
 				throw new NotImplementedException();
 			}

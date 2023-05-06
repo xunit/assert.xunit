@@ -90,6 +90,24 @@ namespace Xunit
 				Equal(expected, actual, GetEqualityComparer<T>());
 
 		/// <summary>
+		/// Verifies that two objects are equal, using a custom comparer function.
+		/// </summary>
+		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <param name="comparer">The comparer used to compare the two objects</param>
+		public static void Equal<T>(
+#if XUNIT_NULLABLE
+			[AllowNull] T expected,
+			[AllowNull] T actual,
+#else
+			T expected,
+			T actual,
+#endif
+			Func<T, T, bool> comparer) =>
+				Equal(expected, actual, AssertEqualityComparer<T>.FromComparer(comparer));
+
+		/// <summary>
 		/// Verifies that two objects are equal, using a custom equatable comparer.
 		/// </summary>
 		/// <typeparam name="T">The type of the objects to be compared</typeparam>
@@ -521,6 +539,24 @@ namespace Xunit
 			T actual) =>
 #endif
 				NotEqual(expected, actual, GetEqualityComparer<T>());
+
+		/// <summary>
+		/// Verifies that two objects are not equal, using a custom equality comparer function.
+		/// </summary>
+		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		/// <param name="expected">The expected object</param>
+		/// <param name="actual">The actual object</param>
+		/// <param name="comparer">The comparer used to examine the objects</param>
+		public static void NotEqual<T>(
+#if XUNIT_NULLABLE
+			[AllowNull] T expected,
+			[AllowNull] T actual,
+#else
+			T expected,
+			T actual,
+#endif
+			Func<T, T, bool> comparer) =>
+				NotEqual(expected, actual, AssertEqualityComparer<T>.FromComparer(comparer));
 
 		/// <summary>
 		/// Verifies that two objects are not equal, using a custom equality comparer.
