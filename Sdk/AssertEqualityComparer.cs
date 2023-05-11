@@ -65,6 +65,26 @@ namespace Xunit.Sdk
 			if (equatable != null)
 				return equatable.Equals(y);
 
+			// Implements IEquatable<typeof(y)>?
+			var iequatableY = typeof(IEquatable<>).MakeGenericType(y.GetType()).GetTypeInfo();
+			if (iequatableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
+			{
+				var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+				if (equalsMethod == null)
+					return false;
+
+#if XUNIT_NULLABLE
+				return equalsMethod.Invoke(x, new object[] { y }) is true;
+#else
+				return (bool)equalsMethod.Invoke(x, new object[] { y });
+#endif
+			}
+
+			// Implements IStructuralEquatable?
+			var structuralEquatable = x as IStructuralEquatable;
+			if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparer.Value)))
+				return true;
+
 			// Implements IComparable<T>?
 			var comparableGeneric = x as IComparable<T>;
 			if (comparableGeneric != null)
@@ -79,42 +99,6 @@ namespace Xunit.Sdk
 					// certain situations, such as if x can't compare against y.
 					// If this happens, just swallow up the exception and continue comparing.
 				}
-			}
-
-			// Implements IComparable?
-			var comparable = x as IComparable;
-			if (comparable != null)
-			{
-				try
-				{
-					return comparable.CompareTo(y) == 0;
-				}
-				catch
-				{
-					// Some implementations of IComparable.CompareTo throw exceptions in
-					// certain situations, such as if x can't compare against y.
-					// If this happens, just swallow up the exception and continue comparing.
-				}
-			}
-
-			// Implements IStructuralEquatable?
-			var structuralEquatable = x as IStructuralEquatable;
-			if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparer.Value)))
-				return true;
-
-			// Implements IEquatable<typeof(y)>?
-			var iequatableY = typeof(IEquatable<>).MakeGenericType(y.GetType()).GetTypeInfo();
-			if (iequatableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
-			{
-				var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
-				if (equalsMethod == null)
-					return false;
-
-#if XUNIT_NULLABLE
-				return equalsMethod.Invoke(x, new object[] { y }) is true;
-#else
-				return (bool)equalsMethod.Invoke(x, new object[] { y });
-#endif
 			}
 
 			// Implements IComparable<typeof(y)>?
@@ -132,6 +116,22 @@ namespace Xunit.Sdk
 #else
 					return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
 #endif
+				}
+				catch
+				{
+					// Some implementations of IComparable.CompareTo throw exceptions in
+					// certain situations, such as if x can't compare against y.
+					// If this happens, just swallow up the exception and continue comparing.
+				}
+			}
+
+			// Implements IComparable?
+			var comparable = x as IComparable;
+			if (comparable != null)
+			{
+				try
+				{
+					return comparable.CompareTo(y) == 0;
 				}
 				catch
 				{
