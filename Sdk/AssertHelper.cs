@@ -204,7 +204,7 @@ namespace Xunit.Internal
 				return EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
 
 			// Check for identical references
-			if (object.ReferenceEquals(expected, actual))
+			if (ReferenceEquals(expected, actual))
 				return null;
 
 			// Prevent circular references
@@ -229,12 +229,36 @@ namespace Xunit.Internal
 				// IComparable value types should fall back to their CompareTo implementation
 				if (expectedTypeInfo.IsValueType)
 				{
-					var expectedComparable = expected as IComparable;
-					if (expectedComparable != null)
-						return
-							expectedComparable.CompareTo(actual) == 0
-								? null
+					// TODO: Should we support more than just IComparable? This feels like it was added solely
+					// to support DateTime (a built-in non-intrinsic value type). Should we support the full
+					// gamut of everything that we do in AssertEqualityComparer?
+					try
+					{
+						var expectedComparable = expected as IComparable;
+						if (expectedComparable != null)
+							return
+								expectedComparable.CompareTo(actual) == 0
+									? null
 								: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+					}
+					catch (Exception ex)
+					{
+						return EquivalentException.ForMemberValueMismatch(expected, actual, prefix, ex);
+					}
+
+					try
+					{
+						var actualComparable = actual as IComparable;
+						if (actualComparable != null)
+							return
+								actualComparable.CompareTo(expected) == 0
+									? null
+									: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+					}
+					catch (Exception ex)
+					{
+						return EquivalentException.ForMemberValueMismatch(expected, actual, prefix, ex);
+					}
 				}
 
 				// Enumerables? Check equivalence of individual members

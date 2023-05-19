@@ -18,8 +18,14 @@ namespace Xunit.Sdk
 #endif
 	partial class EquivalentException : XunitException
 	{
-		EquivalentException(string message) :
-			base(message)
+		EquivalentException(
+			string message,
+#if XUNIT_NULLABLE
+			Exception? innerException = null) :
+#else
+			Exception innerException = null) :
+#endif
+				base(message, innerException)
 		{ }
 
 		static string FormatMemberNameList(
@@ -61,6 +67,8 @@ namespace Xunit.Sdk
 		/// <param name="actual">The actual member value</param>
 		/// <param name="memberName">The name of the mismatched member (may be an empty string for a
 		/// top-level object)</param>
+		/// <param name="innerException">The inner exception that was thrown during value comparison,
+		/// typically during a call to <see cref="IComparable.CompareTo(object)"/></param>
 		public static EquivalentException ForMemberValueMismatch(
 #if XUNIT_NULLABLE
 			object? expected,
@@ -69,11 +77,17 @@ namespace Xunit.Sdk
 			object expected,
 			object actual,
 #endif
-			string memberName) =>
+			string memberName,
+#if XUNIT_NULLABLE
+			Exception? innerException = null) =>
+#else
+			Exception innerException = null) =>
+#endif
 				new EquivalentException(
 					"Assert.Equivalent() Failure" + (memberName == string.Empty ? string.Empty : $": Mismatched value on member '{memberName}'") + Environment.NewLine +
 					"Expected: " + ArgumentFormatter.Format(expected) + Environment.NewLine +
-					"Actual:   " + ArgumentFormatter.Format(actual)
+					"Actual:   " + ArgumentFormatter.Format(actual),
+					innerException
 				);
 
 		/// <summary>
