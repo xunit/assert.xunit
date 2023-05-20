@@ -239,7 +239,7 @@ namespace Xunit.Internal
 							return
 								expectedComparable.CompareTo(actual) == 0
 									? null
-								: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+									: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
 					}
 					catch (Exception ex)
 					{
