@@ -250,7 +250,7 @@ namespace Xunit.Sdk
 #if XUNIT_NULLABLE
 		internal static bool SafeToMultiEnumerate(object? collection) =>
 #else
-		internal  static bool SafeToMultiEnumerate(object collection) =>
+		internal static bool SafeToMultiEnumerate(object collection) =>
 #endif
 			collection is Array ||
 			collection is IList ||
