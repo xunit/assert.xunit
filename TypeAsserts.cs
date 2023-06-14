@@ -57,6 +57,40 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that an object is not of the given type or a derived type.
+		/// </summary>
+		/// <typeparam name="T">The type the object should not be</typeparam>
+		/// <param name="object">The object to be evaluated</param>
+		/// <returns>The object, casted to type T when successful</returns>
+		/// <exception cref="IsNotAssignableFromException">Thrown when the object is of the given type</exception>
+#if XUNIT_NULLABLE
+		public static void IsNotAssignableFrom<T>(object? @object) =>
+#else
+		public static void IsNotAssignableFrom<T>(object @object) =>
+#endif
+			IsNotAssignableFrom(typeof(T), @object);
+
+		/// <summary>
+		/// Verifies that an object is not of the given type or a derived type.
+		/// </summary>
+		/// <param name="expectedType">The type the object should not be</param>
+		/// <param name="object">The object to be evaluated</param>
+		/// <exception cref="IsNotAssignableFromException">Thrown when the object is of the given type</exception>
+		public static void IsNotAssignableFrom(
+			Type expectedType,
+#if XUNIT_NULLABLE
+			object? @object)
+#else
+			object @object)
+#endif
+		{
+			GuardArgumentNotNull(nameof(expectedType), expectedType);
+
+			if (@object != null && expectedType.GetTypeInfo().IsAssignableFrom(@object.GetType().GetTypeInfo()))
+				throw IsNotAssignableFromException.ForCompatibleType(expectedType, @object);
+		}
+
+		/// <summary>
 		/// Verifies that an object is not exactly the given type.
 		/// </summary>
 		/// <typeparam name="T">The type the object should not be</typeparam>
