@@ -1,12 +1,17 @@
 #if XUNIT_NULLABLE
 #nullable enable
-
-using System.Diagnostics.CodeAnalysis;
+#else
+// In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
+#pragma warning disable CS8603
 #endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit.Sdk
 {

@@ -1,9 +1,10 @@
 #if XUNIT_NULLABLE
 #nullable enable
-#endif
-
-#if XUNIT_VALUETASK
-using System.Threading.Tasks;
+#else
+// In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
+#pragma warning disable CS8603
+#pragma warning disable CS8604
+#pragma warning disable CS8625
 #endif
 
 using System;
@@ -11,6 +12,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit.Sdk;
+
+#if XUNIT_VALUETASK
+using System.Threading.Tasks;
+#endif
 
 namespace Xunit
 {

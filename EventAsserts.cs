@@ -1,5 +1,10 @@
 #if XUNIT_NULLABLE
 #nullable enable
+#else
+// In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
+#pragma warning disable CS8600
+#pragma warning disable CS8603
+#pragma warning disable CS8622
 #endif
 
 using System;
