@@ -4,6 +4,7 @@
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8600
 #pragma warning disable CS8601
+#pragma warning disable CS8602
 #pragma warning disable CS8603
 #pragma warning disable CS8604
 #pragma warning disable CS8605
