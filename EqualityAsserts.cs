@@ -23,21 +23,6 @@ namespace Xunit
 		static Type typeofDictionary = typeof(Dictionary<,>);
 		static Type typeofHashSet = typeof(HashSet<>);
 		static Type typeofSet = typeof(ISet<>);
-		static string unsafeEnumerableDisplay = "[" + ArgumentFormatter.Ellipsis + "]";
-
-#if XUNIT_NULLABLE
-		static IEnumerable? AsNonStringEnumerable(object? value) =>
-#else
-		static IEnumerable AsNonStringEnumerable(object value) =>
-#endif
-			value == null || value is string ? null : value as IEnumerable;
-
-#if XUNIT_NULLABLE
-		static CollectionTracker<object>? AsNonStringTracker(object? value) =>
-#else
-		static CollectionTracker<object> AsNonStringTracker(object value) =>
-#endif
-			AsNonStringEnumerable(value).AsTracker();
 
 #if XUNIT_SPAN
 		/// <summary>
@@ -129,8 +114,8 @@ namespace Xunit
 			if (expected == null && actual == null)
 				return;
 
-			var expectedTracker = AsNonStringTracker(expected);
-			var actualTracker = AsNonStringTracker(actual);
+			var expectedTracker = expected.AsNonStringTracker();
+			var actualTracker = actual.AsNonStringTracker();
 
 			try
 			{
@@ -172,7 +157,7 @@ namespace Xunit
 
 					if (itemComparer != null)
 					{
-						if (CollectionTracker.AreCollectionsEqual(expected, expectedTracker, actual, actualTracker, itemComparer, out mismatchedIndex))
+						if (CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, out mismatchedIndex))
 							return;
 
 						var expectedStartIdx = -1;
@@ -208,14 +193,8 @@ namespace Xunit
 						if (comparer.Equals(expected, actual))
 							return;
 
-						formattedExpected =
-							expectedTracker == null
-								? "null"
-								: (CollectionTracker.SafeToMultiEnumerate(expected) ? expectedTracker.FormatStart() : unsafeEnumerableDisplay);
-						formattedActual =
-							actualTracker == null
-								? "null"
-								: (CollectionTracker.SafeToMultiEnumerate(actual) ? actualTracker.FormatStart() : unsafeEnumerableDisplay);
+						formattedExpected = ArgumentFormatter.Format(expected);
+						formattedActual = ArgumentFormatter.Format(actual);
 					}
 
 #if XUNIT_NULLABLE
@@ -577,8 +556,8 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(comparer), comparer);
 
-			var expectedTracker = AsNonStringTracker(expected);
-			var actualTracker = AsNonStringTracker(actual);
+			var expectedTracker = expected.AsNonStringTracker();
+			var actualTracker = actual.AsNonStringTracker();
 
 			try
 			{
@@ -625,7 +604,7 @@ namespace Xunit
 					if (itemComparer != null)
 					{
 						int? mismatchedIndex;
-						if (!CollectionTracker.AreCollectionsEqual(expected, expectedTracker, actual, actualTracker, itemComparer, out mismatchedIndex))
+						if (!CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, out mismatchedIndex))
 							return;
 
 						formattedExpected = expectedTracker?.FormatStart() ?? "null";
@@ -636,14 +615,8 @@ namespace Xunit
 						if (!comparer.Equals(expected, actual))
 							return;
 
-						formattedExpected =
-							expectedTracker == null
-								? "null"
-								: (CollectionTracker.SafeToMultiEnumerate(expected) ? expectedTracker.FormatStart() : unsafeEnumerableDisplay);
-						formattedActual =
-							actualTracker == null
-								? "null"
-								: (CollectionTracker.SafeToMultiEnumerate(actual) ? actualTracker.FormatStart() : unsafeEnumerableDisplay);
+						formattedExpected = ArgumentFormatter.Format(expected);
+						formattedActual = ArgumentFormatter.Format(actual);
 					}
 
 #if XUNIT_NULLABLE

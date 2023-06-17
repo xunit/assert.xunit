@@ -12,22 +12,43 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+#if XUNIT_ARGUMENTFORMATTER_PRIVATE
+namespace Xunit.Internal
+#else
 namespace Xunit.Sdk
+#endif
 {
-	interface ICollectionTracker : IEnumerable, IDisposable
-	{
-		string FormatStart(int depth);
-	}
-
+	/// <summary>
+	/// Formats value for display in assertion messages and data-driven test display names.
+	/// </summary>
+#if XUNIT_VISIBILITY_INTERNAL || XUNIT_ARGUMENTFORMATTER_PRIVATE
+	internal
+#else
+	public
+#endif
 	static class ArgumentFormatter
 	{
-		public static string Ellipsis = new string((char)0x00B7, 3);
+		internal static readonly string EllipsisInBrackets = "[" + new string((char)0x00B7, 3) + "]";
 
-		internal const int MAX_DEPTH = 3;
-		internal const int MAX_ENUMERABLE_LENGTH = 5;
-		internal const int MAX_ENUMERABLE_LENGTH_HALF = 2;
-		internal const int MAX_OBJECT_PARAMETER_COUNT = 5;
-		internal const int MAX_STRING_LENGTH = 50;
+		/// <summary>
+		/// Gets the maximum printing depth, in terms of objects before truncation.
+		/// </summary>
+		public const int MAX_DEPTH = 3;
+
+		/// <summary>
+		/// Gets the maximum number of values printed for collections before truncation.
+		/// </summary>
+		public const int MAX_ENUMERABLE_LENGTH = 5;
+
+		/// <summary>
+		/// Gets the maximum number of items (properties or fields) printed in an object before truncation.
+		/// </summary>
+		public const int MAX_OBJECT_ITEM_COUNT = 5;
+
+		/// <summary>
+		/// Gets the maximum strength length before truncation.
+		/// </summary>
+		public const int MAX_STRING_LENGTH = 50;
 
 		static readonly object[] EmptyObjects = new object[0];
 		static readonly Type[] EmptyTypes = new Type[0];
@@ -76,7 +97,19 @@ namespace Xunit.Sdk
 				tupleInterfaceType = null;
 		}
 
-		internal static string EscapeString(string s)
+		/// <summary>
+		/// Gets the ellipsis value (three middle dots, aka U+00B7).
+		/// </summary>
+		public static string Ellipsis { get; } = new string((char)0x00B7, 3);
+
+		/// <summary>
+		/// Escapes a string for printing, attempting to most closely model the value on how you would
+		/// enter the value in a C# string literal. That means control codes that are normally backslash
+		/// escaped (like "\n" for newline) are represented like that; all other control codes for ASCII
+		/// values under 32 are printed as "\xnn".
+		/// </summary>
+		/// <param name="s">The string value to be escaped</param>
+		public static string EscapeString(string s)
 		{
 			var builder = new StringBuilder(s.Length);
 			for (var i = 0; i < s.Length; i++)
@@ -108,6 +141,11 @@ namespace Xunit.Sdk
 			return builder.ToString();
 		}
 
+		/// <summary>
+		/// Formats a value for display.
+		/// </summary>
+		/// <param name="value">The value to be formatted</param>
+		/// <param name="depth">The optional printing depth (1 indicates a top-level value)</param>
 		public static string Format(
 #if XUNIT_NULLABLE
 			object? value,
@@ -144,21 +182,15 @@ namespace Xunit.Sdk
 				if (stringParameter != null)
 					return FormatStringValue(stringParameter);
 
-				var tracker = value as ICollectionTracker;
+#if !XUNIT_ARGUMENTFORMATTER_PRIVATE
+				var tracker = value as CollectionTracker;
 				if (tracker != null)
-					return FormatCollectionTrackerValue(tracker, depth);
-
-				var dictionary = value as IDictionary;
-				if (dictionary != null)
-					return FormatSafeEnumerableValue(dictionary, depth);
-
-				var list = value as IList;
-				if (list != null)
-					return FormatSafeEnumerableValue(list, depth);
+					return tracker.FormatStart(depth);
+#endif
 
 				var enumerable = value as IEnumerable;
 				if (enumerable != null)
-					return FormatUnsafeEnumerableValue(enumerable);
+					return FormatEnumerableValue(enumerable, depth);
 
 				var type = value.GetType();
 				var typeInfo = type.GetTypeInfo();
@@ -173,7 +205,7 @@ namespace Xunit.Sdk
 				if (task != null)
 				{
 					var typeParameters = typeInfo.GenericTypeArguments;
-					var typeName = typeParameters.Length == 0 ? "Task" : $"Task<{string.Join(",", typeParameters.Select(FormatTypeName))}>";
+					var typeName = typeParameters.Length == 0 ? "Task" : $"Task<{string.Join(",", typeParameters.Select(t => FormatTypeName(t)))}>";
 					return $"{typeName} {{ Status = {task.Status} }}";
 				}
 
@@ -250,24 +282,19 @@ namespace Xunit.Sdk
 				fields
 					.Concat(properties)
 					.OrderBy(p => p.name)
-					.Take(MAX_OBJECT_PARAMETER_COUNT + 1)
+					.Take(MAX_OBJECT_ITEM_COUNT + 1)
 					.ToList();
 
 			if (parameters.Count == 0)
 				return $"{typeName}{{ }}";
 
-			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_PARAMETER_COUNT).Select(p => $"{p.name} = {p.value}"));
+			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_ITEM_COUNT).Select(p => $"{p.name} = {p.value}"));
 
-			if (parameters.Count > MAX_OBJECT_PARAMETER_COUNT)
+			if (parameters.Count > MAX_OBJECT_ITEM_COUNT)
 				formattedParameters += ", " + Ellipsis;
 
 			return $"{typeName}{{ {formattedParameters} }}";
 		}
-
-		static string FormatCollectionTrackerValue(
-			ICollectionTracker tracker,
-			int depth) =>
-				tracker.FormatStart(depth);
 
 		static string FormatDateTimeValue(object value) =>
 			$"{value:o}";
@@ -278,15 +305,12 @@ namespace Xunit.Sdk
 		static string FormatEnumValue(object value) =>
 			value.ToString()?.Replace(", ", " | ") ?? "null";
 
-		static string FormatFloatValue(object value) =>
-			$"{value:G9}";
-
-		static string FormatSafeEnumerableValue(
+		static string FormatEnumerableValue(
 			IEnumerable enumerable,
 			int depth)
 		{
-			if (depth == MAX_DEPTH)
-				return "[" + Ellipsis + "]";
+			if (depth == MAX_DEPTH || !SafeToMultiEnumerate(enumerable))
+				return EllipsisInBrackets;
 
 			// This should only be used on values that are known to be re-enumerable
 			// safely, like collections that implement IDictionary or IList.
@@ -316,6 +340,9 @@ namespace Xunit.Sdk
 			result.Append(']');
 			return result.ToString();
 		}
+
+		static string FormatFloatValue(object value) =>
+			$"{value:G9}";
 
 		static string FormatStringValue(string value)
 		{
@@ -359,12 +386,15 @@ namespace Xunit.Sdk
 			return result.ToString();
 		}
 
-		public static string FormatTypeName(Type type) =>
-			FormatTypeName(type, false);
-
+		/// <summary>
+		/// Formats a type. This maps built-in C# types to their C# native name (e.g., printing "int" instead
+		/// of "Int32" or "System.Int32").
+		/// </summary>
+		/// <param name="type">The type to get the formatted name of</param>
+		/// <param name="fullTypeName">Set to <c>true</c> to include the namespace; set to <c>false</c> for just the simple type name</param>
 		public static string FormatTypeName(
 			Type type,
-			bool fullTypeName)
+			bool fullTypeName = false)
 		{
 			var typeInfo = type.GetTypeInfo();
 			var arraySuffix = "";
@@ -414,17 +444,10 @@ namespace Xunit.Sdk
 				if (typeInfo.GetGenericTypeDefinition() == typeof(Nullable<>))
 					result = FormatTypeName(typeInfo.GenericTypeArguments[0]) + "?";
 				else
-					result = $"{result}<{string.Join(", ", typeInfo.GenericTypeArguments.Select(FormatTypeName))}>";
+					result = $"{result}<{string.Join(", ", typeInfo.GenericTypeArguments.Select(t => FormatTypeName(t)))}>";
 			}
 
 			return result + arraySuffix;
-		}
-
-		static string FormatUnsafeEnumerableValue(IEnumerable enumerable)
-		{
-			// When we don't know if we can safely enumerate (and to prevent double enumeration),
-			// we just print out the container type name and the ellipsis.
-			return $"{FormatTypeName(enumerable.GetType())} [{Ellipsis}]";
 		}
 
 		static string FormatValueTypeValue(
@@ -440,6 +463,23 @@ namespace Xunit.Sdk
 			}
 
 			return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "null";
+		}
+
+#if XUNIT_NULLABLE
+		internal static Type? GetSetElementType(object? obj)
+#else
+		internal static Type GetSetElementType(object obj)
+#endif
+		{
+			if (obj == null)
+				return null;
+
+			return
+				(from @interface in obj.GetType().GetTypeInfo().ImplementedInterfaces
+				 where @interface.GetTypeInfo().IsGenericType
+				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
+				 where genericTypeDefinition == typeof(ISet<>)
+				 select @interface.GetTypeInfo()).FirstOrDefault()?.GenericTypeArguments[0];
 		}
 
 		static bool IsAnonymousType(this TypeInfo typeInfo)
@@ -462,6 +502,16 @@ namespace Xunit.Sdk
 			return typeInfo == typeInfo.GetElementType().MakeArrayType().GetTypeInfo();
 #endif
 		}
+
+#if XUNIT_NULLABLE
+		static bool SafeToMultiEnumerate(IEnumerable? collection) =>
+#else
+		static bool SafeToMultiEnumerate(IEnumerable collection) =>
+#endif
+			collection is Array ||
+			collection is IList ||
+			collection is IDictionary ||
+			GetSetElementType(collection) != null;
 
 		static bool TryGetEscapeSequence(
 			char ch,
