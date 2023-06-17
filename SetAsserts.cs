@@ -115,7 +115,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="expected">The object that is expected not to be in the set</param>
 		/// <param name="set">The set to be inspected</param>
-		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
+		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the collection</exception>
 		public static void DoesNotContain<T>(
 			T expected,
 			IReadOnlySet<T> set)

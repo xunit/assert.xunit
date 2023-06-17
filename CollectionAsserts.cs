@@ -283,7 +283,7 @@ namespace Xunit
 		/// </summary>
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
-		/// <exception cref="DistinctException">Thrown when an object is present inside the container more than once</exception>
+		/// <exception cref="DistinctException">Thrown when an object is present inside the collection more than once</exception>
 		public static void Distinct<T>(IEnumerable<T> collection) =>
 			Distinct<T>(collection, EqualityComparer<T>.Default);
 
@@ -293,7 +293,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
-		/// <exception cref="DistinctException">Thrown when an object is present inside the container more than once</exception>
+		/// <exception cref="DistinctException">Thrown when an object is present inside the collection more than once</exception>
 		public static void Distinct<T>(
 			IEnumerable<T> collection,
 			IEqualityComparer<T> comparer)
@@ -315,7 +315,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="expected">The object that is expected not to be in the collection</param>
 		/// <param name="collection">The collection to be inspected</param>
-		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
+		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the collection</exception>
 		public static void DoesNotContain<T>(
 			T expected,
 			IEnumerable<T> collection)
@@ -338,7 +338,7 @@ namespace Xunit
 		/// <param name="expected">The object that is expected not to be in the collection</param>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="comparer">The comparer used to equate objects in the collection with the expected object</param>
-		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
+		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the collection</exception>
 		public static void DoesNotContain<T>(
 			T expected,
 			IEnumerable<T> collection,
@@ -375,7 +375,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the object to be compared</typeparam>
 		/// <param name="collection">The collection to be inspected</param>
 		/// <param name="filter">The filter used to find the item you're ensuring the collection does not contain</param>
-		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the container</exception>
+		/// <exception cref="DoesNotContainException">Thrown when the object is present inside the collection</exception>
 		public static void DoesNotContain<T>(
 			IEnumerable<T> collection,
 			Predicate<T> filter)
@@ -490,7 +490,7 @@ namespace Xunit
 			try
 			{
 				if (!enumerator.MoveNext())
-					throw NotEmptyException.ForNonEmptyContainer();
+					throw NotEmptyException.ForNonEmptyCollection();
 			}
 			finally
 			{

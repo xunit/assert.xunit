@@ -20,9 +20,9 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotEmptyException"/> class to be thrown
-		/// when a container was unexpectedly empty.
+		/// when a collection was unexpectedly empty.
 		/// </summary>
-		public static NotEmptyException ForNonEmptyContainer() =>
-			new NotEmptyException("Assert.NotEmpty() Failure: Container was empty");
+		public static NotEmptyException ForNonEmptyCollection() =>
+			new NotEmptyException("Assert.NotEmpty() Failure: Collection was empty");
 	}
 }
