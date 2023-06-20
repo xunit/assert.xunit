@@ -2,6 +2,8 @@
 #nullable enable
 #endif
 
+using System;
+
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -20,7 +22,15 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotNullException"/> class to be
-		/// thrown when a value is <c>null</c>.
+		/// throw when a nullable struct is <c>null</c>.
+		/// </summary>
+		/// <param name="type">The inner type of the value</param>
+		public static Exception ForNullStruct(Type type) =>
+			new NotNullException($"Assert.NotNull() Failure: Value of type 'Nullable<{ArgumentFormatter.FormatTypeName(type)}>' does not have a value");
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="NotNullException"/> class to be
+		/// thrown when a reference value is <c>null</c>.
 		/// </summary>
 		public static NotNullException ForNullValue() =>
 			new NotNullException("Assert.NotNull() Failure: Value is null");

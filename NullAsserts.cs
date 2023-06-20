@@ -33,6 +33,22 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that a nullable struct value is not null.
+		/// </summary>
+		/// <typeparam name="T">The type of the struct</typeparam>
+		/// <param name="value">The value to e validated</param>
+		/// <returns>The non-<c>null</c> value</returns>
+		/// <exception cref="NotNullException">Thrown when the value is null</exception>
+		public static T NotNull<T>(T? value)
+			where T : struct
+		{
+			if (!value.HasValue)
+				throw NotNullException.ForNullStruct(typeof(T));
+
+			return value.Value;
+		}
+
+		/// <summary>
 		/// Verifies that an object reference is null.
 		/// </summary>
 		/// <param name="object">The object to be inspected</param>
@@ -45,6 +61,18 @@ namespace Xunit
 		{
 			if (@object != null)
 				throw NullException.ForNonNullValue(@object);
+		}
+
+		/// <summary>
+		/// Verifies that a nullable struct value is null.
+		/// </summary>
+		/// <param name="value">The value to be inspected</param>
+		/// <exception cref="NullException">Thrown when the value is not null</exception>
+		public static void Null<T>(T? value)
+			where T : struct
+		{
+			if (value.HasValue)
+				throw NullException.ForNonNullStruct(typeof(T), value);
 		}
 	}
 }
