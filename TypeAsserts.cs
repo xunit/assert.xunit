@@ -36,7 +36,9 @@ namespace Xunit
 		public static T IsAssignableFrom<T>(object @object)
 #endif
 		{
+#pragma warning disable xUnit2007
 			IsAssignableFrom(typeof(T), @object);
+#pragma warning restore xUnit2007
 			return (T)@object;
 		}
 
@@ -105,7 +107,9 @@ namespace Xunit
 #else
 		public static void IsNotType<T>(object @object) =>
 #endif
+#pragma warning disable xUnit2007
 			IsNotType(typeof(T), @object);
+#pragma warning restore xUnit2007
 
 		/// <summary>
 		/// Verifies that an object is not exactly the given type.
@@ -140,7 +144,9 @@ namespace Xunit
 		public static T IsType<T>(object @object)
 #endif
 		{
+#pragma warning disable xUnit2007
 			IsType(typeof(T), @object);
+#pragma warning restore xUnit2007
 			return (T)@object;
 		}
 

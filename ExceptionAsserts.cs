@@ -96,7 +96,9 @@ namespace Xunit
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static T Throws<T>(Action testCode)
 			where T : Exception =>
+#pragma warning disable xUnit2015
 				(T)Throws(typeof(T), RecordException(testCode));
+#pragma warning restore xUnit2015
 
 		/// <summary>
 		/// Verifies that the exact exception is thrown (and not a derived exception type).
@@ -111,7 +113,9 @@ namespace Xunit
 		public static T Throws<T>(Func<object> testCode)
 #endif
 			where T : Exception =>
+#pragma warning disable xUnit2015
 				(T)Throws(typeof(T), RecordException(testCode, nameof(ThrowsAsync)));
+#pragma warning restore xUnit2015
 
 		/// <summary/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
@@ -332,7 +336,9 @@ namespace Xunit
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static async Task<T> ThrowsAsync<T>(Func<Task> testCode)
 			where T : Exception =>
+#pragma warning disable xUnit2015
 				(T)Throws(typeof(T), await RecordExceptionAsync(testCode));
+#pragma warning restore xUnit2015
 
 #if XUNIT_VALUETASK
 		/// <summary>
