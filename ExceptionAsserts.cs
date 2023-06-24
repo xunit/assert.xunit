@@ -266,7 +266,7 @@ namespace Xunit
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.", true)]
 		public static T ThrowsAny<T>(Func<Task> testCode)
-			where T : ArgumentException
+			where T : Exception
 		{
 			throw new NotImplementedException("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.");
 		}
@@ -276,7 +276,7 @@ namespace Xunit
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.", true)]
 		public static T ThrowsAny<T>(Func<ValueTask> testCode)
-			where T : ArgumentException
+			where T : Exception
 		{
 			throw new NotImplementedException("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.");
 		}
