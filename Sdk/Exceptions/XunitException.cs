@@ -24,14 +24,27 @@ namespace Xunit.Sdk
 		/// Initializes a new instance of the <see cref="XunitException"/> class.
 		/// </summary>
 		/// <param name="userMessage">The user message to be displayed</param>
+		public XunitException(
+#if XUNIT_NULLABLE
+			string? userMessage) :
+#else
+			string userMessage) :
+#endif
+				this(userMessage, null)
+		{ }
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="XunitException"/> class.
+		/// </summary>
+		/// <param name="userMessage">The user message to be displayed</param>
 		/// <param name="innerException">The inner exception</param>
 		public XunitException(
 #if XUNIT_NULLABLE
 			string? userMessage,
-			Exception? innerException = null) :
+			Exception? innerException) :
 #else
 			string userMessage,
-			Exception innerException = null) :
+			Exception innerException) :
 #endif
 				base(userMessage, innerException)
 		{ }
