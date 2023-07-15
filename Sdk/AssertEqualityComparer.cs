@@ -67,6 +67,7 @@ namespace Xunit.Sdk
 			if (x == null || y == null)
 				return false;
 
+#if !XUNIT_FRAMEWORK
 			// Collections?
 			using (var xTracker = x.AsNonStringTracker())
 			using (var yTracker = y.AsNonStringTracker())
@@ -76,6 +77,7 @@ namespace Xunit.Sdk
 				if (xTracker != null && yTracker != null)
 					return CollectionTracker.AreCollectionsEqual(xTracker, yTracker, InnerComparer, out _);
 			}
+#endif
 
 			// Implements IEquatable<T>?
 			var equatable = x as IEquatable<T>;
