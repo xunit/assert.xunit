@@ -12,10 +12,10 @@ using System.Collections.Generic;
 namespace Xunit.Sdk
 {
 	/// <summary>
-	/// A class that wraps <see cref="IEqualityComparer{T}"/> to create <see cref="IEqualityComparer"/>.
+	/// A class that wraps <see cref="IEqualityComparer{T}"/> to add <see cref="IEqualityComparer"/>.
 	/// </summary>
 	/// <typeparam name="T">The type that is being compared.</typeparam>
-	class AssertEqualityComparerAdapter<T> : IEqualityComparer
+	class AssertEqualityComparerAdapter<T> : IEqualityComparer, IEqualityComparer<T>
 	{
 		readonly IEqualityComparer<T> innerComparer;
 
@@ -44,9 +44,23 @@ namespace Xunit.Sdk
 #endif
 
 		/// <inheritdoc/>
-		public int GetHashCode(object obj)
-		{
-			throw new NotImplementedException();
-		}
+		public bool Equals(
+#if XUNIT_NULLABLE
+			T? x,
+			T? y) =>
+#else
+			T x,
+			T y) =>
+#endif
+				innerComparer.Equals(x, y);
+
+
+		/// <inheritdoc/>
+		public int GetHashCode(object obj) =>
+			innerComparer.GetHashCode((T)obj);
+
+		/// <inheritdoc/>
+		public int GetHashCode(T obj) =>
+			innerComparer.GetHashCode(obj);
 	}
 }
