@@ -234,40 +234,10 @@ namespace Xunit.Internal
 				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string))
 					return VerifyEquivalenceIntrinsics(expected, actual, prefix);
 
-				// IComparable value types should fall back to their CompareTo implementation
-				if (expectedTypeInfo.IsValueType)
-				{
-					// TODO: Should we support more than just IComparable? This feels like it was added solely
-					// to support DateTime (a built-in non-intrinsic value type). Should we support the full
-					// gamut of everything that we do in AssertEqualityComparer?
-					try
-					{
-						var expectedComparable = expected as IComparable;
-						if (expectedComparable != null)
-							return
-								expectedComparable.CompareTo(actual) == 0
-									? null
-									: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
-					}
-					catch (Exception ex)
-					{
-						return EquivalentException.ForMemberValueMismatch(expected, actual, prefix, ex);
-					}
-
-					try
-					{
-						var actualComparable = actual as IComparable;
-						if (actualComparable != null)
-							return
-								actualComparable.CompareTo(expected) == 0
-									? null
-									: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
-					}
-					catch (Exception ex)
-					{
-						return EquivalentException.ForMemberValueMismatch(expected, actual, prefix, ex);
-					}
-				}
+				// DateTime and DateTimeOffset need to be compared via IComparable (because of a circular
+				// reference via the Date property).
+				if (expectedType == typeof(DateTime) || expectedType == typeof(DateTimeOffset))
+					return VerifyEquivalenceDateTime(expected, actual, prefix);
 
 				// Enumerables? Check equivalence of individual members
 				var enumerableExpected = expected as IEnumerable;
@@ -282,6 +252,46 @@ namespace Xunit.Internal
 				expectedRefs.Remove(expected);
 				actualRefs.Remove(actual);
 			}
+		}
+
+#if XUNIT_NULLABLE
+		static EquivalentException? VerifyEquivalenceDateTime(
+#else
+		static EquivalentException VerifyEquivalenceDateTime(
+#endif
+			object expected,
+			object actual,
+			string prefix)
+		{
+			try
+			{
+				var expectedComparable = expected as IComparable;
+				if (expectedComparable != null)
+					return
+						expectedComparable.CompareTo(actual) == 0
+							? null
+							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+			}
+			catch (Exception ex)
+			{
+				return EquivalentException.ForMemberValueMismatch(expected, actual, prefix, ex);
+			}
+
+			try
+			{
+				var actualComparable = actual as IComparable;
+				if (actualComparable != null)
+					return
+						actualComparable.CompareTo(expected) == 0
+							? null
+							: EquivalentException.ForMemberValueMismatch(expected, actual, prefix);
+			}
+			catch (Exception ex)
+			{
+				return EquivalentException.ForMemberValueMismatch(expected, actual, prefix, ex);
+			}
+
+			throw new InvalidOperationException($"VerifyEquivalenceDateTime was given non-DateTime(Offset) objects; typeof(expected) = {ArgumentFormatter.FormatTypeName(expected.GetType())}, typeof(actual) = {ArgumentFormatter.FormatTypeName(actual.GetType())}");
 		}
 
 #if XUNIT_NULLABLE
