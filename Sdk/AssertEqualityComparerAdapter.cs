@@ -59,8 +59,13 @@ namespace Xunit.Sdk
 		public int GetHashCode(object obj) =>
 			innerComparer.GetHashCode((T)obj);
 
+		// This warning disable is here because sometimes IEqualityComparer<T>.GetHashCode marks the obj parameter
+		// with [DisallowNull] and sometimes it doesn't, and we need to be able to support both scenarios when
+		// someone brings in the assertion library via source.
+#pragma warning disable CS8607
 		/// <inheritdoc/>
 		public int GetHashCode(T obj) =>
 			innerComparer.GetHashCode(obj);
+#pragma warning restore CS8607
 	}
 }
