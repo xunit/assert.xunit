@@ -365,7 +365,7 @@ namespace Xunit.Sdk
 
 		/// <inheritdoc/>
 		public override void Dispose() =>
-			enumerator?.Dispose();
+			enumerator?.DisposeInternal();
 
 		/// <summary>
 		/// Formats the collection when you have a mismatched index. The formatted result will be the section of the
@@ -723,6 +723,9 @@ namespace Xunit.Sdk
 			public List<T> StartItems { get; } = new List<T>();
 
 			public void Dispose()
+			{ }
+
+			public void DisposeInternal()
 			{
 				innerEnumerator.Dispose();
 			}
