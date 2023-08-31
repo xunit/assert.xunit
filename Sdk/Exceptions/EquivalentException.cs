@@ -46,6 +46,17 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
+		/// that the maximum comparison depth was exceeded.
+		/// </summary>
+		/// <param name="depth">The depth reached</param>
+		/// <param name="memberName">The member access which caused the failure</param>
+		public static EquivalentException ForExceededDepth(
+			int depth,
+			string memberName) =>
+				new EquivalentException($"Assert.Equivalent() Failure: Exceeded the maximum depth {depth} with '{memberName}'; check for infinite recursion or circular references");
+
+		/// <summary>
+		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
 		/// that the list of available members does not match.
 		/// </summary>
 		/// <param name="expectedMemberNames">The expected member names</param>

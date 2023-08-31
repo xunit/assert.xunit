@@ -184,7 +184,7 @@ namespace Xunit.Internal
 #endif
 			bool strict)
 		{
-			return VerifyEquivalence(expected, actual, strict, string.Empty, new HashSet<object>(), new HashSet<object>());
+			return VerifyEquivalence(expected, actual, strict, string.Empty, new HashSet<object>(), new HashSet<object>(), 1);
 		}
 
 #if XUNIT_NULLABLE
@@ -199,8 +199,13 @@ namespace Xunit.Internal
 			bool strict,
 			string prefix,
 			HashSet<object> expectedRefs,
-			HashSet<object> actualRefs)
+			HashSet<object> actualRefs,
+			int depth)
 		{
+			// Check for exceeded depth
+			if (depth == 50)
+				return EquivalentException.ForExceededDepth(50, prefix);
+
 			// Check for null equivalence
 			if (expected == null)
 				return
@@ -243,9 +248,9 @@ namespace Xunit.Internal
 				var enumerableExpected = expected as IEnumerable;
 				var enumerableActual = actual as IEnumerable;
 				if (enumerableExpected != null && enumerableActual != null)
-					return VerifyEquivalenceEnumerable(enumerableExpected, enumerableActual, strict, prefix, expectedRefs, actualRefs);
+					return VerifyEquivalenceEnumerable(enumerableExpected, enumerableActual, strict, prefix, expectedRefs, actualRefs, depth);
 
-				return VerifyEquivalenceReference(expected, actual, strict, prefix, expectedRefs, actualRefs);
+				return VerifyEquivalenceReference(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
 			}
 			finally
 			{
@@ -304,7 +309,8 @@ namespace Xunit.Internal
 			bool strict,
 			string prefix,
 			HashSet<object> expectedRefs,
-			HashSet<object> actualRefs)
+			HashSet<object> actualRefs,
+			int depth)
 		{
 #if XUNIT_NULLABLE
 			var expectedValues = expected.Cast<object?>().ToList();
@@ -320,7 +326,7 @@ namespace Xunit.Internal
 			{
 				var actualIdx = 0;
 				for (; actualIdx < actualValues.Count; ++actualIdx)
-					if (VerifyEquivalence(expectedValue, actualValues[actualIdx], strict, "", expectedRefs, actualRefs) == null)
+					if (VerifyEquivalence(expectedValue, actualValues[actualIdx], strict, "", expectedRefs, actualRefs, depth) == null)
 						break;
 
 				if (actualIdx == actualValues.Count)
@@ -365,7 +371,8 @@ namespace Xunit.Internal
 			bool strict,
 			string prefix,
 			HashSet<object> expectedRefs,
-			HashSet<object> actualRefs)
+			HashSet<object> actualRefs,
+			int depth)
 		{
 			var prefixDot = prefix == string.Empty ? string.Empty : prefix + ".";
 
@@ -390,7 +397,7 @@ namespace Xunit.Internal
 				var expectedMemberValue = kvp.Value(expected);
 				var actualMemberValue = actualGetter(actual);
 
-				var ex = VerifyEquivalence(expectedMemberValue, actualMemberValue, strict, prefixDot + kvp.Key, expectedRefs, actualRefs);
+				var ex = VerifyEquivalence(expectedMemberValue, actualMemberValue, strict, prefixDot + kvp.Key, expectedRefs, actualRefs, depth + 1);
 				if (ex != null)
 					return ex;
 			}
