@@ -46,12 +46,42 @@ namespace Xunit.Internal
 #endif
 
 #if XUNIT_NULLABLE
-		static readonly TypeInfo? fileSystemInfoTypeInfo = Type.GetType("System.IO.FileSystemInfo")?.GetTypeInfo();
-		static readonly PropertyInfo? fileSystemInfoFullNameProperty = fileSystemInfoTypeInfo?.GetDeclaredProperty("FullName");
+		static readonly Lazy<TypeInfo?> fileSystemInfoTypeInfo = new Lazy<TypeInfo?>(() => GetTypeInfo("System.IO.FileSystemInfo"));
+		static readonly Lazy<PropertyInfo?> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo?>(() => fileSystemInfoTypeInfo.Value?.GetDeclaredProperty("FullName"));
 #else
-		static readonly TypeInfo fileSystemInfoTypeInfo = Type.GetType("System.IO.FileSystemInfo")?.GetTypeInfo();
-		static readonly PropertyInfo fileSystemInfoFullNameProperty = fileSystemInfoTypeInfo?.GetDeclaredProperty("FullName");
+		static readonly Lazy<TypeInfo> fileSystemInfoTypeInfo = new Lazy<TypeInfo>(() => GetTypeInfo("System.IO.FileSystemInfo"));
+		static readonly Lazy<PropertyInfo> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo>(() => fileSystemInfoTypeInfo.Value?.GetDeclaredProperty("FullName"));
 #endif
+
+		static readonly Lazy<Assembly[]> getAssemblies = new Lazy<Assembly[]>(() =>
+		{
+#if NETSTANDARD1_1
+			var appDomainType = Type.GetType("System.AppDomain");
+			if (appDomainType != null)
+			{
+				var currentDomainProperty = appDomainType.GetRuntimeProperty("CurrentDomain");
+				if (currentDomainProperty != null)
+				{
+					var getAssembliesMethod = appDomainType.GetRuntimeMethods().FirstOrDefault(m => m.Name == "GetAssemblies");
+					if (getAssembliesMethod != null)
+					{
+						var currentDomain = currentDomainProperty.GetValue(null);
+						if (currentDomain != null)
+						{
+							var getAssembliesArgs = getAssembliesMethod.GetParameters().Length == 1 ? new object[] { false } : new object[0];
+							var assemblies = getAssembliesMethod.Invoke(currentDomain, getAssembliesArgs) as Assembly[];
+							if (assemblies != null)
+								return assemblies;
+						}
+					}
+				}
+			}
+
+			return new Assembly[0];
+#else
+			return AppDomain.CurrentDomain.GetAssemblies();
+#endif
+		});
 
 #if XUNIT_NULLABLE
 		static Dictionary<string, Func<object?, object?>> GetGettersForType(Type type) =>
@@ -85,6 +115,29 @@ namespace Xunit.Internal
 						.Concat(propertyGetters)
 						.ToDictionary(g => g.name, g => g.getter);
 			});
+
+#if XUNIT_NULLABLE
+		static TypeInfo? GetTypeInfo(string typeName)
+#else
+		static TypeInfo GetTypeInfo(string typeName)
+#endif
+		{
+			try
+			{
+				foreach (var assembly in getAssemblies.Value)
+				{
+					var type = assembly.GetType(typeName);
+					if (type != null)
+						return type.GetTypeInfo();
+				}
+
+				return null;
+			}
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException($"Fatal error: Exception occured while trying to retrieve type '{typeName}'", ex);
+			}
+		}
 
 		internal static string ShortenAndEncodeString(
 #if XUNIT_NULLABLE
@@ -256,8 +309,8 @@ namespace Xunit.Internal
 					return VerifyEquivalenceDateTime(expected, actual, prefix);
 
 				// FileSystemInfo has a recursion problem when getting the root directory
-				if (fileSystemInfoTypeInfo != null)
-					if (fileSystemInfoTypeInfo.IsAssignableFrom(expectedTypeInfo) && fileSystemInfoTypeInfo.IsAssignableFrom(actualTypeInfo))
+				if (fileSystemInfoTypeInfo.Value != null)
+					if (fileSystemInfoTypeInfo.Value.IsAssignableFrom(expectedTypeInfo) && fileSystemInfoTypeInfo.Value.IsAssignableFrom(actualTypeInfo))
 						return VerifyEquivalenceFileSystemInfo(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
 
 				// Enumerables? Check equivalence of individual members
@@ -370,10 +423,10 @@ namespace Xunit.Internal
 			HashSet<object> actualRefs,
 			int depth)
 		{
-			if (fileSystemInfoFullNameProperty == null)
+			if (fileSystemInfoFullNameProperty.Value == null)
 				throw new InvalidOperationException("Could not find 'FullName' property on type 'System.IO.FileSystemInfo'");
 
-			var fullName = fileSystemInfoFullNameProperty.GetValue(expected);
+			var fullName = fileSystemInfoFullNameProperty.Value.GetValue(expected);
 			var expectedAnonymous = new { FullName = fullName };
 
 			return VerifyEquivalenceReference(expectedAnonymous, actual, strict, prefix, expectedRefs, actualRefs, depth);
