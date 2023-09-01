@@ -3,6 +3,7 @@
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8600
+#pragma warning disable CS8601
 #pragma warning disable CS8603
 #pragma warning disable CS8604
 #pragma warning disable CS8621
@@ -42,6 +43,14 @@ namespace Xunit.Internal
 		static ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>>();
 #else
 		static ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>>();
+#endif
+
+#if XUNIT_NULLABLE
+		static readonly TypeInfo? fileSystemInfoTypeInfo = Type.GetType("System.IO.FileSystemInfo")?.GetTypeInfo();
+		static readonly PropertyInfo? fileSystemInfoFullNameProperty = fileSystemInfoTypeInfo?.GetDeclaredProperty("FullName");
+#else
+		static readonly TypeInfo fileSystemInfoTypeInfo = Type.GetType("System.IO.FileSystemInfo")?.GetTypeInfo();
+		static readonly PropertyInfo fileSystemInfoFullNameProperty = fileSystemInfoTypeInfo?.GetDeclaredProperty("FullName");
 #endif
 
 #if XUNIT_NULLABLE
@@ -234,6 +243,8 @@ namespace Xunit.Internal
 			{
 				var expectedType = expected.GetType();
 				var expectedTypeInfo = expectedType.GetTypeInfo();
+				var actualType = actual.GetType();
+				var actualTypeInfo = actualType.GetTypeInfo();
 
 				// Primitive types, enums and strings should just fall back to their Equals implementation
 				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string))
@@ -243,6 +254,11 @@ namespace Xunit.Internal
 				// reference via the Date property).
 				if (expectedType == typeof(DateTime) || expectedType == typeof(DateTimeOffset))
 					return VerifyEquivalenceDateTime(expected, actual, prefix);
+
+				// FileSystemInfo has a recursion problem when getting the root directory
+				if (fileSystemInfoTypeInfo != null)
+					if (fileSystemInfoTypeInfo.IsAssignableFrom(expectedTypeInfo) && fileSystemInfoTypeInfo.IsAssignableFrom(actualTypeInfo))
+						return VerifyEquivalenceFileSystemInfo(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
 
 				// Enumerables? Check equivalence of individual members
 				var enumerableExpected = expected as IEnumerable;
@@ -339,6 +355,28 @@ namespace Xunit.Internal
 				return EquivalentException.ForExtraCollectionValue(expectedValues, actualOriginalValues, actualValues, prefix);
 
 			return null;
+		}
+
+#if XUNIT_NULLABLE
+		static EquivalentException? VerifyEquivalenceFileSystemInfo(
+#else
+		static EquivalentException VerifyEquivalenceFileSystemInfo(
+#endif
+			object expected,
+			object actual,
+			bool strict,
+			string prefix,
+			HashSet<object> expectedRefs,
+			HashSet<object> actualRefs,
+			int depth)
+		{
+			if (fileSystemInfoFullNameProperty == null)
+				throw new InvalidOperationException("Could not find 'FullName' property on type 'System.IO.FileSystemInfo'");
+
+			var fullName = fileSystemInfoFullNameProperty.GetValue(expected);
+			var expectedAnonymous = new { FullName = fullName };
+
+			return VerifyEquivalenceReference(expectedAnonymous, actual, strict, prefix, expectedRefs, actualRefs, depth);
 		}
 
 #if XUNIT_NULLABLE
