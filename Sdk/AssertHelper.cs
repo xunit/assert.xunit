@@ -426,6 +426,12 @@ namespace Xunit.Internal
 			if (fileSystemInfoFullNameProperty.Value == null)
 				throw new InvalidOperationException("Could not find 'FullName' property on type 'System.IO.FileSystemInfo'");
 
+			var expectedType = expected.GetType();
+			var actualType = actual.GetType();
+
+			if (expectedType != actualType)
+				return EquivalentException.ForMismatchedTypes(expectedType, actualType, prefix);
+
 			var fullName = fileSystemInfoFullNameProperty.Value.GetValue(expected);
 			var expectedAnonymous = new { FullName = fullName };
 
