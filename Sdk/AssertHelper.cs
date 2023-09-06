@@ -55,7 +55,7 @@ namespace Xunit.Internal
 
 		static readonly Lazy<Assembly[]> getAssemblies = new Lazy<Assembly[]>(() =>
 		{
-#if NETSTANDARD1_1
+#if NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD1_6
 			var appDomainType = Type.GetType("System.AppDomain");
 			if (appDomainType != null)
 			{
