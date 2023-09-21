@@ -6,7 +6,7 @@
 #pragma warning disable CS8603
 #pragma warning disable CS8604
 #pragma warning disable CS8605
-#pragma warning disable CS8625
+#pragma warning disable CS8618
 #endif
 
 using System;
@@ -77,6 +77,8 @@ namespace Xunit.Sdk
 			bool isDefaultItemComparer,
 			out int? mismatchedIndex)
 		{
+			Assert.GuardArgumentNotNull(nameof(itemComparer), itemComparer);
+
 			mismatchedIndex = null;
 
 			return
@@ -221,21 +223,23 @@ namespace Xunit.Sdk
 				}
 
 				var xCurrent = enumeratorX.Current;
-				var xCurrentTracker = xCurrent.AsNonStringTracker();
 				var yCurrent = enumeratorY.Current;
-				var yCurrentTracker = yCurrent.AsNonStringTracker();
 
-				if (xCurrentTracker != null && yCurrentTracker != null)
+				using (var xCurrentTracker = xCurrent.AsNonStringTracker())
+				using (var yCurrentTracker = yCurrent.AsNonStringTracker())
 				{
-					int? _;
-					var innerCompare = CheckIfEnumerablesAreEqual(xCurrentTracker, yCurrentTracker, EqualityComparer<object>.Default, out _);
-					if (innerCompare == false)
+					if (xCurrentTracker != null && yCurrentTracker != null)
+					{
+						int? _;
+						var innerCompare = CheckIfEnumerablesAreEqual(xCurrentTracker, yCurrentTracker, EqualityComparer<object>.Default, out _);
+						if (innerCompare == false)
+							return false;
+					}
+					else if (!itemComparer.Equals(xCurrent, yCurrent))
 						return false;
-				}
-				else if (!itemComparer.Equals(xCurrent, yCurrent))
-					return false;
 
-				mismatchIndex++;
+					mismatchIndex++;
+				}
 			}
 		}
 
@@ -331,11 +335,13 @@ namespace Xunit.Sdk
 		const int MAX_ENUMERABLE_LENGTH_HALF = ArgumentFormatter.MAX_ENUMERABLE_LENGTH / 2;
 
 		readonly IEnumerable<T> collection;
+#pragma warning disable CA2213 // We move disposal to DisposeInternal, due to https://github.com/xunit/xunit/issues/2762
 #if XUNIT_NULLABLE
-		Enumerator? enumerator = null;
+		Enumerator? enumerator;
 #else
-		Enumerator enumerator = null;
+		Enumerator enumerator;
 #endif
+#pragma warning restore CA2213
 
 		/// <summary>
 		/// INTERNAL CONSTRUCTOR. DO NOT CALL.
@@ -541,6 +547,8 @@ namespace Xunit.Sdk
 			IEnumerable<T> collection,
 			int depth = 1)
 		{
+			Assert.GuardArgumentNotNull(nameof(collection), collection);
+
 			if (depth == ArgumentFormatter.MAX_DEPTH)
 				return ArgumentFormatter.EllipsisInBrackets;
 
@@ -697,7 +705,7 @@ namespace Xunit.Sdk
 		public static CollectionTracker<T> Wrap(IEnumerable<T> collection) =>
 			new CollectionTracker<T>(collection);
 
-		class Enumerator : IEnumerator<T>
+		sealed class Enumerator : IEnumerator<T>
 		{
 			readonly IEnumerator<T> innerEnumerator;
 
