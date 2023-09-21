@@ -45,6 +45,8 @@ namespace Xunit.Sdk
 			int totalItems,
 			IReadOnlyList<Tuple<int, string, Exception>> errors)
 		{
+			Assert.GuardArgumentNotNull(nameof(errors), errors);
+
 			var maxItemIndexLength = errors.Max(x => x.Item1).ToString().Length + 4; // "[#]: "
 			var indexSpaces = new string(' ', maxItemIndexLength);
 			var maxWrapIndent = maxItemIndexLength + 7; // "Item:  " and "Error: "
