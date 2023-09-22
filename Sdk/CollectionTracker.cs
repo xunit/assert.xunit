@@ -231,7 +231,7 @@ namespace Xunit.Sdk
 					if (xCurrentTracker != null && yCurrentTracker != null)
 					{
 						int? _;
-						var innerCompare = CheckIfEnumerablesAreEqual(xCurrentTracker, yCurrentTracker, EqualityComparer<object>.Default, out _);
+						var innerCompare = AreCollectionsEqual(xCurrentTracker, yCurrentTracker, AssertEqualityComparer<object>.DefaultInnerComparer, true, out _);
 						if (innerCompare == false)
 							return false;
 					}
