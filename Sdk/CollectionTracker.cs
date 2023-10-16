@@ -84,8 +84,8 @@ namespace Xunit.Sdk
 			return
 				CheckIfDictionariesAreEqual(x, y, itemComparer) ??
 				CheckIfSetsAreEqual(x, y, isDefaultItemComparer ? null : itemComparer) ??
-				CheckIfArraysAreEqual(x, y, itemComparer, out mismatchedIndex) ??
-				CheckIfEnumerablesAreEqual(x, y, itemComparer, out mismatchedIndex);
+				CheckIfArraysAreEqual(x, y, itemComparer, isDefaultItemComparer, out mismatchedIndex) ??
+				CheckIfEnumerablesAreEqual(x, y, itemComparer, isDefaultItemComparer, out mismatchedIndex);
 		}
 
 		static bool? CheckIfArraysAreEqual(
@@ -97,6 +97,7 @@ namespace Xunit.Sdk
 			CollectionTracker y,
 #endif
 			IEqualityComparer itemComparer,
+			bool isDefaultItemComparer,
 			out int? mismatchedIndex)
 		{
 			mismatchedIndex = null;
@@ -114,7 +115,7 @@ namespace Xunit.Sdk
 			// version, since that's uses the trackers and gets us the mismatch pointer.
 			if (expectedArray.Rank == 1 && expectedArray.GetLowerBound(0) == 0 &&
 				actualArray.Rank == 1 && actualArray.GetLowerBound(0) == 0)
-				return CheckIfEnumerablesAreEqual(x, y, itemComparer, out mismatchedIndex);
+				return CheckIfEnumerablesAreEqual(x, y, itemComparer, isDefaultItemComparer, out mismatchedIndex);
 
 			if (expectedArray.Rank != actualArray.Rank)
 				return false;
@@ -192,6 +193,7 @@ namespace Xunit.Sdk
 			CollectionTracker y,
 #endif
 			IEqualityComparer itemComparer,
+			bool isDefaultItemComparer,
 			out int? mismatchIndex)
 		{
 			mismatchIndex = null;
@@ -225,8 +227,8 @@ namespace Xunit.Sdk
 				var xCurrent = enumeratorX.Current;
 				var yCurrent = enumeratorY.Current;
 
-				using (var xCurrentTracker = xCurrent.AsNonStringTracker())
-				using (var yCurrentTracker = yCurrent.AsNonStringTracker())
+				using (var xCurrentTracker = isDefaultItemComparer ? xCurrent.AsNonStringTracker() : null)
+				using (var yCurrentTracker = isDefaultItemComparer ? yCurrent.AsNonStringTracker() : null)
 				{
 					if (xCurrentTracker != null && yCurrentTracker != null)
 					{
