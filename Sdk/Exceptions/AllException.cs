@@ -54,16 +54,26 @@ namespace Xunit.Sdk
 			var wrapSpaces = Environment.NewLine + new string(' ', maxWrapIndent);
 
 			var message =
-				$"Assert.All() Failure: {errors.Count} out of {totalItems} items in the collection did not pass." + Environment.NewLine +
-				string.Join(
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"Assert.All() Failure: {0} out of {1} items in the collection did not pass.{2}{3}",
+					errors.Count,
+					totalItems,
 					Environment.NewLine,
-					errors.Select(error =>
-					{
-						var indexString = $"[{error.Item1}]:".PadRight(maxItemIndexLength);
-
-						return $"{indexString}Item:  {error.Item2.Replace(Environment.NewLine, wrapSpaces)}" + Environment.NewLine +
-							   $"{indexSpaces}Error: {error.Item3.Message.Replace(Environment.NewLine, wrapSpaces)}";
-					})
+					string.Join(
+						Environment.NewLine,
+						errors.Select(error =>
+							string.Format(
+								CultureInfo.CurrentCulture,
+								"{0}Item:  {1}{2}{3}Error: {4}",
+								string.Format(CultureInfo.CurrentCulture, "[{0}]:", error.Item1).PadRight(maxItemIndexLength),
+								error.Item2.Replace(Environment.NewLine, wrapSpaces),
+								Environment.NewLine,
+								indexSpaces,
+								error.Item3.Message.Replace(Environment.NewLine, wrapSpaces)
+							)
+						)
+					)
 				);
 
 			return new AllException(message);

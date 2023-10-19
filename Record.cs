@@ -7,6 +7,7 @@
 
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace Xunit
@@ -77,7 +78,7 @@ namespace Xunit
 #else
 			if (result is Task)
 #endif
-				throw new InvalidOperationException($"You must call Assert.{asyncMethodName} when testing async code");
+				throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "You must call Assert.{0} when testing async code", asyncMethodName));
 
 			return null;
 		}

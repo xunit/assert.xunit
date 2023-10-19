@@ -268,9 +268,9 @@ namespace Xunit
 
 			if (!object.Equals(expectedRounded, actualRounded))
 				throw EqualException.ForMismatchedValues(
-					$"{expectedRounded:G17} (rounded from {expected:G17})",
-					$"{actualRounded:G17} (rounded from {actual:G17})",
-					$"Values are not within {precision} decimal place{(precision == 1 ? "" : "s")}"
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are not within {0} decimal place{1}", precision, precision == 1 ? "" : "s")
 				);
 		}
 
@@ -294,9 +294,9 @@ namespace Xunit
 
 			if (!object.Equals(expectedRounded, actualRounded))
 				throw EqualException.ForMismatchedValues(
-					$"{expectedRounded:G17} (rounded from {expected:G17})",
-					$"{actualRounded:G17} (rounded from {actual:G17})",
-					$"Values are not within {precision} decimal place{(precision == 1 ? "" : "s")}"
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are not within {0} decimal place{1}", precision, precision == 1 ? "" : "s")
 				);
 		}
 
@@ -319,7 +319,7 @@ namespace Xunit
 				throw EqualException.ForMismatchedValues(
 					expected.ToString("G17", CultureInfo.CurrentCulture),
 					actual.ToString("G17", CultureInfo.CurrentCulture),
-					$"Values are not within tolerance {tolerance:G17}"
+					string.Format(CultureInfo.CurrentCulture, "Values are not within tolerance {0:G17}", tolerance)
 				);
 		}
 
@@ -340,9 +340,9 @@ namespace Xunit
 
 			if (!object.Equals(expectedRounded, actualRounded))
 				throw EqualException.ForMismatchedValues(
-					$"{expectedRounded:G9} (rounded from {expected:G9})",
-					$"{actualRounded:G9} (rounded from {actual:G9})",
-					$"Values are not within {precision} decimal place{(precision == 1 ? "" : "s")}"
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are not within {0} decimal place{1}", precision, precision == 1 ? "" : "s")
 				);
 		}
 
@@ -366,9 +366,9 @@ namespace Xunit
 
 			if (!object.Equals(expectedRounded, actualRounded))
 				throw EqualException.ForMismatchedValues(
-					$"{expectedRounded:G9} (rounded from {expected:G9})",
-					$"{actualRounded:G9} (rounded from {actual:G9})",
-					$"Values are not within {precision} decimal place{(precision == 1 ? "" : "s")}"
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are not within {0} decimal place{1}", precision, precision == 1 ? "" : "s")
 				);
 		}
 
@@ -391,7 +391,7 @@ namespace Xunit
 				throw EqualException.ForMismatchedValues(
 					expected.ToString("G9", CultureInfo.CurrentCulture),
 					actual.ToString("G9", CultureInfo.CurrentCulture),
-					$"Values are not within tolerance {tolerance:G9}"
+					string.Format(CultureInfo.CurrentCulture, "Values are not within tolerance {0:G9}", tolerance)
 				);
 		}
 
@@ -411,7 +411,10 @@ namespace Xunit
 			var actualRounded = Math.Round(actual, precision);
 
 			if (expectedRounded != actualRounded)
-				throw EqualException.ForMismatchedValues($"{expectedRounded} (rounded from {expected})", $"{actualRounded} (rounded from {actual})");
+				throw EqualException.ForMismatchedValues(
+					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
+				);
 		}
 
 		/// <summary>
@@ -442,7 +445,7 @@ namespace Xunit
 			{
 				var actualValue =
 					ArgumentFormatter.Format(actual) +
-					(precision == TimeSpan.Zero ? "" : $" (difference {difference} is larger than {precision})");
+					(precision == TimeSpan.Zero ? "" : string.Format(CultureInfo.CurrentCulture, " (difference {0} is larger than {1})", difference, precision));
 
 				throw EqualException.ForMismatchedValues(expected, actualValue);
 			}
@@ -476,7 +479,7 @@ namespace Xunit
 			{
 				var actualValue =
 					ArgumentFormatter.Format(actual) +
-					(precision == TimeSpan.Zero ? "" : $" (difference {difference} is larger than {precision})");
+					(precision == TimeSpan.Zero ? "" : string.Format(CultureInfo.CurrentCulture, " (difference {0} is larger than {1})", difference, precision));
 
 				throw EqualException.ForMismatchedValues(expected, actualValue);
 			}
@@ -685,9 +688,9 @@ namespace Xunit
 
 			if (object.Equals(expectedRounded, actualRounded))
 				throw NotEqualException.ForEqualValues(
-					$"{expectedRounded:G17} (rounded from {expected:G17})",
-					$"{actualRounded:G17} (rounded from {actual:G17})",
-					$"Values are within {precision} decimal places"
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are within {0} decimal places", precision)
 				);
 		}
 
@@ -711,9 +714,9 @@ namespace Xunit
 
 			if (object.Equals(expectedRounded, actualRounded))
 				throw NotEqualException.ForEqualValues(
-					$"{expectedRounded:G17} (rounded from {expected:G17})",
-					$"{actualRounded:G17} (rounded from {actual:G17})",
-					$"Values are within {precision} decimal places"
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G17} (rounded from {1:G17})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are within {0} decimal places", precision)
 				);
 		}
 
@@ -736,7 +739,7 @@ namespace Xunit
 				throw NotEqualException.ForEqualValues(
 					expected.ToString("G17", CultureInfo.CurrentCulture),
 					actual.ToString("G17", CultureInfo.CurrentCulture),
-					$"Values are within tolerance {tolerance:G17}"
+					string.Format(CultureInfo.CurrentCulture, "Values are within tolerance {0:G17}", tolerance)
 				);
 		}
 
@@ -757,9 +760,9 @@ namespace Xunit
 
 			if (object.Equals(expectedRounded, actualRounded))
 				throw NotEqualException.ForEqualValues(
-					$"{expectedRounded:G9} (rounded from {expected:G9})",
-					$"{actualRounded:G9} (rounded from {actual:G9})",
-					$"Values are within {precision} decimal places"
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are within {0} decimal places", precision)
 				);
 		}
 
@@ -783,9 +786,9 @@ namespace Xunit
 
 			if (object.Equals(expectedRounded, actualRounded))
 				throw NotEqualException.ForEqualValues(
-					$"{expectedRounded:G9} (rounded from {expected:G9})",
-					$"{actualRounded:G9} (rounded from {actual:G9})",
-					$"Values are within {precision} decimal places"
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0:G9} (rounded from {1:G9})", actualRounded, actual),
+					string.Format(CultureInfo.CurrentCulture, "Values are within {0} decimal places", precision)
 				);
 		}
 
@@ -808,7 +811,7 @@ namespace Xunit
 				throw NotEqualException.ForEqualValues(
 					expected.ToString("G9", CultureInfo.CurrentCulture),
 					actual.ToString("G9", CultureInfo.CurrentCulture),
-					$"Values are within tolerance {tolerance:G9}"
+					string.Format(CultureInfo.CurrentCulture, "Values are within tolerance {0:G9}", tolerance)
 				);
 		}
 
@@ -829,8 +832,8 @@ namespace Xunit
 
 			if (expectedRounded == actualRounded)
 				throw NotEqualException.ForEqualValues(
-					$"{expectedRounded} (rounded from {expected})",
-					$"{actualRounded} (rounded from {actual})"
+					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
+					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
 				);
 		}
 

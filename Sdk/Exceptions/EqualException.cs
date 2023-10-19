@@ -6,6 +6,7 @@
 #endif
 
 using System;
+using System.Globalization;
 using Xunit.Internal;
 
 namespace Xunit.Sdk
@@ -59,17 +60,17 @@ namespace Xunit.Sdk
 		{
 			Assert.GuardArgumentNotNull(nameof(actual), actual);
 
-			var message = $"Assert.Equal() Failure: {collectionDisplay ?? "Collections"} differ";
-			var expectedTypeText = expectedType != null && actualType != null && expectedType != actualType ? $", type {expectedType}" : "";
-			var actualTypeText = expectedType != null && actualType != null && expectedType != actualType ? $", type {actualType}" : "";
+			var message = string.Format(CultureInfo.CurrentCulture, "Assert.Equal() Failure: {0} differ", collectionDisplay ?? "Collections");
+			var expectedTypeText = expectedType != null && actualType != null && expectedType != actualType ? string.Format(CultureInfo.CurrentCulture, ", type {0}", expectedType) : "";
+			var actualTypeText = expectedType != null && actualType != null && expectedType != actualType ? string.Format(CultureInfo.CurrentCulture, ", type {0}", actualType) : "";
 
 			if (expectedPointer.HasValue && mismatchedIndex.HasValue)
-				message += $"{Environment.NewLine}          {new string(' ', expectedPointer.Value)}↓ (pos {mismatchedIndex}{expectedTypeText})";
+				message += string.Format(CultureInfo.CurrentCulture, "{0}          {1}\u2193 (pos {2}{3})", Environment.NewLine, new string(' ', expectedPointer.Value), mismatchedIndex, expectedTypeText);
 
-			message += $"{Environment.NewLine}Expected: {expected}{Environment.NewLine}Actual:   {actual}";
+			message += string.Format(CultureInfo.CurrentCulture, "{0}Expected: {1}{2}Actual:   {3}", Environment.NewLine, expected, Environment.NewLine, actual);
 
 			if (actualPointer.HasValue && mismatchedIndex.HasValue)
-				message += $"{Environment.NewLine}          {new string(' ', actualPointer.Value)}↑ (pos {mismatchedIndex}{actualTypeText})";
+				message += string.Format(CultureInfo.CurrentCulture, "{0}          {1}\u2191 (pos {2}{3})", Environment.NewLine, new string(' ', actualPointer.Value), mismatchedIndex, actualTypeText);
 
 			return new EqualException(message);
 		}
@@ -102,14 +103,12 @@ namespace Xunit.Sdk
 			var formattedActual = AssertHelper.ShortenAndEncodeString(actual, actualIndex, out actualPointer);
 
 			if (expected != null && expectedIndex > -1 && expectedIndex < expected.Length)
-				message += newLineAndIndent + new string(' ', expectedPointer) + $"↓ (pos {expectedIndex})";
+				message += string.Format(CultureInfo.CurrentCulture, "{0}{1}\u2193 (pos {2})", newLineAndIndent, new string(' ', expectedPointer), expectedIndex);
 
-			message +=
-				Environment.NewLine + "Expected: " + formattedExpected +
-				Environment.NewLine + "Actual:   " + formattedActual;
+			message += string.Format(CultureInfo.CurrentCulture, "{0}Expected: {1}{2}Actual:   {3}", Environment.NewLine, formattedExpected, Environment.NewLine, formattedActual);
 
 			if (actual != null && expectedIndex > -1 && actualIndex < actual.Length)
-				message += newLineAndIndent + new string(' ', actualPointer) + $"↑ (pos {actualIndex})";
+				message += string.Format(CultureInfo.CurrentCulture, "{0}{1}\u2191 (pos {2})", newLineAndIndent, new string(' ', actualPointer), actualIndex);
 
 			return new EqualException(message);
 		}
@@ -145,9 +144,15 @@ namespace Xunit.Sdk
 			var actualText = actual as string ?? ArgumentFormatter.Format(actual);
 
 			return new EqualException(
-				"Assert.Equal() Failure: " + (banner ?? "Values differ") + Environment.NewLine +
-				"Expected: " + expectedText.Replace(Environment.NewLine, newLineAndIndent) + Environment.NewLine +
-				"Actual:   " + actualText.Replace(Environment.NewLine, newLineAndIndent)
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"Assert.Equal() Failure: {0}{1}Expected: {2}{3}Actual:   {4}",
+					banner ?? "Values differ",
+					Environment.NewLine,
+					expectedText.Replace(Environment.NewLine, newLineAndIndent),
+					Environment.NewLine,
+					actualText.Replace(Environment.NewLine, newLineAndIndent)
+				)
 			);
 		}
 	}

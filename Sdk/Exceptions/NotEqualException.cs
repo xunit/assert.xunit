@@ -6,6 +6,7 @@
 #endif
 
 using System;
+using System.Globalization;
 
 namespace Xunit.Sdk
 {
@@ -40,9 +41,15 @@ namespace Xunit.Sdk
 #endif
 		{
 			return new NotEqualException(
-				"Assert.NotEqual() Failure: " + (collectionDisplay ?? "Collections") + " are equal" + Environment.NewLine +
-				"Expected: Not " + Assert.GuardArgumentNotNull(nameof(expected), expected) + Environment.NewLine +
-				"Actual:       " + Assert.GuardArgumentNotNull(nameof(actual), actual)
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"Assert.NotEqual() Failure: {0} are equal{1}Expected: Not {2}{3}Actual:       {4}",
+					collectionDisplay ?? "Collections",
+					Environment.NewLine,
+					Assert.GuardArgumentNotNull(nameof(expected), expected),
+					Environment.NewLine,
+					Assert.GuardArgumentNotNull(nameof(actual), actual)
+				)
 			);
 		}
 
@@ -65,9 +72,15 @@ namespace Xunit.Sdk
 #endif
 		{
 			return new NotEqualException(
-				"Assert.NotEqual() Failure: " + (banner ?? "Values are equal") + Environment.NewLine +
-				"Expected: Not " + Assert.GuardArgumentNotNull(nameof(expected), expected) + Environment.NewLine +
-				"Actual:       " + Assert.GuardArgumentNotNull(nameof(actual), actual)
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"Assert.NotEqual() Failure: {0}{1}Expected: Not {2}{3}Actual:       {4}",
+					banner ?? "Values are equal",
+					Environment.NewLine,
+					Assert.GuardArgumentNotNull(nameof(expected), expected),
+					Environment.NewLine,
+					Assert.GuardArgumentNotNull(nameof(actual), actual)
+				)
 			);
 		}
 	}
