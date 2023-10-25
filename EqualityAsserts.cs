@@ -123,6 +123,7 @@ namespace Xunit
 
 			var expectedTracker = expected.AsNonStringTracker();
 			var actualTracker = actual.AsNonStringTracker();
+			var exception = default(Exception);
 
 			try
 			{
@@ -133,8 +134,17 @@ namespace Xunit
 
 				if (!haveCollections)
 				{
-					if (!comparer.Equals(expected, actual))
-						throw EqualException.ForMismatchedValues(expected, actual);
+					try
+					{
+						if (comparer.Equals(expected, actual))
+							return;
+					}
+					catch (Exception ex)
+					{
+						exception = ex;
+					}
+
+					throw EqualException.ForMismatchedValuesWithError(expected, actual, exception);
 				}
 				else
 				{
@@ -164,8 +174,15 @@ namespace Xunit
 
 					if (itemComparer != null)
 					{
-						if (CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer, out mismatchedIndex))
-							return;
+						try
+						{
+							if (CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer, out mismatchedIndex))
+								return;
+						}
+						catch (Exception ex)
+						{
+							exception = ex;
+						}
 
 						var expectedStartIdx = -1;
 						var expectedEndIdx = -1;
@@ -197,8 +214,15 @@ namespace Xunit
 					}
 					else
 					{
-						if (comparer.Equals(expected, actual))
-							return;
+						try
+						{
+							if (comparer.Equals(expected, actual))
+								return;
+						}
+						catch (Exception ex)
+						{
+							exception = ex;
+						}
 
 						formattedExpected = ArgumentFormatter.Format(expected);
 						formattedActual = ArgumentFormatter.Format(actual);
@@ -241,7 +265,7 @@ namespace Xunit
 							actualPointer += typeNameIndent;
 					}
 
-					throw EqualException.ForMismatchedCollections(mismatchedIndex, formattedExpected, expectedPointer, expectedItemType, formattedActual, actualPointer, actualItemType, collectionDisplay);
+					throw EqualException.ForMismatchedCollectionsWithError(mismatchedIndex, formattedExpected, expectedPointer, expectedItemType, formattedActual, actualPointer, actualItemType, exception, collectionDisplay);
 				}
 			}
 			finally
@@ -568,6 +592,7 @@ namespace Xunit
 
 			var expectedTracker = expected.AsNonStringTracker();
 			var actualTracker = actual.AsNonStringTracker();
+			var exception = default(Exception);
 
 			try
 			{
@@ -578,26 +603,35 @@ namespace Xunit
 
 				if (!haveCollections)
 				{
-					if (comparer.Equals(expected, actual))
+					try
 					{
-						var formattedExpected = ArgumentFormatter.Format(expected);
-						var formattedActual = ArgumentFormatter.Format(actual);
-
-						var expectedIsString = expected is string;
-						var actualIsString = actual is string;
-						var isStrings =
-							(expectedIsString && actual == null) ||
-							(actualIsString && expected == null) ||
-							(expectedIsString && actualIsString);
-
-						if (isStrings)
-							throw NotEqualException.ForEqualCollections(formattedExpected, formattedActual, "Strings");
-						else
-							throw NotEqualException.ForEqualValues(formattedExpected, formattedActual);
+						if (!comparer.Equals(expected, actual))
+							return;
 					}
+					catch (Exception ex)
+					{
+						exception = ex;
+					}
+
+					var formattedExpected = ArgumentFormatter.Format(expected);
+					var formattedActual = ArgumentFormatter.Format(actual);
+
+					var expectedIsString = expected is string;
+					var actualIsString = actual is string;
+					var isStrings =
+						(expectedIsString && actual == null) ||
+						(actualIsString && expected == null) ||
+						(expectedIsString && actualIsString);
+
+					if (isStrings)
+						throw NotEqualException.ForEqualCollectionsWithError(null, formattedExpected, null, formattedActual, null, exception, "Strings");
+					else
+						throw NotEqualException.ForEqualValuesWithError(formattedExpected, formattedActual, exception);
 				}
 				else
 				{
+					int? mismatchedIndex = null;
+
 					// If we have "known" comparers, we can ignore them and instead do our own thing, since we know
 					// we want to be able to consume the tracker, and that's not type compatible.
 					var itemComparer = default(IEqualityComparer);
@@ -610,20 +644,53 @@ namespace Xunit
 
 					string formattedExpected;
 					string formattedActual;
+					int? expectedPointer = null;
+					int? actualPointer = null;
 
 					if (itemComparer != null)
 					{
-						int? mismatchedIndex;
-						if (!CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer, out mismatchedIndex))
-							return;
+						try
+						{
+							if (!CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer, out mismatchedIndex))
+								return;
 
-						formattedExpected = expectedTracker?.FormatStart() ?? "null";
-						formattedActual = actualTracker?.FormatStart() ?? "null";
+							// For NotEqual that doesn't throw, pointers are irrelevant, because
+							// the values are considered to be equal
+							formattedExpected = expectedTracker?.FormatStart() ?? "null";
+							formattedActual = actualTracker?.FormatStart() ?? "null";
+						}
+						catch (Exception ex)
+						{
+							exception = ex;
+
+							// When an exception was thrown, we want to provide a pointer so the user knows
+							// which item was being inspected when the exception was thrown
+							var expectedStartIdx = -1;
+							var expectedEndIdx = -1;
+							expectedTracker?.GetMismatchExtents(mismatchedIndex, out expectedStartIdx, out expectedEndIdx);
+
+							var actualStartIdx = -1;
+							var actualEndIdx = -1;
+							actualTracker?.GetMismatchExtents(mismatchedIndex, out actualStartIdx, out actualEndIdx);
+
+							expectedPointer = null;
+							formattedExpected = expectedTracker?.FormatIndexedMismatch(expectedStartIdx, expectedEndIdx, mismatchedIndex, out expectedPointer) ?? ArgumentFormatter.Format(expected);
+
+							actualPointer = null;
+							formattedActual = actualTracker?.FormatIndexedMismatch(actualStartIdx, actualEndIdx, mismatchedIndex, out actualPointer) ?? ArgumentFormatter.Format(actual);
+						}
 					}
 					else
 					{
-						if (!comparer.Equals(expected, actual))
-							return;
+						try
+						{
+							if (!comparer.Equals(expected, actual))
+								return;
+						}
+						catch (Exception ex)
+						{
+							exception = ex;
+						}
 
 						formattedExpected = ArgumentFormatter.Format(expected);
 						formattedActual = ArgumentFormatter.Format(actual);
@@ -659,9 +726,14 @@ namespace Xunit
 
 						formattedExpected = expectedTypeName.PadRight(typeNameIndent) + formattedExpected;
 						formattedActual = actualTypeName.PadRight(typeNameIndent) + formattedActual;
+
+						if (expectedPointer != null)
+							expectedPointer += typeNameIndent;
+						if (actualPointer != null)
+							actualPointer += typeNameIndent;
 					}
 
-					throw NotEqualException.ForEqualCollections(formattedExpected, formattedActual, collectionDisplay);
+					throw NotEqualException.ForEqualCollectionsWithError(mismatchedIndex, formattedExpected, expectedPointer, formattedActual, actualPointer, exception, collectionDisplay);
 				}
 			}
 			finally
