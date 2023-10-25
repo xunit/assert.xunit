@@ -30,6 +30,7 @@ namespace Xunit.Sdk
 		internal static readonly IEqualityComparer DefaultInnerComparer = new AssertEqualityComparerAdapter<object>(new AssertEqualityComparer<object>());
 
 		readonly Lazy<IEqualityComparer> innerComparer;
+		static readonly Type typeKeyValuePair = typeof(KeyValuePair<,>);
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AssertEqualityComparer{T}" /> class.
@@ -84,8 +85,12 @@ namespace Xunit.Sdk
 				return equatable.Equals(y);
 
 			// Implements IEquatable<typeof(y)>?
-			var iequatableY = typeof(IEquatable<>).MakeGenericType(y.GetType()).GetTypeInfo();
-			if (iequatableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
+			var xType = x.GetType();
+			var xTypeInfo = xType.GetTypeInfo();
+			var yType = y.GetType();
+
+			var iequatableY = typeof(IEquatable<>).MakeGenericType(yType).GetTypeInfo();
+			if (iequatableY.IsAssignableFrom(xTypeInfo))
 			{
 				var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
 				if (equalsMethod == null)
@@ -120,8 +125,8 @@ namespace Xunit.Sdk
 			}
 
 			// Implements IComparable<typeof(y)>?
-			var icomparableY = typeof(IComparable<>).MakeGenericType(y.GetType()).GetTypeInfo();
-			if (icomparableY.IsAssignableFrom(x.GetType().GetTypeInfo()))
+			var icomparableY = typeof(IComparable<>).MakeGenericType(yType).GetTypeInfo();
+			if (icomparableY.IsAssignableFrom(xTypeInfo))
 			{
 				var compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
 				if (compareToMethod == null)
@@ -157,6 +162,17 @@ namespace Xunit.Sdk
 					// certain situations, such as if x can't compare against y.
 					// If this happens, just swallow up the exception and continue comparing.
 				}
+			}
+
+			// Special case KeyValuePair<K,V>
+			if (xType.IsConstructedGenericType &&
+				xType.GetGenericTypeDefinition() == typeKeyValuePair &&
+				yType.IsConstructedGenericType &&
+				yType.GetGenericTypeDefinition() == typeKeyValuePair)
+			{
+				return
+					innerComparer.Value.Equals(xType.GetRuntimeProperty("Key")?.GetValue(x), yType.GetRuntimeProperty("Key")?.GetValue(y)) &&
+					innerComparer.Value.Equals(xType.GetRuntimeProperty("Value")?.GetValue(x), yType.GetRuntimeProperty("Value")?.GetValue(y));
 			}
 
 			// Last case, rely on object.Equals
