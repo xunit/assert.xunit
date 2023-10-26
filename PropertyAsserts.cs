@@ -60,7 +60,7 @@ namespace Xunit
 			string propertyName,
 			Func<Task> testCode)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException("You must call Assert.PropertyChangedAsync (and await the result) when testing async code.");
 		}
 
 #if XUNIT_VALUETASK
@@ -72,7 +72,7 @@ namespace Xunit
 			string propertyName,
 			Func<ValueTask> testCode)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException("You must call Assert.PropertyChangedAsync (and await the result) when testing async code.");
 		}
 #endif
 

@@ -88,7 +88,7 @@ namespace Xunit
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
 		protected static Exception RecordException(Func<Task> testCode)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
 		}
 
 #if XUNIT_VALUETASK
@@ -97,7 +97,7 @@ namespace Xunit
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
 		protected static Exception RecordException(Func<ValueTask> testCode)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
 		}
 
 		/// <summary/>
@@ -105,7 +105,7 @@ namespace Xunit
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
 		protected static Exception RecordException<T>(Func<ValueTask<T>> testCode)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
 		}
 #endif
 
