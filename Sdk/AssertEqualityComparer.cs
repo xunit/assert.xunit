@@ -190,7 +190,7 @@ namespace Xunit.Sdk
 
 		/// <inheritdoc/>
 		public int GetHashCode(T obj) =>
-			innerComparer.Value.GetHashCode(Assert.GuardArgumentNotNull(nameof(obj), obj));
+			innerComparer.Value.GetHashCode(GuardArgumentNotNull(nameof(obj), obj));
 
 #if XUNIT_NULLABLE
 		sealed class FuncEqualityComparer : IEqualityComparer<T?>
@@ -231,7 +231,7 @@ namespace Xunit.Sdk
 #else
 			public int GetHashCode(T obj) =>
 #endif
-				Assert.GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
+				GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
 		}
 
 		sealed class TypeErasedEqualityComparer : IEqualityComparer
@@ -292,7 +292,25 @@ namespace Xunit.Sdk
 					new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
 
 			public int GetHashCode(object obj) =>
-				Assert.GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
+				GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
+		}
+
+		/// <summary/>
+#if XUNIT_NULLABLE
+		[return: NotNull]
+#endif
+		internal static TArg GuardArgumentNotNull<TArg>(
+			string argName,
+#if XUNIT_NULLABLE
+			[NotNull] TArg? argValue)
+#else
+			TArg argValue)
+#endif
+		{
+			if (argValue == null)
+				throw new ArgumentNullException(argName.TrimStart('@'));
+
+			return argValue;
 		}
 	}
 }
