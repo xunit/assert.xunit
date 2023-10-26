@@ -3,6 +3,8 @@
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8601
+#pragma warning disable CS8602
+#pragma warning disable CS8604
 #pragma warning disable CS8605
 #pragma warning disable CS8618
 #pragma warning disable CS8625
@@ -187,10 +189,8 @@ namespace Xunit.Sdk
 			new FuncEqualityComparer(comparer);
 
 		/// <inheritdoc/>
-		public int GetHashCode(T obj)
-		{
-			throw new NotImplementedException();
-		}
+		public int GetHashCode(T obj) =>
+			innerComparer.Value.GetHashCode(Assert.GuardArgumentNotNull(nameof(obj), obj));
 
 #if XUNIT_NULLABLE
 		sealed class FuncEqualityComparer : IEqualityComparer<T?>
@@ -227,13 +227,11 @@ namespace Xunit.Sdk
 			}
 
 #if XUNIT_NULLABLE
-			public int GetHashCode(T? obj)
+			public int GetHashCode(T? obj) =>
 #else
-			public int GetHashCode(T obj)
+			public int GetHashCode(T obj) =>
 #endif
-			{
-				throw new NotImplementedException();
-			}
+				Assert.GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
 		}
 
 		sealed class TypeErasedEqualityComparer : IEqualityComparer
@@ -293,10 +291,8 @@ namespace Xunit.Sdk
 				U y) =>
 					new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
 
-			public int GetHashCode(object obj)
-			{
-				throw new NotImplementedException();
-			}
+			public int GetHashCode(object obj) =>
+				Assert.GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
 		}
 	}
 }
