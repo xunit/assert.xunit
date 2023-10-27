@@ -13,6 +13,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -31,6 +32,8 @@ namespace Xunit.Sdk
 	{
 		internal static readonly IEqualityComparer DefaultInnerComparer = new AssertEqualityComparerAdapter<object>(new AssertEqualityComparer<object>());
 
+		static readonly ConcurrentDictionary<Type, TypeInfo> cacheOfIComparableOfT = new ConcurrentDictionary<Type, TypeInfo>();
+		static readonly ConcurrentDictionary<Type, TypeInfo> cacheOfIEquatableOfT = new ConcurrentDictionary<Type, TypeInfo>();
 		readonly Lazy<IEqualityComparer> innerComparer;
 		static readonly Type typeKeyValuePair = typeof(KeyValuePair<,>);
 
@@ -86,23 +89,26 @@ namespace Xunit.Sdk
 			if (equatable != null)
 				return equatable.Equals(y);
 
-			// Implements IEquatable<typeof(y)>?
 			var xType = x.GetType();
 			var xTypeInfo = xType.GetTypeInfo();
 			var yType = y.GetType();
 
-			var iequatableY = typeof(IEquatable<>).MakeGenericType(yType).GetTypeInfo();
-			if (iequatableY.IsAssignableFrom(xTypeInfo))
+			// Implements IEquatable<typeof(y)>?
+			if (xType != yType)
 			{
-				var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
-				if (equalsMethod == null)
-					return false;
+				var iequatableY = cacheOfIEquatableOfT.GetOrAdd(yType, (t) => typeof(IEquatable<>).MakeGenericType(t).GetTypeInfo());
+				if (iequatableY.IsAssignableFrom(xTypeInfo))
+				{
+					var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+					if (equalsMethod == null)
+						return false;
 
 #if XUNIT_NULLABLE
-				return equalsMethod.Invoke(x, new object[] { y }) is true;
+					return equalsMethod.Invoke(x, new object[] { y }) is true;
 #else
 				return (bool)equalsMethod.Invoke(x, new object[] { y });
 #endif
+				}
 			}
 
 			// Implements IStructuralEquatable?
@@ -127,26 +133,29 @@ namespace Xunit.Sdk
 			}
 
 			// Implements IComparable<typeof(y)>?
-			var icomparableY = typeof(IComparable<>).MakeGenericType(yType).GetTypeInfo();
-			if (icomparableY.IsAssignableFrom(xTypeInfo))
+			if (xType != yType)
 			{
-				var compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
-				if (compareToMethod == null)
-					return false;
-
-				try
+				var icomparableY = cacheOfIComparableOfT.GetOrAdd(yType, (t) => typeof(IComparable<>).MakeGenericType(t).GetTypeInfo());
+				if (icomparableY.IsAssignableFrom(xTypeInfo))
 				{
+					var compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
+					if (compareToMethod == null)
+						return false;
+
+					try
+					{
 #if XUNIT_NULLABLE
-					return compareToMethod.Invoke(x, new object[] { y }) is 0;
+						return compareToMethod.Invoke(x, new object[] { y }) is 0;
 #else
 					return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
 #endif
-				}
-				catch
-				{
-					// Some implementations of IComparable.CompareTo throw exceptions in
-					// certain situations, such as if x can't compare against y.
-					// If this happens, just swallow up the exception and continue comparing.
+					}
+					catch
+					{
+						// Some implementations of IComparable.CompareTo throw exceptions in
+						// certain situations, such as if x can't compare against y.
+						// If this happens, just swallow up the exception and continue comparing.
+					}
 				}
 			}
 
