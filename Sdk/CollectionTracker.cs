@@ -2,7 +2,7 @@
 #nullable enable
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
-#pragma warning disable CS8600
+#pragma warning disable CS8601
 #pragma warning disable CS8603
 #pragma warning disable CS8604
 #pragma warning disable CS8605
@@ -15,6 +15,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
+#if XUNIT_NULLABLE
+using System.Diagnostics.CodeAnalysis;
+#endif
 
 namespace Xunit.Sdk
 {
@@ -694,7 +698,7 @@ namespace Xunit.Sdk
 #else
 			T item;
 #endif
-			if (!enumerator.CurrentItems.TryGetValue(index.Value, out item))
+			if (!enumerator.TryGetCurrentItemAt(index.Value, out item))
 				return null;
 
 			return item?.GetType().FullName;
@@ -709,6 +713,8 @@ namespace Xunit.Sdk
 
 		sealed class Enumerator : IEnumerator<T>
 		{
+			int currentItemsLastInsertionIndex = -1;
+			T[] currentItemsRingBuffer = new T[ArgumentFormatter.MAX_ENUMERABLE_LENGTH];
 			readonly IEnumerator<T> innerEnumerator;
 
 			public Enumerator(IEnumerator<T> innerEnumerator)
@@ -728,7 +734,32 @@ namespace Xunit.Sdk
 
 			public int CurrentIndex { get; private set; } = -1;
 
-			public Dictionary<int, T> CurrentItems { get; } = new Dictionary<int, T>();
+			public Dictionary<int, T> CurrentItems
+			{
+				get
+				{
+					var result = new Dictionary<int, T>();
+
+					if (CurrentIndex > -1)
+					{
+						var itemIndex = Math.Max(0, CurrentIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+
+						var indexInRingBuffer = (currentItemsLastInsertionIndex - CurrentIndex + itemIndex) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+						if (indexInRingBuffer < 0)
+							indexInRingBuffer += ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+
+						while (itemIndex <= CurrentIndex)
+						{
+							result[itemIndex] = currentItemsRingBuffer[indexInRingBuffer];
+
+							++itemIndex;
+							indexInRingBuffer = (indexInRingBuffer + 1) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+						}
+					}
+
+					return result;
+				}
+			}
 
 			public List<T> StartItems { get; } = new List<T>();
 
@@ -753,19 +784,42 @@ namespace Xunit.Sdk
 				if (CurrentIndex <= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
 					StartItems.Add(current);
 
-				// Keep the most recent MAX_ENUMERABLE_LENGTH in the dictionary,
+				// Keep a ring buffer filled with the most recent MAX_ENUMERABLE_LENGTH items
 				// so we can print out the items when we've found a bad index
-				CurrentItems[CurrentIndex] = current;
-
-				if (CurrentIndex >= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
-					CurrentItems.Remove(CurrentIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH);
+				currentItemsLastInsertionIndex = (currentItemsLastInsertionIndex + 1) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+				currentItemsRingBuffer[currentItemsLastInsertionIndex] = current;
 
 				return true;
 			}
 
 			public void Reset()
 			{
-				throw new InvalidOperationException("This enumerator does not support resetting");
+				innerEnumerator.Reset();
+
+				CurrentIndex = -1;
+				currentItemsLastInsertionIndex = -1;
+				StartItems.Clear();
+			}
+
+			public bool TryGetCurrentItemAt(
+				int index,
+#if XUNIT_NULLABLE
+				[MaybeNullWhen(false)] out T item)
+#else
+				out T item)
+#endif
+			{
+				item = default(T);
+
+				if (index < 0 || index <= CurrentIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH || index > CurrentIndex)
+					return false;
+
+				var indexInRingBuffer = (currentItemsLastInsertionIndex - CurrentIndex + index) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+				if (indexInRingBuffer < 0)
+					indexInRingBuffer += ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+
+				item = currentItemsRingBuffer[indexInRingBuffer];
+				return true;
 			}
 		}
 	}
