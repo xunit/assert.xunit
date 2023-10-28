@@ -64,8 +64,6 @@ namespace Xunit.Sdk
 			T y)
 #endif
 		{
-			var typeInfo = typeof(T).GetTypeInfo();
-
 			// Null?
 			if (x == null && y == null)
 				return true;
