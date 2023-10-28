@@ -305,6 +305,37 @@ namespace Xunit.Sdk
 		public abstract void Dispose();
 
 		/// <summary>
+		/// Formats the collection when you have a mismatched index. The formatted result will be the section of the
+		/// collection surrounded by the mismatched item.
+		/// </summary>
+		/// <param name="mismatchedIndex">The index of the mismatched item</param>
+		/// <param name="pointerIndent">How many spaces into the output value the pointed-to item begins at</param>
+		/// <param name="depth">The optional printing depth (1 indicates a top-level value)</param>
+		/// <returns>The formatted collection</returns>
+		public abstract string FormatIndexedMismatch(
+			int? mismatchedIndex,
+			out int? pointerIndent,
+			int depth = 1);
+
+		/// <summary>
+		/// Formats the collection when you have a mismatched index. The formatted result will be the section of the
+		/// collection from <paramref name="startIndex"/> to <paramref name="endIndex"/>. These indices are usually
+		/// obtained by calling <see cref="GetMismatchExtents"/>.
+		/// </summary>
+		/// <param name="startIndex">The start index of the collection to print</param>
+		/// <param name="endIndex">The end index of the collection to print</param>
+		/// <param name="mismatchedIndex">The mismatched item index</param>
+		/// <param name="pointerIndent">How many spaces into the output value the pointed-to item begins at</param>
+		/// <param name="depth">The optional printing depth (1 indicates a top-level value)</param>
+		/// <returns>The formatted collection</returns>
+		public abstract string FormatIndexedMismatch(
+			int startIndex,
+			int endIndex,
+			int? mismatchedIndex,
+			out int? pointerIndent,
+			int depth = 1);
+
+		/// <summary>
 		/// Formats the beginning part of the collection.
 		/// </summary>
 		/// <param name="depth">The optional printing depth (1 indicates a top-level value)</param>
@@ -312,11 +343,39 @@ namespace Xunit.Sdk
 		public abstract string FormatStart(int depth = 1);
 
 		/// <summary>
+		/// Gets the extents to print when you find a mismatched index, in the form of
+		/// a <paramref name="startIndex"/> and <paramref name="endIndex"/>. If the mismatched
+		/// index is <c>null</c>, the extents will start at index 0.
+		/// </summary>
+		/// <param name="mismatchedIndex">The mismatched item index</param>
+		/// <param name="startIndex">The start index that should be used for printing</param>
+		/// <param name="endIndex">The end index that should be used for printing</param>
+		public abstract void GetMismatchExtents(
+			int? mismatchedIndex,
+			out int startIndex,
+			out int endIndex);
+
+		/// <summary>
 		/// Gets a safe version of <see cref="IEnumerator"/> that prevents double enumeration and does all
 		/// the necessary tracking required for collection formatting. Should should be the same value
 		/// returned by <see cref="CollectionTracker{T}.GetEnumerator"/>, except non-generic.
 		/// </summary>
-		protected abstract IEnumerator GetSafeEnumerator();
+		protected internal abstract IEnumerator GetSafeEnumerator();
+
+		/// <summary>
+		/// Gets the full name of the type of the element at the given index, if known.
+		/// Since this uses the item cache produced by enumeration, it may return <c>null</c>
+		/// when we haven't enumerated enough to see the given element, or if we enumerated
+		/// so much that the item has left the cache, or if the item at the given index
+		/// is <c>null</c>. It will also return <c>null</c> when the <paramref name="index"/>
+		/// is <c>null</c>.
+		/// </summary>
+		/// <param name="index">The item index</param>
+#if XUNIT_NULLABLE
+		public abstract string? TypeAt(int? index);
+#else
+		public abstract string TypeAt(int? index);
+#endif
 
 		/// <summary>
 		/// Wraps an untyped enumerable in an object-based <see cref="CollectionTracker{T}"/>.
@@ -379,15 +438,8 @@ namespace Xunit.Sdk
 		public override void Dispose() =>
 			enumerator?.DisposeInternal();
 
-		/// <summary>
-		/// Formats the collection when you have a mismatched index. The formatted result will be the section of the
-		/// collection surrounded by the mismatched item.
-		/// </summary>
-		/// <param name="mismatchedIndex">The index of the mismatched item</param>
-		/// <param name="pointerIndent">How many spaces into the output value the pointed-to item begins at</param>
-		/// <param name="depth">The optional printing depth (1 indicates a top-level value)</param>
-		/// <returns>The formatted collection</returns>
-		public string FormatIndexedMismatch(
+		/// <inheritdoc/>
+		public override string FormatIndexedMismatch(
 			int? mismatchedIndex,
 			out int? pointerIndent,
 			int depth = 1)
@@ -418,18 +470,8 @@ namespace Xunit.Sdk
 			);
 		}
 
-		/// <summary>
-		/// Formats the collection when you have a mismatched index. The formatted result will be the section of the
-		/// collection from <paramref name="startIndex"/> to <paramref name="endIndex"/>. These indices are usually
-		/// obtained by calling <see cref="GetMismatchExtents"/>.
-		/// </summary>
-		/// <param name="startIndex">The start index of the collection to print</param>
-		/// <param name="endIndex">The end index of the collection to print</param>
-		/// <param name="mismatchedIndex">The mismatched item index</param>
-		/// <param name="pointerIndent">How many spaces into the output value the pointed-to item begins at</param>
-		/// <param name="depth">The optional printing depth (1 indicates a top-level value)</param>
-		/// <returns>The formatted collection</returns>
-		public string FormatIndexedMismatch(
+		/// <inheritdoc/>
+		public override string FormatIndexedMismatch(
 			int startIndex,
 			int endIndex,
 			int? mismatchedIndex,
@@ -644,18 +686,11 @@ namespace Xunit.Sdk
 			GetEnumerator();
 
 		/// <inheritdoc/>
-		protected override IEnumerator GetSafeEnumerator() =>
+		protected internal override IEnumerator GetSafeEnumerator() =>
 			GetEnumerator();
 
-		/// <summary>
-		/// Gets the extents to print when you find a mismatched index, in the form of
-		/// a <paramref name="startIndex"/> and <paramref name="endIndex"/>. If the mismatched
-		/// index is <c>null</c>, the extents will start at index 0.
-		/// </summary>
-		/// <param name="mismatchedIndex">The mismatched item index</param>
-		/// <param name="startIndex">The start index that should be used for printing</param>
-		/// <param name="endIndex">The end index that should be used for printing</param>
-		public void GetMismatchExtents(
+		/// <inheritdoc/>
+		public override void GetMismatchExtents(
 			int? mismatchedIndex,
 			out int startIndex,
 			out int endIndex)
@@ -675,19 +710,11 @@ namespace Xunit.Sdk
 			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
 		}
 
-		/// <summary>
-		/// Gets the full name of the type of the element at the given index, if known.
-		/// Since this uses the item cache produced by enumeration, it may return <c>null</c>
-		/// when we haven't enumerated enough to see the given element, or if we enumerated
-		/// so much that the item has left the cache, or if the item at the given index
-		/// is <c>null</c>. It will also return <c>null</c> when the <paramref name="index"/>
-		/// is <c>null</c>.
-		/// </summary>
-		/// <param name="index">The item index</param>
+		/// <inheritdoc/>
 #if XUNIT_NULLABLE
-		public string? TypeAt(int? index)
+		public override string? TypeAt(int? index)
 #else
-		public string TypeAt(int? index)
+		public override string TypeAt(int? index)
 #endif
 		{
 			if (enumerator == null || !index.HasValue)

@@ -430,9 +430,11 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 
 			using (var tracker = collection.AsTracker())
-			using (var enumerator = tracker.GetEnumerator())
+			{
+				var enumerator = tracker.GetEnumerator();
 				if (enumerator.MoveNext())
 					throw EmptyException.ForNonEmptyCollection(tracker.FormatStart());
+			}
 		}
 
 		/// <summary>
