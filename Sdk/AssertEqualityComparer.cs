@@ -106,7 +106,7 @@ namespace Xunit.Sdk
 #if XUNIT_NULLABLE
 					return equalsMethod.Invoke(x, new object[] { y }) is true;
 #else
-				return (bool)equalsMethod.Invoke(x, new object[] { y });
+					return (bool)equalsMethod.Invoke(x, new object[] { y });
 #endif
 				}
 			}
@@ -147,7 +147,7 @@ namespace Xunit.Sdk
 #if XUNIT_NULLABLE
 						return compareToMethod.Invoke(x, new object[] { y }) is 0;
 #else
-					return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
+						return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
 #endif
 					}
 					catch
