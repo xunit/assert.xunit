@@ -73,11 +73,7 @@ namespace Xunit
 				return ex;
 			}
 
-#if XUNIT_VALUETASK
-			if (result is Task || result is ValueTask)
-#else
 			if (result is Task)
-#endif
 				throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "You must call Assert.{0} when testing async code", asyncMethodName));
 
 			return null;
@@ -90,24 +86,6 @@ namespace Xunit
 		{
 			throw new NotImplementedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
 		}
-
-#if XUNIT_VALUETASK
-		/// <summary/>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		protected static Exception RecordException(Func<ValueTask> testCode)
-		{
-			throw new NotImplementedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
-		}
-
-		/// <summary/>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
-		protected static Exception RecordException<T>(Func<ValueTask<T>> testCode)
-		{
-			throw new NotImplementedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
-		}
-#endif
 
 		/// <summary>
 		/// Records any exception which is thrown by the given task.
@@ -132,56 +110,5 @@ namespace Xunit
 				return ex;
 			}
 		}
-
-#if XUNIT_VALUETASK
-		/// <summary>
-		/// Records any exception which is thrown by the given task.
-		/// </summary>
-		/// <param name="testCode">The task which may thrown an exception.</param>
-		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-#if XUNIT_NULLABLE
-		protected static async ValueTask<Exception?> RecordExceptionAsync(Func<ValueTask> testCode)
-#else
-		protected static async ValueTask<Exception> RecordExceptionAsync(Func<ValueTask> testCode)
-#endif
-		{
-			GuardArgumentNotNull(nameof(testCode), testCode);
-
-			try
-			{
-				await testCode();
-				return null;
-			}
-			catch (Exception ex)
-			{
-				return ex;
-			}
-		}
-
-		/// <summary>
-		/// Records any exception which is thrown by the given task.
-		/// </summary>
-		/// <param name="testCode">The task which may thrown an exception.</param>
-		/// <typeparam name="T">The type of the ValueTask return value.</typeparam>
-		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
-#if XUNIT_NULLABLE
-		protected static async ValueTask<Exception?> RecordExceptionAsync<T>(Func<ValueTask<T>> testCode)
-#else
-		protected static async ValueTask<Exception> RecordExceptionAsync<T>(Func<ValueTask<T>> testCode)
-#endif
-		{
-			GuardArgumentNotNull(nameof(testCode), testCode);
-
-			try
-			{
-				await testCode();
-				return null;
-			}
-			catch (Exception ex)
-			{
-				return ex;
-			}
-		}
-#endif
 	}
 }

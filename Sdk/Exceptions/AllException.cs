@@ -23,17 +23,6 @@ namespace Xunit.Sdk
 			base(message)
 		{ }
 
-#if XUNIT_VALUETASK
-		/// <summary>
-		/// Creates a new instance of the <see cref="AllException"/> class to be thrown when one or
-		/// more items failed during <see cref="Assert.All{T}(IEnumerable{T}, Action{T})"/>,
-		/// <see cref="Assert.All{T}(IEnumerable{T}, Action{T, int})"/>,
-		/// <see cref="Assert.AllAsync{T}(IEnumerable{T}, Func{T, System.Threading.Tasks.ValueTask})"/>,
-		/// or <see cref="Assert.AllAsync{T}(IEnumerable{T}, Func{T, int, System.Threading.Tasks.ValueTask})"/>.
-		/// </summary>
-		/// <param name="totalItems">The total number of items in the collection</param>
-		/// <param name="errors">The list of failures (as index, value, and exception)</param>
-#else
 		/// <summary>
 		/// Creates a new instance of the <see cref="AllException"/> class to be thrown when one or
 		/// more items failed during <see cref="Assert.All{T}(IEnumerable{T}, Action{T})"/>
@@ -41,7 +30,6 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="totalItems">The total number of items in the collection</param>
 		/// <param name="errors">The list of failures (as index, value, and exception)</param>
-#endif
 		public static AllException ForFailures(
 			int totalItems,
 			IReadOnlyList<Tuple<int, string, Exception>> errors)
