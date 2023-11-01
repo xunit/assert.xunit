@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Xunit.Sdk
 {
@@ -26,7 +27,9 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Creates a new instance of the <see cref="AllException"/> class to be thrown when one or
 		/// more items failed during <see cref="Assert.All{T}(IEnumerable{T}, Action{T})"/>
-		/// or <see cref="Assert.All{T}(IEnumerable{T}, Action{T, int})"/>.
+		/// or <see cref="Assert.All{T}(IEnumerable{T}, Action{T, int})"/>,
+		/// <see cref="Assert.AllAsync{T}(IEnumerable{T}, Func{T, Task})"/>,
+		/// or <see cref="Assert.AllAsync{T}(IEnumerable{T}, Func{T, int, Task})"/>.
 		/// </summary>
 		/// <param name="totalItems">The total number of items in the collection</param>
 		/// <param name="errors">The list of failures (as index, value, and exception)</param>
