@@ -183,16 +183,17 @@ namespace Xunit.Sdk
 
 				if (valueX == null)
 				{
-					if (valueY == null)
-						continue;
-					return false;
+					if (valueY != null)
+						return false;
 				}
-				if (valueY == null)
+				else if (valueY == null)
 					return false;
-
-				var comparer = AssertEqualityComparer.GetDefaultComparer(valueX.GetType());
-				if (!comparer.Equals(valueX, valueY))
-					return false;
+				else
+				{
+					var comparer = AssertEqualityComparer.GetDefaultComparer(valueX.GetType());
+					if (!comparer.Equals(valueX, valueY))
+						return false;
+				}
 
 				dictionaryYKeys.Remove(key);
 			}
