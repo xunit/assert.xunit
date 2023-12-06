@@ -83,6 +83,24 @@ namespace Xunit.Sdk
 
 				return GetDefaultComparer(innerType);
 			});
+
+		/// <summary>
+		/// This exception is thrown when an operation failure has occured during equality comparison operations.
+		/// This generally indicates that a necessary pre-condition was not met for comparison operations to succeed.
+		/// </summary>
+		public sealed class OperationalFailureException : Exception
+		{
+			OperationalFailureException(string message) :
+				base(message)
+			{ }
+
+			/// <summary>
+			/// Gets an exception that indicates that GetHashCode was called on <see cref="AssertEqualityComparer{T}.FuncEqualityComparer"/>
+			/// which usually indicates that an item comparison function was used to try to compare two hash sets.
+			/// </summary>
+			public static OperationalFailureException ForIllegalGetHashCode() =>
+				new OperationalFailureException("During comparison of two collections, GetHashCode was called, but only a comparison function was provided. This typically indicates trying to compare two sets with an item comparison function, which is not supported. For more information, see https://xunit.net/docs/hash-sets-vs-linear-containers");
+		}
 	}
 
 	/// <summary>
@@ -345,11 +363,13 @@ namespace Xunit.Sdk
 			}
 
 #if XUNIT_NULLABLE
-			public int GetHashCode(T? obj) =>
+			public int GetHashCode(T? obj)
 #else
-			public int GetHashCode(T obj) =>
+			public int GetHashCode(T obj)
 #endif
-				GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
+			{
+				throw AssertEqualityComparer.OperationalFailureException.ForIllegalGetHashCode();
+			}
 		}
 
 		sealed class TypeErasedEqualityComparer : IEqualityComparer
