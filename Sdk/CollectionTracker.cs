@@ -190,7 +190,10 @@ namespace Xunit.Sdk
 					return false;
 				else
 				{
-					var comparer = AssertEqualityComparer.GetDefaultComparer(valueX.GetType());
+					var valueXType = valueX.GetType();
+					var valueYType = valueY.GetType();
+
+					var comparer = AssertEqualityComparer.GetDefaultComparer(valueXType == valueYType ? valueXType : typeof(object));
 					if (!comparer.Equals(valueX, valueY))
 						return false;
 				}

@@ -298,7 +298,10 @@ namespace Xunit.Sdk
 				}
 				else
 				{
-					var keyComparer = AssertEqualityComparer.GetDefaultComparer(xKey.GetType());
+					var xKeyType = xKey.GetType();
+					var yKeyType = yKey?.GetType();
+
+					var keyComparer = AssertEqualityComparer.GetDefaultComparer(xKeyType == yKeyType ? xKeyType : typeof(object));
 					if (!keyComparer.Equals(xKey, yKey))
 						return false;
 				}
@@ -309,7 +312,10 @@ namespace Xunit.Sdk
 				if (xValue == null)
 					return yValue == null;
 
-				var valueComparer = AssertEqualityComparer.GetDefaultComparer(xValue.GetType());
+				var xValueType = xValue.GetType();
+				var yValueType = yValue?.GetType();
+
+				var valueComparer = AssertEqualityComparer.GetDefaultComparer(xValueType == yValueType ? xValueType : typeof(object));
 				return valueComparer.Equals(xValue, yValue);
 			}
 
