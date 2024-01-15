@@ -344,8 +344,12 @@ namespace Xunit.Sdk
 
 			public FuncEqualityComparer(Func<T, T, bool> comparer)
 			{
+#if NET6_0_OR_GREATER
+				ArgumentNullException.ThrowIfNull(comparer);
+#else
 				if (comparer == null)
 					throw new ArgumentNullException(nameof(comparer));
+#endif
 
 				this.comparer = comparer;
 			}
