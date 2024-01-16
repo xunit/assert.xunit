@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Xunit.Internal;
 using Xunit.Sdk;
 
 #if XUNIT_NULLABLE
@@ -259,8 +260,8 @@ namespace Xunit
 
 					if (expectedType != actualType)
 					{
-						var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
-						var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
+						var expectedTypeName = expectedType == null ? "" : (AssertHelper.IsCompilerGenerated(expectedType) ? "<generated> " : ArgumentFormatter.FormatTypeName(expectedType) + " ");
+						var actualTypeName = actualType == null ? "" : (AssertHelper.IsCompilerGenerated(actualType) ? "<generated> " : ArgumentFormatter.FormatTypeName(actualType) + " ");
 
 						var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
 
@@ -735,8 +736,8 @@ namespace Xunit
 
 					if (expectedType != actualType)
 					{
-						var expectedTypeName = expectedType == null ? "" : ArgumentFormatter.FormatTypeName(expectedType) + " ";
-						var actualTypeName = actualType == null ? "" : ArgumentFormatter.FormatTypeName(actualType) + " ";
+						var expectedTypeName = expectedType == null ? "" : (AssertHelper.IsCompilerGenerated(expectedType) ? "<generated> " : ArgumentFormatter.FormatTypeName(expectedType) + " ");
+						var actualTypeName = actualType == null ? "" : (AssertHelper.IsCompilerGenerated(actualType) ? "<generated> " : ArgumentFormatter.FormatTypeName(actualType) + " ");
 
 						var typeNameIndent = Math.Max(expectedTypeName.Length, actualTypeName.Length);
 
