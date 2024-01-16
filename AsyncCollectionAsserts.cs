@@ -1,8 +1,11 @@
 #if NETCOREAPP3_0_OR_GREATER
 
+#if XUNIT_NULLABLE
+#nullable enable
+#endif
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit.Internal;
 using Xunit.Sdk;
