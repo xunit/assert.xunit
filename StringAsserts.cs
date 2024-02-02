@@ -549,7 +549,10 @@ namespace Xunit
 		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		public static void Equal(
-#if XUNIT_NULLABLE
+#if XUNIT_SPAN
+			ReadOnlySpan<char> expected,
+			ReadOnlySpan<char> actual,
+#elif XUNIT_NULLABLE
 			string? expected,
 			string? actual,
 #else
@@ -561,83 +564,67 @@ namespace Xunit
 			bool ignoreWhiteSpaceDifferences = false,
 			bool ignoreAllWhiteSpace = false)
 		{
-#if XUNIT_SPAN
+#if !XUNIT_SPAN
 			if (expected == null && actual == null)
 				return;
 			if (expected == null || actual == null)
 				throw EqualException.ForMismatchedStrings(expected, actual, -1, -1);
+#endif
 
-			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
-#else
-			// Start out assuming the one of the values is null
-			int expectedIndex = -1;
-			int actualIndex = -1;
-			int expectedLength = 0;
-			int actualLength = 0;
+			// Walk the string, keeping separate indices since we can skip variable amounts of
+			// data based on ignoreLineEndingDifferences and ignoreWhiteSpaceDifferences.
+			var expectedIndex = 0;
+			var actualIndex = 0;
+			var expectedLength = expected.Length;
+			var actualLength = actual.Length;
 
-			if (expected == null)
+			// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
+			if (ignoreAllWhiteSpace)
 			{
-				if (actual == null)
+				if (expectedLength == 0 && SkipWhitespace(actual, 0) == actualLength)
+					return;
+				if (actualLength == 0 && SkipWhitespace(expected, 0) == expectedLength)
 					return;
 			}
-			else if (actual != null)
+
+			while (expectedIndex < expectedLength && actualIndex < actualLength)
 			{
-				// Walk the string, keeping separate indices since we can skip variable amounts of
-				// data based on ignoreLineEndingDifferences and ignoreWhiteSpaceDifferences.
-				expectedIndex = 0;
-				actualIndex = 0;
-				expectedLength = expected.Length;
-				actualLength = actual.Length;
+				var expectedChar = expected[expectedIndex];
+				var actualChar = actual[actualIndex];
 
-				// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
-				if (ignoreAllWhiteSpace)
+				if (ignoreLineEndingDifferences && IsLineEnding(expectedChar) && IsLineEnding(actualChar))
 				{
-					if (expectedLength == 0 && SkipWhitespace(actual, 0) == actualLength)
-						return;
-					if (actualLength == 0 && SkipWhitespace(expected, 0) == expectedLength)
-						return;
+					expectedIndex = SkipLineEnding(expected, expectedIndex);
+					actualIndex = SkipLineEnding(actual, actualIndex);
 				}
-
-				while (expectedIndex < expectedLength && actualIndex < actualLength)
+				else if (ignoreAllWhiteSpace && (IsWhiteSpace(expectedChar) || IsWhiteSpace(actualChar)))
 				{
-					char expectedChar = expected[expectedIndex];
-					char actualChar = actual[actualIndex];
+					expectedIndex = SkipWhitespace(expected, expectedIndex);
+					actualIndex = SkipWhitespace(actual, actualIndex);
+				}
+				else if (ignoreWhiteSpaceDifferences && IsWhiteSpace(expectedChar) && IsWhiteSpace(actualChar))
+				{
+					expectedIndex = SkipWhitespace(expected, expectedIndex);
+					actualIndex = SkipWhitespace(actual, actualIndex);
+				}
+				else
+				{
+					if (ignoreCase)
+					{
+						expectedChar = char.ToUpperInvariant(expectedChar);
+						actualChar = char.ToUpperInvariant(actualChar);
+					}
 
-					if (ignoreLineEndingDifferences && IsLineEnding(expectedChar) && IsLineEnding(actualChar))
-					{
-						expectedIndex = SkipLineEnding(expected, expectedIndex);
-						actualIndex = SkipLineEnding(actual, actualIndex);
-					}
-					else if (ignoreAllWhiteSpace && (IsWhiteSpace(expectedChar) || IsWhiteSpace(actualChar)))
-					{
-						expectedIndex = SkipWhitespace(expected, expectedIndex);
-						actualIndex = SkipWhitespace(actual, actualIndex);
-					}
-					else if (ignoreWhiteSpaceDifferences && IsWhiteSpace(expectedChar) && IsWhiteSpace(actualChar))
-					{
-						expectedIndex = SkipWhitespace(expected, expectedIndex);
-						actualIndex = SkipWhitespace(actual, actualIndex);
-					}
-					else
-					{
-						if (ignoreCase)
-						{
-							expectedChar = Char.ToUpperInvariant(expectedChar);
-							actualChar = Char.ToUpperInvariant(actualChar);
-						}
+					if (expectedChar != actualChar)
+						break;
 
-						if (expectedChar != actualChar)
-							break;
-
-						expectedIndex++;
-						actualIndex++;
-					}
+					expectedIndex++;
+					actualIndex++;
 				}
 			}
 
 			if (expectedIndex < expectedLength || actualIndex < actualLength)
-				throw EqualException.ForMismatchedStrings(expected, actual, expectedIndex, actualIndex);
-#endif
+				throw EqualException.ForMismatchedStrings(expected.ToString(), actual.ToString(), expectedIndex, actualIndex);
 		}
 
 #if XUNIT_SPAN
@@ -754,67 +741,27 @@ namespace Xunit
 		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		public static void Equal(
-			ReadOnlySpan<char> expected,
-			ReadOnlySpan<char> actual,
+#if XUNIT_NULLABLE
+			string? expected,
+			string? actual,
+#else
+			string expected,
+			string actual,
+#endif
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
 			bool ignoreWhiteSpaceDifferences = false,
 			bool ignoreAllWhiteSpace = false)
 		{
-			// Walk the string, keeping separate indices since we can skip variable amounts of
-			// data based on ignoreLineEndingDifferences and ignoreWhiteSpaceDifferences.
-			var expectedIndex = 0;
-			var actualIndex = 0;
-			var expectedLength = expected.Length;
-			var actualLength = actual.Length;
+			// This overload is inside #if XUNIT_SPAN because the string version is dynamically converted
+			// to a span version, so this string version is a backup that then delegates to the span version.
 
-			// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
-			if (ignoreAllWhiteSpace)
-			{
-				if (expectedLength == 0 && SkipWhitespace(actual, 0) == actualLength)
-					return;
-				if (actualLength == 0 && SkipWhitespace(expected, 0) == expectedLength)
-					return;
-			}
+			if (expected == null && actual == null)
+				return;
+			if (expected == null || actual == null)
+				throw EqualException.ForMismatchedStrings(expected, actual, -1, -1);
 
-			while (expectedIndex < expectedLength && actualIndex < actualLength)
-			{
-				var expectedChar = expected[expectedIndex];
-				var actualChar = actual[actualIndex];
-
-				if (ignoreLineEndingDifferences && IsLineEnding(expectedChar) && IsLineEnding(actualChar))
-				{
-					expectedIndex = SkipLineEnding(expected, expectedIndex);
-					actualIndex = SkipLineEnding(actual, actualIndex);
-				}
-				else if (ignoreAllWhiteSpace && (IsWhiteSpace(expectedChar) || IsWhiteSpace(actualChar)))
-				{
-					expectedIndex = SkipWhitespace(expected, expectedIndex);
-					actualIndex = SkipWhitespace(actual, actualIndex);
-				}
-				else if (ignoreWhiteSpaceDifferences && IsWhiteSpace(expectedChar) && IsWhiteSpace(actualChar))
-				{
-					expectedIndex = SkipWhitespace(expected, expectedIndex);
-					actualIndex = SkipWhitespace(actual, actualIndex);
-				}
-				else
-				{
-					if (ignoreCase)
-					{
-						expectedChar = char.ToUpperInvariant(expectedChar);
-						actualChar = char.ToUpperInvariant(actualChar);
-					}
-
-					if (expectedChar != actualChar)
-						break;
-
-					expectedIndex++;
-					actualIndex++;
-				}
-			}
-
-			if (expectedIndex < expectedLength || actualIndex < actualLength)
-				throw EqualException.ForMismatchedStrings(expected.ToString(), actual.ToString(), expectedIndex, actualIndex);
+			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 		}
 
 #endif
@@ -1020,37 +967,11 @@ namespace Xunit
 		}
 
 		static int SkipLineEnding(
-			string value,
-			int index)
-		{
-			if (value[index] == '\r')
-				++index;
-
-			if (index < value.Length && value[index] == '\n')
-				++index;
-
-			return index;
-		}
-
-		static int SkipWhitespace(
-			string value,
-			int index)
-		{
-			while (index < value.Length)
-			{
-				if (IsWhiteSpace(value[index]))
-					index++;
-				else
-					return index;
-			}
-
-			return index;
-		}
-
 #if XUNIT_SPAN
-
-		static int SkipLineEnding(
 			ReadOnlySpan<char> value,
+#else
+			string value,
+#endif
 			int index)
 		{
 			if (value[index] == '\r')
@@ -1063,7 +984,11 @@ namespace Xunit
 		}
 
 		static int SkipWhitespace(
+#if XUNIT_SPAN
 			ReadOnlySpan<char> value,
+#else
+			string value,
+#endif
 			int index)
 		{
 			while (index < value.Length)
@@ -1076,7 +1001,5 @@ namespace Xunit
 
 			return index;
 		}
-
-#endif
 	}
 }
