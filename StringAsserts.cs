@@ -6,7 +6,7 @@
 #endif
 
 using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Xunit.Internal;
 using Xunit.Sdk;
@@ -545,9 +545,37 @@ namespace Xunit
 		/// <param name="actual">The actual string value.</param>
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		/// <remarks>
+		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
+		/// the following characters to be white-space:
+		/// <see href="https://unicode-explorer.com/c/0009">Tab</see> (\t),
+		/// <see href="https://unicode-explorer.com/c/0020">Space</see> (\u0020),
+		/// <see href="https://unicode-explorer.com/c/00A0">No-Break Space</see> (\u00A0),
+		/// <see href="https://unicode-explorer.com/c/1680">Ogham Space Mark</see> (\u1680),
+		/// <see href="https://unicode-explorer.com/c/180E">Mongolian Vowel Separator</see> (\u180E),
+		/// <see href="https://unicode-explorer.com/c/2000">En Quad</see> (\u2000),
+		/// <see href="https://unicode-explorer.com/c/2001">Em Quad</see> (\u2001),
+		/// <see href="https://unicode-explorer.com/c/2002">En Space</see> (\u2002),
+		/// <see href="https://unicode-explorer.com/c/2003">Em Space</see> (\u2003),
+		/// <see href="https://unicode-explorer.com/c/2004">Three-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2005">Four-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2006">Six-Per-Em Space</see> (\u2006),
+		/// <see href="https://unicode-explorer.com/c/2007">Figure Space</see> (\u2007),
+		/// <see href="https://unicode-explorer.com/c/2008">Punctuation Space</see> (\u2008),
+		/// <see href="https://unicode-explorer.com/c/2009">Thin Space</see> (\u2009),
+		/// <see href="https://unicode-explorer.com/c/200A">Hair Space</see> (\u200A),
+		/// <see href="https://unicode-explorer.com/c/200B">Zero Width Space</see> (\u200B),
+		/// <see href="https://unicode-explorer.com/c/202F">Narrow No-Break Space</see> (\u202F),
+		/// <see href="https://unicode-explorer.com/c/205F">Medium Mathematical Space</see> (\u205F),
+		/// <see href="https://unicode-explorer.com/c/3000">Ideographic Space</see> (\u3000),
+		/// and <see href="https://unicode-explorer.com/c/FEFF">Zero Width No-Break Space</see> (\uFEFF).
+		/// In particular, it does not include carriage return (\r) or line feed (\n), which are covered by
+		/// <paramref name="ignoreLineEndingDifferences"/>.
+		/// </remarks>
+
 		public static void Equal(
 #if XUNIT_SPAN
 			ReadOnlySpan<char> expected,
@@ -592,17 +620,17 @@ namespace Xunit
 				var expectedChar = expected[expectedIndex];
 				var actualChar = actual[actualIndex];
 
-				if (ignoreLineEndingDifferences && IsLineEnding(expectedChar) && IsLineEnding(actualChar))
+				if (ignoreLineEndingDifferences && charsLineEndings.Contains(expectedChar) && charsLineEndings.Contains(actualChar))
 				{
 					expectedIndex = SkipLineEnding(expected, expectedIndex);
 					actualIndex = SkipLineEnding(actual, actualIndex);
 				}
-				else if (ignoreAllWhiteSpace && (IsWhiteSpace(expectedChar) || IsWhiteSpace(actualChar)))
+				else if (ignoreAllWhiteSpace && (charsWhitespace.Contains(expectedChar) || charsWhitespace.Contains(actualChar)))
 				{
 					expectedIndex = SkipWhitespace(expected, expectedIndex);
 					actualIndex = SkipWhitespace(actual, actualIndex);
 				}
-				else if (ignoreWhiteSpaceDifferences && IsWhiteSpace(expectedChar) && IsWhiteSpace(actualChar))
+				else if (ignoreWhiteSpaceDifferences && charsWhitespace.Contains(expectedChar) && charsWhitespace.Contains(actualChar))
 				{
 					expectedIndex = SkipWhitespace(expected, expectedIndex);
 					actualIndex = SkipWhitespace(actual, actualIndex);
@@ -737,9 +765,37 @@ namespace Xunit
 		/// <param name="actual">The actual string value.</param>
 		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
 		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		/// <remarks>
+		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
+		/// the following characters to be white-space:
+		/// <see href="https://unicode-explorer.com/c/0009">Tab</see> (\t),
+		/// <see href="https://unicode-explorer.com/c/0020">Space</see> (\u0020),
+		/// <see href="https://unicode-explorer.com/c/00A0">No-Break Space</see> (\u00A0),
+		/// <see href="https://unicode-explorer.com/c/1680">Ogham Space Mark</see> (\u1680),
+		/// <see href="https://unicode-explorer.com/c/180E">Mongolian Vowel Separator</see> (\u180E),
+		/// <see href="https://unicode-explorer.com/c/2000">En Quad</see> (\u2000),
+		/// <see href="https://unicode-explorer.com/c/2001">Em Quad</see> (\u2001),
+		/// <see href="https://unicode-explorer.com/c/2002">En Space</see> (\u2002),
+		/// <see href="https://unicode-explorer.com/c/2003">Em Space</see> (\u2003),
+		/// <see href="https://unicode-explorer.com/c/2004">Three-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2005">Four-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2006">Six-Per-Em Space</see> (\u2006),
+		/// <see href="https://unicode-explorer.com/c/2007">Figure Space</see> (\u2007),
+		/// <see href="https://unicode-explorer.com/c/2008">Punctuation Space</see> (\u2008),
+		/// <see href="https://unicode-explorer.com/c/2009">Thin Space</see> (\u2009),
+		/// <see href="https://unicode-explorer.com/c/200A">Hair Space</see> (\u200A),
+		/// <see href="https://unicode-explorer.com/c/200B">Zero Width Space</see> (\u200B),
+		/// <see href="https://unicode-explorer.com/c/202F">Narrow No-Break Space</see> (\u202F),
+		/// <see href="https://unicode-explorer.com/c/205F">Medium Mathematical Space</see> (\u205F),
+		/// <see href="https://unicode-explorer.com/c/3000">Ideographic Space</see> (\u3000),
+		/// and <see href="https://unicode-explorer.com/c/FEFF">Zero Width No-Break Space</see> (\uFEFF).
+		/// In particular, it does not include carriage return (\r) or line feed (\n), which are covered by
+		/// <paramref name="ignoreLineEndingDifferences"/>.
+		/// </remarks>
+
 		public static void Equal(
 #if XUNIT_NULLABLE
 			string? expected,
@@ -946,25 +1002,35 @@ namespace Xunit
 
 #endif
 
-		static bool IsLineEnding(char c) =>
-			c == '\r' || c == '\n';
-
-		static bool IsWhiteSpace(char c)
+		static readonly HashSet<char> charsLineEndings = new HashSet<char>()
 		{
-			const char mongolianVowelSeparator = '\u180E';
-			const char zeroWidthSpace = '\u200B';
-			const char zeroWidthNoBreakSpace = '\uFEFF';
-			const char tabulation = '\u0009';
-
-			var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-
-			return
-				unicodeCategory == UnicodeCategory.SpaceSeparator ||
-				c == mongolianVowelSeparator ||
-				c == zeroWidthSpace ||
-				c == zeroWidthNoBreakSpace ||
-				c == tabulation;
-		}
+			'\r',  // Carriage Return
+			'\n',  // Line feed
+		};
+		static readonly HashSet<char> charsWhitespace = new HashSet<char>()
+		{
+			'\t',      // Tab
+			' ',       // Space
+			'\u00A0',  // No-Break Space
+			'\u1680',  // Ogham Space Mark
+			'\u180E',  // Mongolian Vowel Separator
+			'\u2000',  // En Quad
+			'\u2001',  // Em Quad
+			'\u2002',  // En Space
+			'\u2003',  // Em Space
+			'\u2004',  // Three-Per-Em Space
+			'\u2005',  // Four-Per-Em Space
+			'\u2006',  // Six-Per-Em Space
+			'\u2007',  // Figure Space
+			'\u2008',  // Punctuation Space
+			'\u2009',  // Thin Space
+			'\u200A',  // Hair Space
+			'\u200B',  // Zero Width Space
+			'\u202F',  // Narrow No-Break Space
+			'\u205F',  // Medium Mathematical Space
+			'\u3000',  // Ideographic Space
+			'\uFEFF',  // Zero Width No-Break Space
+		};
 
 		static int SkipLineEnding(
 #if XUNIT_SPAN
@@ -993,7 +1059,7 @@ namespace Xunit
 		{
 			while (index < value.Length)
 			{
-				if (IsWhiteSpace(value[index]))
+				if (charsWhitespace.Contains(value[index]))
 					index++;
 				else
 					return index;
