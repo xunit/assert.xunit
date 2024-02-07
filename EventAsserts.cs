@@ -46,6 +46,37 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that an event with the exact event args is raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="handler">Code returning the raised event</param>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <returns>The event sender and arguments wrapped in an object</returns>
+		/// <exception cref="RaisesException">Thrown when the expected event was not raised.</exception>
+		public static RaisedEvent<T> Raises<T>(
+#if XUNIT_NULLABLE
+			Func<RaisedEvent<T>?> handler,
+#else
+			Func<RaisedEvent<T>> handler,
+#endif
+			Action attach,
+			Action detach,
+			Action testCode)
+		{
+			var raisedEvent = RaisesInternal(handler, attach, detach, testCode);
+
+			if (raisedEvent == null)
+				throw RaisesException.ForNoEvent(typeof(T));
+
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
+
+			return raisedEvent;
+		}
+
+		/// <summary>
 		/// Verifies that an event is raised.
 		/// </summary>
 		/// <param name="attach">Code to attach the event handler</param>
@@ -191,10 +222,6 @@ namespace Xunit
 			Action<EventHandler<T>> detach,
 			Action testCode)
 		{
-			GuardArgumentNotNull(nameof(attach), attach);
-			GuardArgumentNotNull(nameof(detach), detach);
-			GuardArgumentNotNull(nameof(testCode), testCode);
-
 #if XUNIT_NULLABLE
 			RaisedEvent<T>? raisedEvent = null;
 			void handler(object? s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
@@ -202,10 +229,33 @@ namespace Xunit
 			RaisedEvent<T> raisedEvent = null;
 			EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
 #endif
-			attach(handler);
+			return RaisesInternal(
+				() => raisedEvent,
+				() => attach(handler),
+				() => detach(handler),
+				testCode);
+		}
+
+#if XUNIT_NULLABLE
+		static RaisedEvent<T>? RaisesInternal<T>(
+			Func<RaisedEvent<T>?> handler,
+#else
+		static RaisedEvent<T> RaisesInternal<T>(
+			Func<RaisedEvent<T>> handler,
+#endif
+			Action attach,
+			Action detach,
+			Action testCode)
+		{
+			GuardArgumentNotNull(nameof(handler), handler);
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			attach();
 			testCode();
-			detach(handler);
-			return raisedEvent;
+			detach();
+			return handler();
 		}
 
 #if XUNIT_NULLABLE
