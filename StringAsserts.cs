@@ -60,6 +60,106 @@ namespace Xunit
 #if XUNIT_SPAN
 
 		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			Memory<char> expectedSubstring,
+			Memory<char> actualString) =>
+				Contains((ReadOnlyMemory<char>)expectedSubstring, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			Memory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString) =>
+				Contains((ReadOnlyMemory<char>)expectedSubstring, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			ReadOnlyMemory<char> expectedSubstring,
+			Memory<char> actualString) =>
+				Contains(expectedSubstring, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			ReadOnlyMemory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString) =>
+				Contains(expectedSubstring, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			Memory<char> expectedSubstring,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				Contains((ReadOnlyMemory<char>)expectedSubstring, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			Memory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				Contains((ReadOnlyMemory<char>)expectedSubstring, actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			ReadOnlyMemory<char> expectedSubstring,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				Contains(expectedSubstring, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string contains a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="ContainsException">Thrown when the sub-string is not present inside the string</exception>
+		public static void Contains(
+			ReadOnlyMemory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture)
+		{
+			GuardArgumentNotNull(nameof(expectedSubstring), expectedSubstring);
+
+			Contains(expectedSubstring.Span, actualString.Span, comparisonType);
+		}
+
+		/// <summary>
 		/// Verifies that a string contains a given string, using the given comparison type.
 		/// </summary>
 		/// <param name="expectedSubstring">The string expected to be in the string</param>
@@ -166,7 +266,7 @@ namespace Xunit
 		/// <summary>
 		/// Verifies that a string does not contain a given sub-string, using the current culture.
 		/// </summary>
-		/// <param name="expectedSubstring">The sub-string which is expected not to be in the string</param>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
 		public static void DoesNotContain(
@@ -181,10 +281,10 @@ namespace Xunit
 		/// <summary>
 		/// Verifies that a string does not contain a given sub-string, using the current culture.
 		/// </summary>
-		/// <param name="expectedSubstring">The sub-string which is expected not to be in the string</param>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the given string</exception>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
 		public static void DoesNotContain(
 			string expectedSubstring,
 #if XUNIT_NULLABLE
@@ -205,6 +305,106 @@ namespace Xunit
 		}
 
 #if XUNIT_SPAN
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			Memory<char> expectedSubstring,
+			Memory<char> actualString) =>
+				DoesNotContain((ReadOnlyMemory<char>)expectedSubstring, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			Memory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString) =>
+				DoesNotContain((ReadOnlyMemory<char>)expectedSubstring, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			ReadOnlyMemory<char> expectedSubstring,
+			Memory<char> actualString) =>
+				DoesNotContain(expectedSubstring, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			ReadOnlyMemory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString) =>
+				DoesNotContain(expectedSubstring, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			Memory<char> expectedSubstring,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				DoesNotContain((ReadOnlyMemory<char>)expectedSubstring, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			Memory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				DoesNotContain((ReadOnlyMemory<char>)expectedSubstring, actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			ReadOnlyMemory<char> expectedSubstring,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				DoesNotContain(expectedSubstring, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string does not contain a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedSubstring">The sub-string expected not to be in the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="DoesNotContainException">Thrown when the sub-string is present inside the string</exception>
+		public static void DoesNotContain(
+			ReadOnlyMemory<char> expectedSubstring,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture)
+		{
+			GuardArgumentNotNull(nameof(expectedSubstring), expectedSubstring);
+
+			DoesNotContain(expectedSubstring.Span, actualString.Span, comparisonType);
+		}
 
 		/// <summary>
 		/// Verifies that a string does not contain a given sub-string, using the given comparison type.
@@ -383,11 +583,11 @@ namespace Xunit
 		}
 
 		/// <summary>
-		/// Verifies that a string ends with a given string, using the current culture.
+		/// Verifies that a string ends with a given sub-string, using the current culture.
 		/// </summary>
-		/// <param name="expectedEndString">The string expected to be at the end of the string</param>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="ContainsException">Thrown when the string does not end with the expected string</exception>
+		/// <exception cref="ContainsException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 #if XUNIT_NULLABLE
 			string? expectedEndString,
@@ -399,12 +599,12 @@ namespace Xunit
 				EndsWith(expectedEndString, actualString, StringComparison.CurrentCulture);
 
 		/// <summary>
-		/// Verifies that a string ends with a given string, using the given comparison type.
+		/// Verifies that a string ends with a given sub-string, using the given comparison type.
 		/// </summary>
-		/// <param name="expectedEndString">The string expected to be at the end of the string</param>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="ContainsException">Thrown when the string does not end with the expected string</exception>
+		/// <exception cref="ContainsException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 #if XUNIT_NULLABLE
 			string? expectedEndString,
@@ -426,7 +626,107 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			Memory<char> expectedEndString,
+			Memory<char> actualString) =>
+				EndsWith((ReadOnlyMemory<char>)expectedEndString, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			Memory<char> expectedEndString,
+			ReadOnlyMemory<char> actualString) =>
+				EndsWith((ReadOnlyMemory<char>)expectedEndString, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			ReadOnlyMemory<char> expectedEndString,
+			Memory<char> actualString) =>
+				EndsWith(expectedEndString, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			ReadOnlyMemory<char> expectedEndString,
+			ReadOnlyMemory<char> actualString) =>
+				EndsWith(expectedEndString, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			Memory<char> expectedEndString,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				EndsWith((ReadOnlyMemory<char>)expectedEndString, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			Memory<char> expectedEndString,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				EndsWith((ReadOnlyMemory<char>)expectedEndString, actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			ReadOnlyMemory<char> expectedEndString,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				EndsWith(expectedEndString, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
+		public static void EndsWith(
+			ReadOnlyMemory<char> expectedEndString,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture)
+		{
+			GuardArgumentNotNull(nameof(expectedEndString), expectedEndString);
+
+			EndsWith(expectedEndString.Span, actualString.Span, comparisonType);
+		}
+
+		/// <summary>
+		/// Verifies that a string ends with a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			Span<char> expectedEndString,
 			Span<char> actualString) =>
@@ -437,7 +737,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			Span<char> expectedEndString,
 			ReadOnlySpan<char> actualString) =>
@@ -448,7 +748,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			ReadOnlySpan<char> expectedEndString,
 			Span<char> actualString) =>
@@ -459,7 +759,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			ReadOnlySpan<char> expectedEndString,
 			ReadOnlySpan<char> actualString) =>
@@ -471,7 +771,7 @@ namespace Xunit
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			Span<char> expectedEndString,
 			Span<char> actualString,
@@ -484,7 +784,7 @@ namespace Xunit
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			Span<char> expectedEndString,
 			ReadOnlySpan<char> actualString,
@@ -497,7 +797,7 @@ namespace Xunit
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			ReadOnlySpan<char> expectedEndString,
 			Span<char> actualString,
@@ -510,7 +810,7 @@ namespace Xunit
 		/// <param name="expectedEndString">The sub-string expected to be at the end of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected substring</exception>
+		/// <exception cref="EndsWithException">Thrown when the string does not end with the expected sub-string</exception>
 		public static void EndsWith(
 			ReadOnlySpan<char> expectedEndString,
 			ReadOnlySpan<char> actualString,
@@ -664,6 +964,137 @@ namespace Xunit
 		/// <param name="actual">The actual string value.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		public static void Equal(
+			Memory<char> expected,
+			Memory<char> actual) =>
+				Equal((ReadOnlyMemory<char>)expected, (ReadOnlyMemory<char>)actual, false, false, false);
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
+			Memory<char> expected,
+			ReadOnlyMemory<char> actual) =>
+				Equal((ReadOnlyMemory<char>)expected, actual, false, false, false);
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
+			ReadOnlyMemory<char> expected,
+			Memory<char> actual) =>
+				Equal(expected, (ReadOnlyMemory<char>)actual, false, false, false);
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
+			ReadOnlyMemory<char> expected,
+			ReadOnlyMemory<char> actual) =>
+				Equal(expected, actual, false, false, false);
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
+			Memory<char> expected,
+			Memory<char> actual,
+			bool ignoreCase = false,
+			bool ignoreLineEndingDifferences = false,
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false) =>
+				Equal((ReadOnlyMemory<char>)expected, (ReadOnlyMemory<char>)actual, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
+			Memory<char> expected,
+			ReadOnlyMemory<char> actual,
+			bool ignoreCase = false,
+			bool ignoreLineEndingDifferences = false,
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false) =>
+				Equal((ReadOnlyMemory<char>)expected, actual, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
+			ReadOnlyMemory<char> expected,
+			Memory<char> actual,
+			bool ignoreCase = false,
+			bool ignoreLineEndingDifferences = false,
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false) =>
+				Equal(expected, (ReadOnlyMemory<char>)actual, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
+			ReadOnlyMemory<char> expected,
+			ReadOnlyMemory<char> actual,
+			bool ignoreCase = false,
+			bool ignoreLineEndingDifferences = false,
+			bool ignoreWhiteSpaceDifferences = false,
+			bool ignoreAllWhiteSpace = false)
+		{
+			GuardArgumentNotNull(nameof(expected), expected);
+
+			Equal(
+				expected.Span,
+				actual.Span,
+				ignoreCase,
+				ignoreLineEndingDifferences,
+				ignoreWhiteSpaceDifferences,
+				ignoreAllWhiteSpace
+			);
+		}
+
+		/// <summary>
+		/// Verifies that two strings are equivalent.
+		/// </summary>
+		/// <param name="expected">The expected string value.</param>
+		/// <param name="actual">The actual string value.</param>
+		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		public static void Equal(
 			Span<char> expected,
 			Span<char> actual) =>
 				Equal((ReadOnlySpan<char>)expected, (ReadOnlySpan<char>)actual, false, false, false, false);
@@ -711,6 +1142,33 @@ namespace Xunit
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
 		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		/// <remarks>
+		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
+		/// the following characters to be white-space:
+		/// <see href="https://unicode-explorer.com/c/0009">Tab</see> (\t),
+		/// <see href="https://unicode-explorer.com/c/0020">Space</see> (\u0020),
+		/// <see href="https://unicode-explorer.com/c/00A0">No-Break Space</see> (\u00A0),
+		/// <see href="https://unicode-explorer.com/c/1680">Ogham Space Mark</see> (\u1680),
+		/// <see href="https://unicode-explorer.com/c/180E">Mongolian Vowel Separator</see> (\u180E),
+		/// <see href="https://unicode-explorer.com/c/2000">En Quad</see> (\u2000),
+		/// <see href="https://unicode-explorer.com/c/2001">Em Quad</see> (\u2001),
+		/// <see href="https://unicode-explorer.com/c/2002">En Space</see> (\u2002),
+		/// <see href="https://unicode-explorer.com/c/2003">Em Space</see> (\u2003),
+		/// <see href="https://unicode-explorer.com/c/2004">Three-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2005">Four-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2006">Six-Per-Em Space</see> (\u2006),
+		/// <see href="https://unicode-explorer.com/c/2007">Figure Space</see> (\u2007),
+		/// <see href="https://unicode-explorer.com/c/2008">Punctuation Space</see> (\u2008),
+		/// <see href="https://unicode-explorer.com/c/2009">Thin Space</see> (\u2009),
+		/// <see href="https://unicode-explorer.com/c/200A">Hair Space</see> (\u200A),
+		/// <see href="https://unicode-explorer.com/c/200B">Zero Width Space</see> (\u200B),
+		/// <see href="https://unicode-explorer.com/c/202F">Narrow No-Break Space</see> (\u202F),
+		/// <see href="https://unicode-explorer.com/c/205F">Medium Mathematical Space</see> (\u205F),
+		/// <see href="https://unicode-explorer.com/c/3000">Ideographic Space</see> (\u3000),
+		/// and <see href="https://unicode-explorer.com/c/FEFF">Zero Width No-Break Space</see> (\uFEFF).
+		/// In particular, it does not include carriage return (\r) or line feed (\n), which are covered by
+		/// <paramref name="ignoreLineEndingDifferences"/>.
+		/// </remarks>
 		public static void Equal(
 			Span<char> expected,
 			Span<char> actual,
@@ -730,6 +1188,33 @@ namespace Xunit
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
 		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		/// <remarks>
+		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
+		/// the following characters to be white-space:
+		/// <see href="https://unicode-explorer.com/c/0009">Tab</see> (\t),
+		/// <see href="https://unicode-explorer.com/c/0020">Space</see> (\u0020),
+		/// <see href="https://unicode-explorer.com/c/00A0">No-Break Space</see> (\u00A0),
+		/// <see href="https://unicode-explorer.com/c/1680">Ogham Space Mark</see> (\u1680),
+		/// <see href="https://unicode-explorer.com/c/180E">Mongolian Vowel Separator</see> (\u180E),
+		/// <see href="https://unicode-explorer.com/c/2000">En Quad</see> (\u2000),
+		/// <see href="https://unicode-explorer.com/c/2001">Em Quad</see> (\u2001),
+		/// <see href="https://unicode-explorer.com/c/2002">En Space</see> (\u2002),
+		/// <see href="https://unicode-explorer.com/c/2003">Em Space</see> (\u2003),
+		/// <see href="https://unicode-explorer.com/c/2004">Three-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2005">Four-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2006">Six-Per-Em Space</see> (\u2006),
+		/// <see href="https://unicode-explorer.com/c/2007">Figure Space</see> (\u2007),
+		/// <see href="https://unicode-explorer.com/c/2008">Punctuation Space</see> (\u2008),
+		/// <see href="https://unicode-explorer.com/c/2009">Thin Space</see> (\u2009),
+		/// <see href="https://unicode-explorer.com/c/200A">Hair Space</see> (\u200A),
+		/// <see href="https://unicode-explorer.com/c/200B">Zero Width Space</see> (\u200B),
+		/// <see href="https://unicode-explorer.com/c/202F">Narrow No-Break Space</see> (\u202F),
+		/// <see href="https://unicode-explorer.com/c/205F">Medium Mathematical Space</see> (\u205F),
+		/// <see href="https://unicode-explorer.com/c/3000">Ideographic Space</see> (\u3000),
+		/// and <see href="https://unicode-explorer.com/c/FEFF">Zero Width No-Break Space</see> (\uFEFF).
+		/// In particular, it does not include carriage return (\r) or line feed (\n), which are covered by
+		/// <paramref name="ignoreLineEndingDifferences"/>.
+		/// </remarks>
 		public static void Equal(
 			Span<char> expected,
 			ReadOnlySpan<char> actual,
@@ -749,6 +1234,33 @@ namespace Xunit
 		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
 		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, removes all whitespaces and tabs before comparing.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
+		/// <remarks>
+		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
+		/// the following characters to be white-space:
+		/// <see href="https://unicode-explorer.com/c/0009">Tab</see> (\t),
+		/// <see href="https://unicode-explorer.com/c/0020">Space</see> (\u0020),
+		/// <see href="https://unicode-explorer.com/c/00A0">No-Break Space</see> (\u00A0),
+		/// <see href="https://unicode-explorer.com/c/1680">Ogham Space Mark</see> (\u1680),
+		/// <see href="https://unicode-explorer.com/c/180E">Mongolian Vowel Separator</see> (\u180E),
+		/// <see href="https://unicode-explorer.com/c/2000">En Quad</see> (\u2000),
+		/// <see href="https://unicode-explorer.com/c/2001">Em Quad</see> (\u2001),
+		/// <see href="https://unicode-explorer.com/c/2002">En Space</see> (\u2002),
+		/// <see href="https://unicode-explorer.com/c/2003">Em Space</see> (\u2003),
+		/// <see href="https://unicode-explorer.com/c/2004">Three-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2005">Four-Per-Em Space</see> (\u2004),
+		/// <see href="https://unicode-explorer.com/c/2006">Six-Per-Em Space</see> (\u2006),
+		/// <see href="https://unicode-explorer.com/c/2007">Figure Space</see> (\u2007),
+		/// <see href="https://unicode-explorer.com/c/2008">Punctuation Space</see> (\u2008),
+		/// <see href="https://unicode-explorer.com/c/2009">Thin Space</see> (\u2009),
+		/// <see href="https://unicode-explorer.com/c/200A">Hair Space</see> (\u200A),
+		/// <see href="https://unicode-explorer.com/c/200B">Zero Width Space</see> (\u200B),
+		/// <see href="https://unicode-explorer.com/c/202F">Narrow No-Break Space</see> (\u202F),
+		/// <see href="https://unicode-explorer.com/c/205F">Medium Mathematical Space</see> (\u205F),
+		/// <see href="https://unicode-explorer.com/c/3000">Ideographic Space</see> (\u3000),
+		/// and <see href="https://unicode-explorer.com/c/FEFF">Zero Width No-Break Space</see> (\uFEFF).
+		/// In particular, it does not include carriage return (\r) or line feed (\n), which are covered by
+		/// <paramref name="ignoreLineEndingDifferences"/>.
+		/// </remarks>
 		public static void Equal(
 			ReadOnlySpan<char> expected,
 			Span<char> actual,
@@ -867,7 +1379,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedStartString">The string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="ContainsException">Thrown when the string does not start with the expected string</exception>
+		/// <exception cref="ContainsException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 #if XUNIT_NULLABLE
 			string? expectedStartString,
@@ -879,12 +1391,12 @@ namespace Xunit
 				StartsWith(expectedStartString, actualString, StringComparison.CurrentCulture);
 
 		/// <summary>
-		/// Verifies that a string starts with a given string, using the given comparison type.
+		/// Verifies that a string starts with a given sub-string, using the given comparison type.
 		/// </summary>
-		/// <param name="expectedStartString">The string expected to be at the start of the string</param>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="ContainsException">Thrown when the string does not start with the expected string</exception>
+		/// <exception cref="ContainsException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 #if XUNIT_NULLABLE
 			string? expectedStartString,
@@ -906,7 +1418,107 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			Memory<char> expectedStartString,
+			Memory<char> actualString) =>
+				StartsWith((ReadOnlyMemory<char>)expectedStartString, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			Memory<char> expectedStartString,
+			ReadOnlyMemory<char> actualString) =>
+				StartsWith((ReadOnlyMemory<char>)expectedStartString, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			ReadOnlyMemory<char> expectedStartString,
+			Memory<char> actualString) =>
+				StartsWith(expectedStartString, (ReadOnlyMemory<char>)actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the default StringComparison.CurrentCulture comparison type.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			ReadOnlyMemory<char> expectedStartString,
+			ReadOnlyMemory<char> actualString) =>
+				StartsWith(expectedStartString, actualString, StringComparison.CurrentCulture);
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			Memory<char> expectedStartString,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				StartsWith((ReadOnlyMemory<char>)expectedStartString, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			Memory<char> expectedStartString,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				StartsWith((ReadOnlyMemory<char>)expectedStartString, actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			ReadOnlyMemory<char> expectedStartString,
+			Memory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture) =>
+				StartsWith(expectedStartString, (ReadOnlyMemory<char>)actualString, comparisonType);
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the given comparison type.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <param name="comparisonType">The type of string comparison to perform</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
+		public static void StartsWith(
+			ReadOnlyMemory<char> expectedStartString,
+			ReadOnlyMemory<char> actualString,
+			StringComparison comparisonType = StringComparison.CurrentCulture)
+		{
+			GuardArgumentNotNull(nameof(expectedStartString), expectedStartString);
+
+			StartsWith(expectedStartString.Span, actualString.Span, comparisonType);
+		}
+
+		/// <summary>
+		/// Verifies that a string starts with a given sub-string, using the current culture.
+		/// </summary>
+		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
+		/// <param name="actualString">The string to be inspected</param>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			Span<char> expectedStartString,
 			Span<char> actualString) =>
@@ -917,7 +1529,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			Span<char> expectedStartString,
 			ReadOnlySpan<char> actualString) =>
@@ -928,7 +1540,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			ReadOnlySpan<char> expectedStartString,
 			Span<char> actualString) =>
@@ -939,7 +1551,7 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			ReadOnlySpan<char> expectedStartString,
 			ReadOnlySpan<char> actualString) =>
@@ -951,7 +1563,7 @@ namespace Xunit
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			Span<char> expectedStartString,
 			Span<char> actualString,
@@ -964,7 +1576,7 @@ namespace Xunit
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			Span<char> expectedStartString,
 			ReadOnlySpan<char> actualString,
@@ -977,7 +1589,7 @@ namespace Xunit
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			ReadOnlySpan<char> expectedStartString,
 			Span<char> actualString,
@@ -990,7 +1602,7 @@ namespace Xunit
 		/// <param name="expectedStartString">The sub-string expected to be at the start of the string</param>
 		/// <param name="actualString">The string to be inspected</param>
 		/// <param name="comparisonType">The type of string comparison to perform</param>
-		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected substring</exception>
+		/// <exception cref="StartsWithException">Thrown when the string does not start with the expected sub-string</exception>
 		public static void StartsWith(
 			ReadOnlySpan<char> expectedStartString,
 			ReadOnlySpan<char> actualString,
