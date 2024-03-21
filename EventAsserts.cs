@@ -187,6 +187,8 @@ namespace Xunit
 			return raisedEvent;
 		}
 
+		// Helpers
+
 #if XUNIT_NULLABLE
 		static RaisedEvent<EventArgs>? RaisesInternal(
 #else
@@ -200,11 +202,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(detach), detach);
 			GuardArgumentNotNull(nameof(testCode), testCode);
 
+			var raisedEvent = default(RaisedEvent<EventArgs>);
 #if XUNIT_NULLABLE
-			RaisedEvent<EventArgs>? raisedEvent = null;
 			void handler(object? s, EventArgs args) => raisedEvent = new RaisedEvent<EventArgs>(s, args);
 #else
-			RaisedEvent<EventArgs> raisedEvent = null;
 			EventHandler handler = (object s, EventArgs args) => raisedEvent = new RaisedEvent<EventArgs>(s, args);
 #endif
 			attach(handler);
@@ -222,11 +223,10 @@ namespace Xunit
 			Action<EventHandler<T>> detach,
 			Action testCode)
 		{
+			var raisedEvent = default(RaisedEvent<T>);
 #if XUNIT_NULLABLE
-			RaisedEvent<T>? raisedEvent = null;
 			void handler(object? s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
 #else
-			RaisedEvent<T> raisedEvent = null;
 			EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
 #endif
 			return RaisesInternal(
@@ -271,11 +271,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(detach), detach);
 			GuardArgumentNotNull(nameof(testCode), testCode);
 
+			var raisedEvent = default(RaisedEvent<EventArgs>);
 #if XUNIT_NULLABLE
-			RaisedEvent<EventArgs>? raisedEvent = null;
 			void handler(object? s, EventArgs args) => raisedEvent = new RaisedEvent<EventArgs>(s, args);
 #else
-			RaisedEvent<EventArgs> raisedEvent = null;
 			EventHandler handler = (object s, EventArgs args) => raisedEvent = new RaisedEvent<EventArgs>(s, args);
 #endif
 			attach(handler);
@@ -297,11 +296,10 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(detach), detach);
 			GuardArgumentNotNull(nameof(testCode), testCode);
 
+			var raisedEvent = default(RaisedEvent<T>);
 #if XUNIT_NULLABLE
-			RaisedEvent<T>? raisedEvent = null;
 			void handler(object? s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
 #else
-			RaisedEvent<T> raisedEvent = null;
 			EventHandler<T> handler = (object s, T args) => raisedEvent = new RaisedEvent<T>(s, args);
 #endif
 			attach(handler);
