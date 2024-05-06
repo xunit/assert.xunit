@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Xunit.Internal;
 using Xunit.Sdk;
@@ -515,6 +516,7 @@ namespace Xunit
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="DoesNotMatchException">Thrown when the string matches the regex pattern</exception>
 		public static void DoesNotMatch(
+			[StringSyntax(StringSyntaxAttribute.Regex)]
 			string expectedRegexPattern,
 #if XUNIT_NULLABLE
 			string? actualString)
@@ -1341,6 +1343,7 @@ namespace Xunit
 		/// <param name="actualString">The string to be inspected</param>
 		/// <exception cref="MatchesException">Thrown when the string does not match the regex pattern</exception>
 		public static void Matches(
+			[StringSyntax(StringSyntaxAttribute.Regex)]
 			string expectedRegexPattern,
 #if XUNIT_NULLABLE
 			string? actualString)
