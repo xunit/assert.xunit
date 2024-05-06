@@ -836,7 +836,7 @@ namespace Xunit
 			string expected,
 			string actual) =>
 #endif
-				Equal(expected, actual, false, false, false);
+				Equal(expected, actual, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two strings are equivalent.
@@ -966,7 +966,7 @@ namespace Xunit
 		public static void Equal(
 			Memory<char> expected,
 			Memory<char> actual) =>
-				Equal((ReadOnlyMemory<char>)expected, (ReadOnlyMemory<char>)actual, false, false, false);
+				Equal((ReadOnlyMemory<char>)expected, (ReadOnlyMemory<char>)actual, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two strings are equivalent.
@@ -977,7 +977,7 @@ namespace Xunit
 		public static void Equal(
 			Memory<char> expected,
 			ReadOnlyMemory<char> actual) =>
-				Equal((ReadOnlyMemory<char>)expected, actual, false, false, false);
+				Equal((ReadOnlyMemory<char>)expected, actual, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two strings are equivalent.
@@ -988,7 +988,7 @@ namespace Xunit
 		public static void Equal(
 			ReadOnlyMemory<char> expected,
 			Memory<char> actual) =>
-				Equal(expected, (ReadOnlyMemory<char>)actual, false, false, false);
+				Equal(expected, (ReadOnlyMemory<char>)actual, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two strings are equivalent.
@@ -999,7 +999,7 @@ namespace Xunit
 		public static void Equal(
 			ReadOnlyMemory<char> expected,
 			ReadOnlyMemory<char> actual) =>
-				Equal(expected, actual, false, false, false);
+				Equal(expected, actual, false, false, false, false);
 
 		/// <summary>
 		/// Verifies that two strings are equivalent.
