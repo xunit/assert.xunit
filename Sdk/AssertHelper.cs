@@ -8,6 +8,7 @@
 #pragma warning disable CS8604
 #pragma warning disable CS8621
 #pragma warning disable CS8625
+#pragma warning disable CS8767
 #endif
 
 using System;
@@ -88,6 +89,8 @@ namespace Xunit.Internal
 			return AppDomain.CurrentDomain.GetAssemblies();
 #endif
 		});
+
+		static readonly IEqualityComparer<object> referenceEqualityComparer = new ReferenceEqualityComparer();
 
 #if XUNIT_NULLABLE
 		static Dictionary<string, Func<object?, object?>> GetGettersForType(Type type) =>
@@ -290,7 +293,7 @@ namespace Xunit.Internal
 #endif
 			bool strict)
 		{
-			return VerifyEquivalence(expected, actual, strict, string.Empty, new HashSet<object>(), new HashSet<object>(), 1);
+			return VerifyEquivalence(expected, actual, strict, string.Empty, new HashSet<object>(referenceEqualityComparer), new HashSet<object>(referenceEqualityComparer), 1);
 		}
 
 #if XUNIT_NULLABLE
@@ -578,5 +581,25 @@ namespace Xunit.Internal
 		}
 
 #endif
+	}
+
+	sealed class ReferenceEqualityComparer : IEqualityComparer<object>
+	{
+		public new bool Equals(
+#if XUNIT_NULLABLE
+			object? x,
+			object? y) =>
+#else
+			object x,
+			object y) =>
+#endif
+				ReferenceEquals(x, y);
+
+#if XUNIT_NULLABLE
+		public int GetHashCode([DisallowNull] object obj) =>
+#else
+		public int GetHashCode(object obj) =>
+#endif
+			obj.GetHashCode();
 	}
 }
