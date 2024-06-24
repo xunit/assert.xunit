@@ -112,7 +112,15 @@ namespace Xunit.Internal
 				var propertyGetters =
 					_type
 						.GetRuntimeProperties()
-						.Where(p => p.CanRead && p.GetMethod != null && p.GetMethod.IsPublic && !p.GetMethod.IsStatic && p.GetIndexParameters().Length == 0)
+						.Where(p =>
+							p.CanRead
+							&& p.GetMethod != null
+							&& p.GetMethod.IsPublic
+							&& !p.GetMethod.IsStatic
+							&& p.GetIndexParameters().Length == 0
+							&& !p.GetCustomAttributes(typeof(ObsoleteAttribute)).Any()
+							&& !p.GetMethod.GetCustomAttributes(typeof(ObsoleteAttribute)).Any()
+						)
 #if XUNIT_NULLABLE
 						.Select(p => new { name = p.Name, getter = (Func<object?, object?>)p.GetValue });
 #else
