@@ -355,7 +355,7 @@ namespace Xunit.Internal
 				var actualTypeInfo = actualType.GetTypeInfo();
 
 				// Primitive types, enums and strings should just fall back to their Equals implementation
-				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string) || expectedType == typeof(decimal))
+				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string) || expectedType == typeof(decimal) || expectedType == typeof(Guid))
 					return VerifyEquivalenceIntrinsics(expected, actual, prefix);
 
 				// DateTime and DateTimeOffset need to be compared via IComparable (because of a circular
