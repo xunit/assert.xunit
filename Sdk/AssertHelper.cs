@@ -90,6 +90,8 @@ namespace Xunit.Internal
 #endif
 		});
 
+		static readonly Type objectType = typeof(object);
+		static readonly TypeInfo objectTypeInfo = objectType.GetTypeInfo();
 		static readonly IEqualityComparer<object> referenceEqualityComparer = new ReferenceEqualityComparer();
 
 #if XUNIT_NULLABLE
@@ -291,6 +293,41 @@ namespace Xunit.Internal
 		}
 
 #if XUNIT_NULLABLE
+		static object? UnwrapLazy(
+			object? value,
+#else
+		static object UnwrapLazy(
+			object value,
+#endif
+			out Type valueType,
+			out TypeInfo valueTypeInfo)
+		{
+			if (value == null)
+			{
+				valueType = objectType;
+				valueTypeInfo = objectTypeInfo;
+
+				return null;
+			}
+
+			valueType = value.GetType();
+			valueTypeInfo = valueType.GetTypeInfo();
+
+			if (valueTypeInfo.IsGenericType && valueTypeInfo.GetGenericTypeDefinition() == typeof(Lazy<>))
+			{
+				var property = valueType.GetRuntimeProperty("Value");
+				if (property != null)
+				{
+					valueType = valueTypeInfo.GenericTypeArguments[0];
+					valueTypeInfo = valueType.GetTypeInfo();
+					return property.GetValue(value);
+				}
+			}
+
+			return value;
+		}
+
+#if XUNIT_NULLABLE
 		public static EquivalentException? VerifyEquivalence(
 			object? expected,
 			object? actual,
@@ -323,6 +360,15 @@ namespace Xunit.Internal
 			if (depth == 50)
 				return EquivalentException.ForExceededDepth(50, prefix);
 
+			// Unwrap Lazy<T>
+			Type expectedType;
+			TypeInfo expectedTypeInfo;
+			expected = UnwrapLazy(expected, out expectedType, out expectedTypeInfo);
+
+			Type _;
+			TypeInfo actualTypeInfo;
+			actual = UnwrapLazy(actual, out _, out actualTypeInfo);
+
 			// Check for null equivalence
 			if (expected == null)
 				return
@@ -344,15 +390,10 @@ namespace Xunit.Internal
 			if (actualRefs.Contains(actual))
 				return EquivalentException.ForCircularReference(string.Format(CultureInfo.CurrentCulture, "{0}.{1}", nameof(actual), prefix));
 
-			expectedRefs.Add(expected);
-			actualRefs.Add(actual);
-
 			try
 			{
-				var expectedType = expected.GetType();
-				var expectedTypeInfo = expectedType.GetTypeInfo();
-				var actualType = actual.GetType();
-				var actualTypeInfo = actualType.GetTypeInfo();
+				expectedRefs.Add(expected);
+				actualRefs.Add(actual);
 
 				// Primitive types, enums and strings should just fall back to their Equals implementation
 				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string) || expectedType == typeof(decimal) || expectedType == typeof(Guid))
