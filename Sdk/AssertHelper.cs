@@ -1,3 +1,14 @@
+#pragma warning disable CA1031 // Do not catch general exception types
+#pragma warning disable CA2263 // Prefer generic overload when type is known
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0019 // Use pattern matching
+#pragma warning disable IDE0040 // Add accessibility modifiers
+#pragma warning disable IDE0046 // Convert to conditional expression
+#pragma warning disable IDE0058 // Expression value is never used
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+#pragma warning disable IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0161 // Convert to file-scoped namespace
+
 #if XUNIT_NULLABLE
 #nullable enable
 #else
@@ -47,9 +58,9 @@ namespace Xunit.Internal
 		};
 
 #if XUNIT_NULLABLE
-		static ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>>();
+		static readonly ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>>();
 #else
-		static ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>>();
+		static readonly ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>>();
 #endif
 
 #if XUNIT_NULLABLE
@@ -59,6 +70,8 @@ namespace Xunit.Internal
 		static readonly Lazy<TypeInfo> fileSystemInfoTypeInfo = new Lazy<TypeInfo>(() => GetTypeInfo("System.IO.FileSystemInfo"));
 		static readonly Lazy<PropertyInfo> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo>(() => fileSystemInfoTypeInfo.Value?.GetDeclaredProperty("FullName"));
 #endif
+
+#pragma warning disable IDE0200  // The lambda expression here is conditionally necessary, but the analyzer isn't smart enough to know that
 
 		static readonly Lazy<Assembly[]> getAssemblies = new Lazy<Assembly[]>(() =>
 		{
@@ -89,6 +102,8 @@ namespace Xunit.Internal
 			return AppDomain.CurrentDomain.GetAssemblies();
 #endif
 		});
+
+#pragma warning restore IDE0200 // Remove unnecessary lambda expression
 
 		static readonly Type objectType = typeof(object);
 		static readonly TypeInfo objectTypeInfo = objectType.GetTypeInfo();
@@ -336,10 +351,8 @@ namespace Xunit.Internal
 			object expected,
 			object actual,
 #endif
-			bool strict)
-		{
-			return VerifyEquivalence(expected, actual, strict, string.Empty, new HashSet<object>(referenceEqualityComparer), new HashSet<object>(referenceEqualityComparer), 1);
-		}
+			bool strict) =>
+				VerifyEquivalence(expected, actual, strict, string.Empty, new HashSet<object>(referenceEqualityComparer), new HashSet<object>(referenceEqualityComparer), 1);
 
 #if XUNIT_NULLABLE
 		static EquivalentException? VerifyEquivalence(

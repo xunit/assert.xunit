@@ -1,3 +1,21 @@
+#pragma warning disable CA1031 // Do not catch general exception types
+#pragma warning disable CA1707 // Identifiers should not contain underscores
+#pragma warning disable CA1810 // Initialize reference type static fields inline
+#pragma warning disable CA1825 // Avoid zero-length array allocations
+#pragma warning disable CA2263 // Prefer generic overload when type is known
+#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable IDE0019 // Use pattern matching
+#pragma warning disable IDE0038 // Use pattern matching
+#pragma warning disable IDE0040 // Add accessibility modifiers
+#pragma warning disable IDE0045 // Convert to conditional expression
+#pragma warning disable IDE0046 // Convert to conditional expression
+#pragma warning disable IDE0057 // Use range operator
+#pragma warning disable IDE0058 // Expression value is never used
+#pragma warning disable IDE0078 // Use pattern matching
+#pragma warning disable IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0161 // Convert to file-scoped namespace
+#pragma warning disable IDE0300 // Simplify collection initialization
+
 #if XUNIT_NULLABLE
 #nullable enable
 #else
@@ -60,19 +78,17 @@ namespace Xunit.Sdk
 		/// </summary>
 		public const int MAX_STRING_LENGTH = 50;
 
-#pragma warning disable CA1825  // Can't use Array.Empty here because it's not available in .NET Standard 1.1
 		static readonly object[] EmptyObjects = new object[0];
 		static readonly Type[] EmptyTypes = new Type[0];
-#pragma warning restore CA1825
 
 #if XUNIT_NULLABLE
-		static PropertyInfo? tupleIndexer;
-		static Type? tupleInterfaceType;
-		static PropertyInfo? tupleLength;
+		static readonly PropertyInfo? tupleIndexer;
+		static readonly Type? tupleInterfaceType;
+		static readonly PropertyInfo? tupleLength;
 #else
-		static PropertyInfo tupleIndexer;
-		static Type tupleInterfaceType;
-		static PropertyInfo tupleLength;
+		static readonly PropertyInfo tupleIndexer;
+		static readonly Type tupleInterfaceType;
+		static readonly PropertyInfo tupleLength;
 #endif
 
 		// List of intrinsic types => C# type names
@@ -533,16 +549,14 @@ namespace Xunit.Sdk
 #endif
 		}
 
-		static bool IsSZArrayType(this TypeInfo typeInfo)
-		{
+		static bool IsSZArrayType(this TypeInfo typeInfo) =>
 #if NETCOREAPP2_0_OR_GREATER
-			return typeInfo.IsSZArray;
+			typeInfo.IsSZArray;
 #elif XUNIT_NULLABLE
-			return typeInfo == typeInfo.GetElementType()!.MakeArrayType().GetTypeInfo();
+			typeInfo == typeInfo.GetElementType()!.MakeArrayType().GetTypeInfo();
 #else
-			return typeInfo == typeInfo.GetElementType().MakeArrayType().GetTypeInfo();
+			typeInfo == typeInfo.GetElementType().MakeArrayType().GetTypeInfo();
 #endif
-		}
 
 #if XUNIT_NULLABLE
 		static bool SafeToMultiEnumerate(IEnumerable? collection) =>
