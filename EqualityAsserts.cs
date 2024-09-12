@@ -48,8 +48,8 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The value to be compared against</param>
 		/// <remarks>
-		/// If Span&lt;T&gt;.SequenceEqual fails, a call to Assert.Equal(object, object) is made,
-		/// to provide a more meaningful error message.
+		/// If <see cref="MemoryExtensions.SequenceEqual{T}(Span{T}, ReadOnlySpan{T})"/> fails, a call
+		/// to <see cref="Assert.Equal{T}(T, T)"/> is made, to provide a more meaningful error message.
 		/// </remarks>
 		public static void Equal<T>(
 #if XUNIT_NULLABLE
