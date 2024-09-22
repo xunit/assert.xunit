@@ -8,6 +8,8 @@
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
 #pragma warning disable IDE0090 // Use 'new(...)'
 #pragma warning disable IDE0161 // Convert to file-scoped namespace
+#pragma warning disable IDE0270 // Null check can be simplified
+#pragma warning disable IDE0300 // Collection initialization can be simplified
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -422,6 +424,15 @@ namespace Xunit.Internal
 					if (fileSystemInfoTypeInfo.Value.IsAssignableFrom(expectedTypeInfo) && fileSystemInfoTypeInfo.Value.IsAssignableFrom(actualTypeInfo))
 						return VerifyEquivalenceFileSystemInfo(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
 
+				// IGrouping<TKey,TValue> is special, since it implements IEnumerable<TValue>
+				var expectedGroupingTypes = ArgumentFormatter.GetGroupingTypes(expected);
+				if (expectedGroupingTypes != null)
+				{
+					var actualGroupingTypes = ArgumentFormatter.GetGroupingTypes(actual);
+					if (actualGroupingTypes != null)
+						return VerifyEquivalenceGroupings(expected, expectedGroupingTypes, actual, actualGroupingTypes, strict);
+				}
+
 				// Enumerables? Check equivalence of individual members
 				var enumerableExpected = expected as IEnumerable;
 				var enumerableActual = actual as IEnumerable;
@@ -510,6 +521,7 @@ namespace Xunit.Internal
 			foreach (var expectedValue in expectedValues)
 			{
 				var actualIdx = 0;
+
 				for (; actualIdx < actualValues.Count; ++actualIdx)
 					if (VerifyEquivalence(expectedValue, actualValues[actualIdx], strict, "", expectedRefs, actualRefs, depth) == null)
 						break;
@@ -552,6 +564,45 @@ namespace Xunit.Internal
 			var expectedAnonymous = new { FullName = fullName };
 
 			return VerifyEquivalenceReference(expectedAnonymous, actual, strict, prefix, expectedRefs, actualRefs, depth);
+		}
+
+#if XUNIT_NULLABLE
+		static EquivalentException? VerifyEquivalenceGroupings(
+#else
+		static EquivalentException VerifyEquivalenceGroupings(
+#endif
+			object expected,
+			Type[] expectedGroupingTypes,
+			object actual,
+			Type[] actualGroupingTypes,
+			bool strict)
+		{
+			var expectedKey = typeof(IGrouping<,>).MakeGenericType(expectedGroupingTypes).GetRuntimeProperty("Key")?.GetValue(expected);
+			var actualKey = typeof(IGrouping<,>).MakeGenericType(actualGroupingTypes).GetRuntimeProperty("Key")?.GetValue(actual);
+
+			var keyException = VerifyEquivalence(expectedKey, actualKey, strict: false);
+			if (keyException != null)
+				return keyException;
+
+			var toArrayMethod =
+				typeof(Enumerable)
+					.GetRuntimeMethods()
+					.FirstOrDefault(m => m.IsStatic && m.IsPublic && m.Name == nameof(Enumerable.ToArray) && m.GetParameters().Length == 1);
+
+			if (toArrayMethod == null)
+				throw new InvalidOperationException("Could not find method Enumerable.ToArray<>");
+
+			// Convert everything to an array so it doesn't endlessly loop on the IGrouping<> test
+			var expectedToArrayMethod = toArrayMethod.MakeGenericMethod(expectedGroupingTypes[1]);
+			var expectedValues = expectedToArrayMethod.Invoke(null, new[] { expected });
+
+			var actualToArrayMethod = toArrayMethod.MakeGenericMethod(actualGroupingTypes[1]);
+			var actualValues = actualToArrayMethod.Invoke(null, new[] { actual });
+
+			if (VerifyEquivalence(expectedValues, actualValues, strict) != null)
+				throw EquivalentException.ForGroupingWithMismatchedValues(expectedValues, actualValues, ArgumentFormatter.Format(expectedKey));
+
+			return null;
 		}
 
 #if XUNIT_NULLABLE

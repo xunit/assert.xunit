@@ -81,6 +81,34 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
+		/// that the fault comes from an individual value mismatch one of the members.
+		/// </summary>
+		/// <param name="expected">The expected member value</param>
+		/// <param name="actual">The actual member value</param>
+		/// <param name="keyName">The name of the key with mismatched values</param>
+		public static EquivalentException ForGroupingWithMismatchedValues(
+#if XUNIT_NULLABLE
+			object? expected,
+			object? actual,
+#else
+			object expected,
+			object actual,
+#endif
+			string keyName) =>
+				new EquivalentException(
+					string.Format(
+						CultureInfo.CurrentCulture,
+						"Assert.Equivalent() Failure: Grouping key [{0}] has mismatched values{1}Expected: {2}{3}Actual:   {4}",
+						keyName,
+						Environment.NewLine,
+						ArgumentFormatter.Format(expected),
+						Environment.NewLine,
+						ArgumentFormatter.Format(actual)
+					)
+				);
+
+		/// <summary>
+		/// Creates a new instance of <see cref="EquivalentException"/> which shows a message that indicates
 		/// that the list of available members does not match.
 		/// </summary>
 		/// <param name="expectedMemberNames">The expected member names</param>
