@@ -354,14 +354,27 @@ namespace Xunit.Sdk
 			IEnumerable enumerable,
 			int depth)
 		{
-			if (depth == MAX_DEPTH || !SafeToMultiEnumerate(enumerable))
+			if (depth == MAX_DEPTH)
+				return EllipsisInBrackets;
+
+			var result = new StringBuilder();
+
+			var groupingTypes = GetGroupingTypes(enumerable);
+			if (groupingTypes != null)
+			{
+				var groupingInterface = typeof(IGrouping<,>).MakeGenericType(groupingTypes);
+				var key = groupingInterface.GetRuntimeProperty("Key")?.GetValue(enumerable);
+				result.AppendFormat(CultureInfo.CurrentCulture, "[{0}] = ", key?.ToString() ?? "null");
+			}
+			else if (!SafeToMultiEnumerate(enumerable))
 				return EllipsisInBrackets;
 
 			// This should only be used on values that are known to be re-enumerable
 			// safely, like collections that implement IDictionary or IList.
 			var idx = 0;
-			var result = new StringBuilder("[");
 			var enumerator = enumerable.GetEnumerator();
+
+			result.Append('[');
 
 			while (enumerator.MoveNext())
 			{
@@ -519,6 +532,23 @@ namespace Xunit.Sdk
 		}
 
 #if XUNIT_NULLABLE
+		internal static Type[]? GetGroupingTypes(object? obj)
+#else
+		internal static Type[] GetGroupingTypes(object obj)
+#endif
+		{
+			if (obj == null)
+				return null;
+
+			return
+				(from @interface in obj.GetType().GetTypeInfo().ImplementedInterfaces
+				 where @interface.GetTypeInfo().IsGenericType
+				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
+				 where genericTypeDefinition == typeof(IGrouping<,>)
+				 select @interface.GetTypeInfo()).FirstOrDefault()?.GenericTypeArguments;
+		}
+
+#if XUNIT_NULLABLE
 		internal static Type? GetSetElementType(object? obj)
 #else
 		internal static Type GetSetElementType(object obj)
@@ -549,6 +579,26 @@ namespace Xunit.Sdk
 #endif
 		}
 
+		static bool IsEnumerableOfGrouping(IEnumerable collection)
+		{
+			var genericEnumerableType =
+				(from @interface in collection.GetType().GetTypeInfo().ImplementedInterfaces
+				 where @interface.GetTypeInfo().IsGenericType
+				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
+				 where genericTypeDefinition == typeof(IEnumerable<>)
+				 select @interface.GetTypeInfo()).FirstOrDefault()?.GenericTypeArguments[0];
+
+			if (genericEnumerableType == null)
+				return false;
+
+			return
+				genericEnumerableType
+					.GetTypeInfo()
+					.ImplementedInterfaces
+					.Concat(new[] { genericEnumerableType })
+					.Any(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(IGrouping<,>));
+		}
+
 		static bool IsSZArrayType(this TypeInfo typeInfo) =>
 #if NETCOREAPP2_0_OR_GREATER
 			typeInfo.IsSZArray;
@@ -558,16 +608,13 @@ namespace Xunit.Sdk
 			typeInfo == typeInfo.GetElementType().MakeArrayType().GetTypeInfo();
 #endif
 
-#if XUNIT_NULLABLE
-		static bool SafeToMultiEnumerate(IEnumerable? collection) =>
-#else
 		static bool SafeToMultiEnumerate(IEnumerable collection) =>
-#endif
 			collection is Array ||
 			collection is BitArray ||
 			collection is IList ||
 			collection is IDictionary ||
-			GetSetElementType(collection) != null;
+			GetSetElementType(collection) != null ||
+			IsEnumerableOfGrouping(collection);
 
 		static bool TryGetEscapeSequence(
 			char ch,
