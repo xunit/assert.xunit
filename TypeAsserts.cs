@@ -198,9 +198,11 @@ namespace Xunit
 		public static T IsType<T>(object @object)
 #endif
 		{
+#pragma warning disable CA2263
 #pragma warning disable xUnit2007
 			IsType(typeof(T), @object, exactMatch: true);
 #pragma warning restore xUnit2007
+#pragma warning restore CA2263
 			return (T)@object;
 		}
 
