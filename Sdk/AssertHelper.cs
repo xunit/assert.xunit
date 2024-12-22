@@ -136,6 +136,9 @@ namespace Xunit.Internal
 							&& p.GetMethod != null
 							&& p.GetMethod.IsPublic
 							&& !p.GetMethod.IsStatic
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+							&& !p.GetMethod.ReturnType.IsByRefLike
+#endif
 							&& p.GetIndexParameters().Length == 0
 							&& !p.GetCustomAttributes(typeof(ObsoleteAttribute)).Any()
 							&& !p.GetMethod.GetCustomAttributes(typeof(ObsoleteAttribute)).Any()
