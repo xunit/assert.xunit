@@ -33,6 +33,10 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
+#if XUNIT_IMMUTABLE_COLLECTIONS
+using System.Collections.Immutable;
+#endif
+
 #if XUNIT_NULLABLE
 using System.Diagnostics.CodeAnalysis;
 #endif
@@ -203,30 +207,37 @@ namespace Xunit.Sdk
 			if (ReferenceEquals(x, y))
 				return true;
 
-			// Implements IEquatable<T>?
-			var equatable = x as IEquatable<T>;
-			if (equatable != null)
-				return equatable.Equals(y);
-
 			var xType = x.GetType();
 			var xTypeInfo = xType.GetTypeInfo();
 			var yType = y.GetType();
 
-			// Implements IEquatable<typeof(y)>?
-			if (xType != yType)
+			// ImmutableArray<T> defines IEquatable<ImmutableArray<T>> in a way that isn't consistent with the
+			// needs of an assertion library. https://github.com/xunit/xunit/issues/3137
+#if XUNIT_IMMUTABLE_COLLECTIONS
+			if (!xTypeInfo.IsGenericType || xType.GetGenericTypeDefinition() != typeof(ImmutableArray<>))
+#endif
 			{
-				var iequatableY = cacheOfIEquatableOfT.GetOrAdd(yType, (t) => typeof(IEquatable<>).MakeGenericType(t).GetTypeInfo());
-				if (iequatableY.IsAssignableFrom(xTypeInfo))
+				// Implements IEquatable<T>?
+				var equatable = x as IEquatable<T>;
+				if (equatable != null)
+					return equatable.Equals(y);
+
+				// Implements IEquatable<typeof(y)>?
+				if (xType != yType)
 				{
-					var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
-					if (equalsMethod == null)
-						return false;
+					var iequatableY = cacheOfIEquatableOfT.GetOrAdd(yType, (t) => typeof(IEquatable<>).MakeGenericType(t).GetTypeInfo());
+					if (iequatableY.IsAssignableFrom(xTypeInfo))
+					{
+						var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+						if (equalsMethod == null)
+							return false;
 
 #if XUNIT_NULLABLE
-					return equalsMethod.Invoke(x, new object[] { y }) is true;
+						return equalsMethod.Invoke(x, new object[] { y }) is true;
 #else
-					return (bool)equalsMethod.Invoke(x, new object[] { y });
+						return (bool)equalsMethod.Invoke(x, new object[] { y });
 #endif
+					}
 				}
 			}
 
