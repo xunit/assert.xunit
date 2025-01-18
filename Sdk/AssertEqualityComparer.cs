@@ -1,5 +1,6 @@
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1032 // Implement standard exception constructors
+#pragma warning disable CA2237 // Mark ISerializable types with SerializableAttribute
 #pragma warning disable IDE0016 // Use 'throw' expression
 #pragma warning disable IDE0019 // Use pattern matching
 #pragma warning disable IDE0022 // Use expression body for method
