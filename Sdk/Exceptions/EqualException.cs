@@ -236,13 +236,13 @@ namespace Xunit.Sdk
 					"{0}{1}Expected: {2}{3}Actual:   {4}",
 					message,
 					Environment.NewLine,
-#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 					expectedText.Replace(Environment.NewLine, newLineAndIndent, StringComparison.Ordinal),
 #else
 					expectedText.Replace(Environment.NewLine, newLineAndIndent),
 #endif
 					Environment.NewLine,
-#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 					actualText.Replace(Environment.NewLine, newLineAndIndent, StringComparison.Ordinal)
 #else
 					actualText.Replace(Environment.NewLine, newLineAndIndent)

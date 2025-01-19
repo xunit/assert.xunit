@@ -38,7 +38,7 @@ using Xunit.Sdk;
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-#if NETCOREAPP3_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using System.Threading.Tasks;
 #endif
 
@@ -73,39 +73,7 @@ namespace Xunit.Internal
 		static readonly Lazy<PropertyInfo> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo>(() => fileSystemInfoTypeInfo.Value?.GetDeclaredProperty("FullName"));
 #endif
 
-#pragma warning disable IDE0200  // The lambda expression here is conditionally necessary, but the analyzer isn't smart enough to know that
-
-		static readonly Lazy<Assembly[]> getAssemblies = new Lazy<Assembly[]>(() =>
-		{
-#if NETSTANDARD1_1 || NETSTANDARD1_2 || NETSTANDARD1_3 || NETSTANDARD1_4 || NETSTANDARD1_5 || NETSTANDARD1_6
-			var appDomainType = Type.GetType("System.AppDomain");
-			if (appDomainType != null)
-			{
-				var currentDomainProperty = appDomainType.GetRuntimeProperty("CurrentDomain");
-				if (currentDomainProperty != null)
-				{
-					var getAssembliesMethod = appDomainType.GetRuntimeMethods().FirstOrDefault(m => m.Name == "GetAssemblies");
-					if (getAssembliesMethod != null)
-					{
-						var currentDomain = currentDomainProperty.GetValue(null);
-						if (currentDomain != null)
-						{
-							var getAssembliesArgs = getAssembliesMethod.GetParameters().Length == 1 ? new object[] { false } : new object[0];
-							var assemblies = getAssembliesMethod.Invoke(currentDomain, getAssembliesArgs) as Assembly[];
-							if (assemblies != null)
-								return assemblies;
-						}
-					}
-				}
-			}
-
-			return new Assembly[0];
-#else
-			return AppDomain.CurrentDomain.GetAssemblies();
-#endif
-		});
-
-#pragma warning restore IDE0200 // Remove unnecessary lambda expression
+		static readonly Lazy<Assembly[]> getAssemblies = new Lazy<Assembly[]>(AppDomain.CurrentDomain.GetAssemblies);
 
 		static readonly Type objectType = typeof(object);
 		static readonly TypeInfo objectTypeInfo = objectType.GetTypeInfo();
@@ -136,7 +104,7 @@ namespace Xunit.Internal
 							&& p.GetMethod != null
 							&& p.GetMethod.IsPublic
 							&& !p.GetMethod.IsStatic
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 							&& !p.GetMethod.ReturnType.IsByRefLike
 #endif
 							&& p.GetIndexParameters().Length == 0
@@ -264,7 +232,7 @@ namespace Xunit.Internal
 			return ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out pointerIndent);
 		}
 
-#if NETCOREAPP3_0_OR_GREATER
+#if NET6_0_OR_GREATER
 
 #if XUNIT_NULLABLE
 		[return: NotNullIfNotNull(nameof(data))]
@@ -695,7 +663,7 @@ namespace Xunit.Internal
 			return null;
 		}
 
-#if NETCOREAPP3_0_OR_GREATER
+#if NET6_0_OR_GREATER
 
 		static void WaitForValueTask(ValueTask valueTask)
 		{

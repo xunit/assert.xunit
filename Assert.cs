@@ -66,10 +66,8 @@ namespace Xunit
 			if (type == null)
 				return null;
 
-#if NETSTANDARD2_0_OR_GREATER || NETCOREAPP2_0_OR_GREATER || NETFRAMEWORK
 			if (!type.IsGenericType)
 				return null;
-#endif
 
 			// We need try/catch for target frameworks that don't support IsGenericType; notably, this
 			// would include .NET Core 1.x and .NET Standard 1.x, which are still supported for v2.

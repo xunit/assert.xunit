@@ -2,7 +2,7 @@
 #pragma warning disable CA1720 // Identifier contains type name
 #pragma warning disable IDE0161 // Convert to file-scoped namespace
 
-#if NETCOREAPP3_0_OR_GREATER
+#if NET6_0_OR_GREATER
 
 #if XUNIT_NULLABLE
 #nullable enable

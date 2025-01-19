@@ -1,8 +1,8 @@
 # About This Project
 
-This project contains the xUnit.net assertion library source code, intended to be used as a Git submodule.
+This project contains the xUnit.net assertion library source code, intended to be used as a Git submodule (or via the `xunit.v3.assert.source` NuGet package).
 
-Code here is built with several target frameworks: `netstandard1.1` and `net6.0` for xUnit.net v2; and `netstandard2.0` and `net6.0` for xUnit.net v3. At a minimum the code needs to be able to support `net452` and later for .NET Framework, `netcoreapp1.0` and later for .NET Core, and `net5.0` and later for .NET. The minimum (and default) C# version is 6.0, unless specific features require targeting later compilers. Additionally, we compile with the full Roslyn analyzer set enabled when building for v3, so you will frequently see conditional code and/or rules being disabled as appropriate. These constraints are supported by the [suggested contribution workflow](#suggested-contribution-workflow), which aims to make it easy to know when you've used unavailable features.
+Code here is built with `netstandard2.0` and `net6.0` within xUnit.net v3. At a minimum the code needs to be able to support `net472` and later for .NET Framework, and `net6.0` and later for .NET. The minimum (and default) C# version is 7.3, unless specific features require targeting later compilers. Additionally, we compile with the full Roslyn analyzer set enabled when building for v3, so you will frequently see conditional code and/or rules being disabled as appropriate. These constraints are supported by the [suggested contribution workflow](#suggested-contribution-workflow), which aims to make it easy to know when you've used unavailable features.
 
 > _**Note:** If your PR requires a newer target framework or a newer C# language to build, please start a discussion in the related issue(s) before starting any work. PRs that arbitrarily use newer target frameworks and/or newer C# language features will need to be fixed; you may be asked to fix them, or we may fix them for you, or we may decline the PR (at our discretion)._
 
@@ -12,21 +12,15 @@ To open an issue for this project, please visit the [core xUnit.net project issu
 
 Whether you are using this repository via Git submodule or via the [source-based NuGet package](https://www.nuget.org/packages/xunit.assert.source), the following pre-processor directives can be used to influence the code contained in this repository:
 
-### `XUNIT_IMMUTABLE_COLLECTIONS` (min: C# 6.0, xUnit.net v2)
+### `XUNIT_IMMUTABLE_COLLECTIONS` (min: C# 7.3)
 
 There are assertions that target immutable collections. If you are using a target framework that is compatible with [`System.Collections.Immutable`](https://www.nuget.org/packages/System.Collections.Immutable), you should define `XUNIT_IMMUTABLE_COLLECTIONS` to enable the additional versions of those assertions that will consume immutable collections.
 
-### `XUNIT_NULLABLE` (min: C# 9.0, xUnit.net v2)
+### `XUNIT_NULLABLE` (min: C# 9.0)
 
 Projects that consume this repository as source, which wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
 
-### `XUNIT_SKIP` (min: C# 10.0, xUnit.net v3)
-
-The Skip family of assertions (like `Assert.Skip`) require xUnit.net v3. Define this to enable the Skip assertions.
-
-> _**Note**: If you enable try to use it from xUnit.net v2, the test will show up as failed rather than skipped. Runtime support in the core library is required to make this feature work properly, which is why it's not supported for v2._
-
-### `XUNIT_SPAN` (min: C# 6.0, xUnit.net v2)
+### `XUNIT_SPAN` (min: C# 7.3)
 
 There are optimized versions of `Assert.Equal` for arrays which use `Span<T>`- and/or `Memory<T>`-based comparison options. If you are using a target framework that supports `Span<T>` and `Memory<T>`, you should define `XUNIT_SPAN` to enable these new assertions. You may need to add a reference to [`System.Memory`](https://www.nuget.org/packages/System.Memory) for older target frameworks.
 

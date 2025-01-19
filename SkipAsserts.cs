@@ -2,8 +2,6 @@
 #pragma warning disable IDE0058 // Expression value is never used
 #pragma warning disable IDE0161 // Convert to file-scoped namespace
 
-#if XUNIT_SKIP
-
 #if XUNIT_NULLABLE
 #nullable enable
 #endif
@@ -79,5 +77,3 @@ namespace Xunit
 		}
 	}
 }
-
-#endif
