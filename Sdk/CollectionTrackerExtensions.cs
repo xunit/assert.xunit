@@ -74,7 +74,7 @@ namespace Xunit.Sdk
 			// CollectionTracker.Wrap for the non-T enumerable uses the CastIterator, which has terrible
 			// performance during iteration. We do our best to try to get a T and dynamically invoke the
 			// generic version of AsTracker as we can.
-			var iEnumerableOfT = enumerable.GetType().GetTypeInfo().ImplementedInterfaces.FirstOrDefault(i => i.IsConstructedGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+			var iEnumerableOfT = enumerable.GetType().GetInterfaces().FirstOrDefault(i => i.IsConstructedGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 			if (iEnumerableOfT == null)
 				return CollectionTracker.Wrap(enumerable);
 

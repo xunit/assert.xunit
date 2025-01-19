@@ -10,7 +10,6 @@
 
 using System;
 using System.ComponentModel;
-using System.Reflection;
 using System.Threading.Tasks;
 using Xunit.Sdk;
 
@@ -194,7 +193,7 @@ namespace Xunit
 			if (exception == null)
 				throw ThrowsAnyException.ForNoException(exceptionType);
 
-			if (!exceptionType.GetTypeInfo().IsAssignableFrom(exception.GetType().GetTypeInfo()))
+			if (!exceptionType.IsAssignableFrom(exception.GetType()))
 				throw ThrowsAnyException.ForIncorrectExceptionType(exceptionType, exception);
 
 			return exception;

@@ -1,6 +1,5 @@
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1032 // Implement standard exception constructors
-#pragma warning disable CA2237 // Mark ISerializable types with SerializableAttribute
 #pragma warning disable IDE0063 // Use simple 'using' statement
 #pragma warning disable IDE0090 // Use 'new(...)'
 #pragma warning disable IDE0290 // Use primary constructor
@@ -84,9 +83,8 @@ namespace Xunit.Sdk
 				if (t != typeof(string))
 				{
 					var enumerableOfT =
-						t.GetTypeInfo()
-							.ImplementedInterfaces
-							.Select(i => i.GetTypeInfo())
+						t
+							.GetInterfaces()
 							.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 
 					if (enumerableOfT != null)
@@ -124,8 +122,8 @@ namespace Xunit.Sdk
 	{
 		internal static readonly IEqualityComparer DefaultInnerComparer = AssertEqualityComparer.GetDefaultInnerComparer(typeof(T));
 
-		static readonly ConcurrentDictionary<Type, TypeInfo> cacheOfIComparableOfT = new ConcurrentDictionary<Type, TypeInfo>();
-		static readonly ConcurrentDictionary<Type, TypeInfo> cacheOfIEquatableOfT = new ConcurrentDictionary<Type, TypeInfo>();
+		static readonly ConcurrentDictionary<Type, Type> cacheOfIComparableOfT = new ConcurrentDictionary<Type, Type>();
+		static readonly ConcurrentDictionary<Type, Type> cacheOfIEquatableOfT = new ConcurrentDictionary<Type, Type>();
 		readonly Lazy<IEqualityComparer> innerComparer;
 		static readonly Type typeKeyValuePair = typeof(KeyValuePair<,>);
 
@@ -202,13 +200,12 @@ namespace Xunit.Sdk
 				return true;
 
 			var xType = x.GetType();
-			var xTypeInfo = xType.GetTypeInfo();
 			var yType = y.GetType();
 
 			// ImmutableArray<T> defines IEquatable<ImmutableArray<T>> in a way that isn't consistent with the
 			// needs of an assertion library. https://github.com/xunit/xunit/issues/3137
 #if XUNIT_IMMUTABLE_COLLECTIONS
-			if (!xTypeInfo.IsGenericType || xType.GetGenericTypeDefinition() != typeof(ImmutableArray<>))
+			if (!xType.IsGenericType || xType.GetGenericTypeDefinition() != typeof(ImmutableArray<>))
 #endif
 			{
 				// Implements IEquatable<T>?
@@ -218,10 +215,10 @@ namespace Xunit.Sdk
 				// Implements IEquatable<typeof(y)>?
 				if (xType != yType)
 				{
-					var iequatableY = cacheOfIEquatableOfT.GetOrAdd(yType, (t) => typeof(IEquatable<>).MakeGenericType(t).GetTypeInfo());
-					if (iequatableY.IsAssignableFrom(xTypeInfo))
+					var iequatableY = cacheOfIEquatableOfT.GetOrAdd(yType, (t) => typeof(IEquatable<>).MakeGenericType(t));
+					if (iequatableY.IsAssignableFrom(xType))
 					{
-						var equalsMethod = iequatableY.GetDeclaredMethod(nameof(IEquatable<T>.Equals));
+						var equalsMethod = iequatableY.GetMethod(nameof(IEquatable<T>.Equals));
 						if (equalsMethod == null)
 							return false;
 
@@ -260,10 +257,10 @@ namespace Xunit.Sdk
 			// Implements IComparable<typeof(y)>?
 			if (xType != yType)
 			{
-				var icomparableY = cacheOfIComparableOfT.GetOrAdd(yType, (t) => typeof(IComparable<>).MakeGenericType(t).GetTypeInfo());
-				if (icomparableY.IsAssignableFrom(xTypeInfo))
+				var icomparableY = cacheOfIComparableOfT.GetOrAdd(yType, (t) => typeof(IComparable<>).MakeGenericType(t));
+				if (icomparableY.IsAssignableFrom(xType))
 				{
-					var compareToMethod = icomparableY.GetDeclaredMethod(nameof(IComparable<T>.CompareTo));
+					var compareToMethod = icomparableY.GetMethod(nameof(IComparable<T>.CompareTo));
 					if (compareToMethod == null)
 						return false;
 
@@ -430,7 +427,7 @@ namespace Xunit.Sdk
 				// Lazily initialize and cache the EqualsGeneric<U> method.
 				if (s_equalsMethod == null)
 				{
-					s_equalsMethod = typeof(TypeErasedEqualityComparer).GetTypeInfo().GetDeclaredMethod(nameof(EqualsGeneric));
+					s_equalsMethod = typeof(TypeErasedEqualityComparer).GetMethod(nameof(EqualsGeneric), BindingFlags.NonPublic | BindingFlags.Instance);
 					if (s_equalsMethod == null)
 						return false;
 				}

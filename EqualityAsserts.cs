@@ -14,7 +14,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using Xunit.Internal;
 using Xunit.Sdk;
 
@@ -248,11 +247,11 @@ namespace Xunit
 
 					var expectedType = expected?.GetType();
 					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
-					var expectedInterfaceTypeDefinitions = expectedType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+					var expectedInterfaceTypeDefinitions = expectedType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
 					var actualType = actual?.GetType();
 					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
-					var actualInterfaceTypeDefinitions = actualType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+					var actualInterfaceTypeDefinitions = actualType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
 					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
 						collectionDisplay = "Dictionaries";
@@ -724,11 +723,11 @@ namespace Xunit
 
 					var expectedType = expected?.GetType();
 					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
-					var expectedInterfaceTypeDefinitions = expectedType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+					var expectedInterfaceTypeDefinitions = expectedType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
 					var actualType = actual?.GetType();
 					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
-					var actualInterfaceTypeDefinitions = actualType?.GetTypeInfo().ImplementedInterfaces.Where(i => i.GetTypeInfo().IsGenericType).Select(i => i.GetGenericTypeDefinition());
+					var actualInterfaceTypeDefinitions = actualType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
 					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
 						collectionDisplay = "Dictionaries";

@@ -11,7 +11,6 @@
 
 using System;
 using System.Globalization;
-using System.Reflection;
 using Xunit.Sdk;
 
 #if XUNIT_NULLABLE
@@ -62,7 +61,7 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
 
-			if (@object == null || !expectedType.GetTypeInfo().IsAssignableFrom(@object.GetType().GetTypeInfo()))
+			if (@object == null || !expectedType.IsAssignableFrom(@object.GetType()))
 				throw IsAssignableFromException.ForIncompatibleType(expectedType, @object);
 		}
 
@@ -96,7 +95,7 @@ namespace Xunit
 		{
 			GuardArgumentNotNull(nameof(expectedType), expectedType);
 
-			if (@object != null && expectedType.GetTypeInfo().IsAssignableFrom(@object.GetType().GetTypeInfo()))
+			if (@object != null && expectedType.IsAssignableFrom(@object.GetType()))
 				throw IsNotAssignableFromException.ForCompatibleType(expectedType, @object);
 		}
 
@@ -178,7 +177,7 @@ namespace Xunit
 			{
 				var actualType = @object?.GetType();
 
-				if (actualType != null && expectedType.GetTypeInfo().IsAssignableFrom(actualType.GetTypeInfo()))
+				if (actualType != null && expectedType.IsAssignableFrom(actualType))
 					throw IsNotTypeException.ForCompatibleType(expectedType, actualType);
 			}
 		}
@@ -274,7 +273,7 @@ namespace Xunit
 			var compatible =
 				exactMatch
 					? expectedType == actualType
-					: expectedType.GetTypeInfo().IsAssignableFrom(actualType.GetTypeInfo());
+					: expectedType.IsAssignableFrom(actualType);
 
 			if (!compatible)
 			{
@@ -283,8 +282,8 @@ namespace Xunit
 
 				if (expectedTypeName == actualTypeName)
 				{
-					expectedTypeName += string.Format(CultureInfo.CurrentCulture, " (from {0})", expectedType.GetTypeInfo().Assembly.GetName().FullName);
-					actualTypeName += string.Format(CultureInfo.CurrentCulture, " (from {0})", actualType.GetTypeInfo().Assembly.GetName().FullName);
+					expectedTypeName += string.Format(CultureInfo.CurrentCulture, " (from {0})", expectedType.Assembly.GetName().FullName);
+					actualTypeName += string.Format(CultureInfo.CurrentCulture, " (from {0})", actualType.Assembly.GetName().FullName);
 				}
 
 				if (exactMatch)

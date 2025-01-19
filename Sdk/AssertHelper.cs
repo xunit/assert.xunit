@@ -57,17 +57,16 @@ namespace Xunit.Internal
 #endif
 
 #if XUNIT_NULLABLE
-		static readonly Lazy<TypeInfo?> fileSystemInfoTypeInfo = new Lazy<TypeInfo?>(() => GetTypeInfo("System.IO.FileSystemInfo"));
-		static readonly Lazy<PropertyInfo?> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo?>(() => fileSystemInfoTypeInfo.Value?.GetDeclaredProperty("FullName"));
+		static readonly Lazy<Type?> fileSystemInfoType = new Lazy<Type?>(() => GetTypeByName("System.IO.FileSystemInfo"));
+		static readonly Lazy<PropertyInfo?> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo?>(() => fileSystemInfoType.Value?.GetProperty("FullName"));
 #else
-		static readonly Lazy<TypeInfo> fileSystemInfoTypeInfo = new Lazy<TypeInfo>(() => GetTypeInfo("System.IO.FileSystemInfo"));
-		static readonly Lazy<PropertyInfo> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo>(() => fileSystemInfoTypeInfo.Value?.GetDeclaredProperty("FullName"));
+		static readonly Lazy<Type> fileSystemInfoType = new Lazy<Type>(() => GetTypeByName("System.IO.FileSystemInfo"));
+		static readonly Lazy<PropertyInfo> fileSystemInfoFullNameProperty = new Lazy<PropertyInfo>(() => fileSystemInfoType.Value?.GetProperty("FullName"));
 #endif
 
 		static readonly Lazy<Assembly[]> getAssemblies = new Lazy<Assembly[]>(AppDomain.CurrentDomain.GetAssemblies);
 
 		static readonly Type objectType = typeof(object);
-		static readonly TypeInfo objectTypeInfo = objectType.GetTypeInfo();
 		static readonly IEqualityComparer<object> referenceEqualityComparer = new ReferenceEqualityComparer();
 
 #if XUNIT_NULLABLE
@@ -115,9 +114,9 @@ namespace Xunit.Internal
 			});
 
 #if XUNIT_NULLABLE
-		static TypeInfo? GetTypeInfo(string typeName)
+		static Type? GetTypeByName(string typeName)
 #else
-		static TypeInfo GetTypeInfo(string typeName)
+		static Type GetTypeByName(string typeName)
 #endif
 		{
 			try
@@ -126,7 +125,7 @@ namespace Xunit.Internal
 				{
 					var type = assembly.GetType(typeName);
 					if (type != null)
-						return type.GetTypeInfo();
+						return type;
 				}
 
 				return null;
@@ -138,7 +137,7 @@ namespace Xunit.Internal
 		}
 
 		internal static bool IsCompilerGenerated(Type type) =>
-			type.GetTypeInfo().CustomAttributes.Any(a => a.AttributeType.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
+			type.CustomAttributes.Any(a => a.AttributeType.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
 
 		internal static string ShortenAndEncodeString(
 #if XUNIT_NULLABLE
@@ -264,27 +263,23 @@ namespace Xunit.Internal
 		static object UnwrapLazy(
 			object value,
 #endif
-			out Type valueType,
-			out TypeInfo valueTypeInfo)
+			out Type valueType)
 		{
 			if (value == null)
 			{
 				valueType = objectType;
-				valueTypeInfo = objectTypeInfo;
 
 				return null;
 			}
 
 			valueType = value.GetType();
-			valueTypeInfo = valueType.GetTypeInfo();
 
-			if (valueTypeInfo.IsGenericType && valueTypeInfo.GetGenericTypeDefinition() == typeof(Lazy<>))
+			if (valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(Lazy<>))
 			{
 				var property = valueType.GetRuntimeProperty("Value");
 				if (property != null)
 				{
-					valueType = valueTypeInfo.GenericTypeArguments[0];
-					valueTypeInfo = valueType.GetTypeInfo();
+					valueType = valueType.GenericTypeArguments[0];
 					return property.GetValue(value);
 				}
 			}
@@ -324,8 +319,8 @@ namespace Xunit.Internal
 				return EquivalentException.ForExceededDepth(50, prefix);
 
 			// Unwrap Lazy<T>
-			expected = UnwrapLazy(expected, out var expectedType, out var expectedTypeInfo);
-			actual = UnwrapLazy(actual, out var _, out var actualTypeInfo);
+			expected = UnwrapLazy(expected, out var expectedType);
+			actual = UnwrapLazy(actual, out var actualType);
 
 			// Check for null equivalence
 			if (expected == null)
@@ -354,7 +349,7 @@ namespace Xunit.Internal
 				actualRefs.Add(actual);
 
 				// Primitive types, enums and strings should just fall back to their Equals implementation
-				if (expectedTypeInfo.IsPrimitive || expectedTypeInfo.IsEnum || expectedType == typeof(string) || expectedType == typeof(decimal) || expectedType == typeof(Guid))
+				if (expectedType.IsPrimitive || expectedType.IsEnum || expectedType == typeof(string) || expectedType == typeof(decimal) || expectedType == typeof(Guid))
 					return VerifyEquivalenceIntrinsics(expected, actual, prefix);
 
 				// DateTime and DateTimeOffset need to be compared via IComparable (because of a circular
@@ -363,8 +358,8 @@ namespace Xunit.Internal
 					return VerifyEquivalenceDateTime(expected, actual, prefix);
 
 				// FileSystemInfo has a recursion problem when getting the root directory
-				if (fileSystemInfoTypeInfo.Value != null)
-					if (fileSystemInfoTypeInfo.Value.IsAssignableFrom(expectedTypeInfo) && fileSystemInfoTypeInfo.Value.IsAssignableFrom(actualTypeInfo))
+				if (fileSystemInfoType.Value != null)
+					if (fileSystemInfoType.Value.IsAssignableFrom(expectedType) && fileSystemInfoType.Value.IsAssignableFrom(actualType))
 						return VerifyEquivalenceFileSystemInfo(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
 
 				// Uri can throw for relative URIs

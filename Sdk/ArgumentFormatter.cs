@@ -83,25 +83,25 @@ namespace Xunit.Sdk
 #endif
 
 		// List of intrinsic types => C# type names
-		static readonly Dictionary<TypeInfo, string> TypeMappings = new Dictionary<TypeInfo, string>
+		static readonly Dictionary<Type, string> TypeMappings = new Dictionary<Type, string>
 		{
-			{ typeof(bool).GetTypeInfo(), "bool" },
-			{ typeof(byte).GetTypeInfo(), "byte" },
-			{ typeof(sbyte).GetTypeInfo(), "sbyte" },
-			{ typeof(char).GetTypeInfo(), "char" },
-			{ typeof(decimal).GetTypeInfo(), "decimal" },
-			{ typeof(double).GetTypeInfo(), "double" },
-			{ typeof(float).GetTypeInfo(), "float" },
-			{ typeof(int).GetTypeInfo(), "int" },
-			{ typeof(uint).GetTypeInfo(), "uint" },
-			{ typeof(long).GetTypeInfo(), "long" },
-			{ typeof(ulong).GetTypeInfo(), "ulong" },
-			{ typeof(object).GetTypeInfo(), "object" },
-			{ typeof(short).GetTypeInfo(), "short" },
-			{ typeof(ushort).GetTypeInfo(), "ushort" },
-			{ typeof(string).GetTypeInfo(), "string" },
-			{ typeof(IntPtr).GetTypeInfo(), "nint" },
-			{ typeof(UIntPtr).GetTypeInfo(), "nuint" },
+			{ typeof(bool), "bool" },
+			{ typeof(byte), "byte" },
+			{ typeof(sbyte), "sbyte" },
+			{ typeof(char), "char" },
+			{ typeof(decimal), "decimal" },
+			{ typeof(double), "double" },
+			{ typeof(float), "float" },
+			{ typeof(int), "int" },
+			{ typeof(uint), "uint" },
+			{ typeof(long), "long" },
+			{ typeof(ulong), "ulong" },
+			{ typeof(object), "object" },
+			{ typeof(short), "short" },
+			{ typeof(ushort), "ushort" },
+			{ typeof(string), "string" },
+			{ typeof(IntPtr), "nint" },
+			{ typeof(UIntPtr), "nuint" },
 		};
 
 		static ArgumentFormatter()
@@ -187,7 +187,7 @@ namespace Xunit.Sdk
 
 			try
 			{
-				if (value.GetType().GetTypeInfo().IsEnum)
+				if (value.GetType().IsEnum)
 					return FormatEnumValue(value);
 
 				if (value is char c)
@@ -214,17 +214,16 @@ namespace Xunit.Sdk
 					return FormatEnumerableValue(enumerable, depth);
 
 				var type = value.GetType();
-				var typeInfo = type.GetTypeInfo();
 
-				if (tupleInterfaceType != null && type.GetTypeInfo().ImplementedInterfaces.Contains(tupleInterfaceType))
+				if (tupleInterfaceType != null && type.GetInterfaces().Contains(tupleInterfaceType))
 					return FormatTupleValue(value, depth);
 
-				if (typeInfo.IsValueType)
-					return FormatValueTypeValue(value, typeInfo);
+				if (type.IsValueType)
+					return FormatValueTypeValue(value, type);
 
 				if (value is Task task)
 				{
-					var typeParameters = typeInfo.GenericTypeArguments;
+					var typeParameters = type.GenericTypeArguments;
 					var typeName =
 						typeParameters.Length == 0
 							? "Task"
@@ -235,7 +234,7 @@ namespace Xunit.Sdk
 
 				// TODO: ValueTask?
 
-				var isAnonymousType = typeInfo.IsAnonymousType();
+				var isAnonymousType = type.IsAnonymousType();
 				if (!isAnonymousType)
 				{
 					var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
@@ -436,17 +435,23 @@ namespace Xunit.Sdk
 			Type type,
 			bool fullTypeName = false)
 		{
-			var typeInfo = type.GetTypeInfo();
+#if NET6_0_OR_GREATER
+			ArgumentNullException.ThrowIfNull(type, nameof(type));
+#else
+			if (type is null)
+				throw new ArgumentNullException(nameof(type));
+#endif
+
 			var arraySuffix = "";
 
 			// Deconstruct and re-construct array
-			while (typeInfo.IsArray)
+			while (type.IsArray)
 			{
-				if (typeInfo.IsSZArrayType())
+				if (type.IsSZArrayType())
 					arraySuffix += "[]";
 				else
 				{
-					var rank = typeInfo.GetArrayRank();
+					var rank = type.GetArrayRank();
 					if (rank == 1)
 						arraySuffix += "[*]";
 					else
@@ -454,19 +459,19 @@ namespace Xunit.Sdk
 				}
 
 #if XUNIT_NULLABLE
-				typeInfo = typeInfo.GetElementType()!.GetTypeInfo();
+				type = type.GetElementType()!;
 #else
-				typeInfo = typeInfo.GetElementType().GetTypeInfo();
+				type = type.GetElementType();
 #endif
 			}
 
 			// Map C# built-in type names
-			var shortTypeInfo = typeInfo.IsGenericType ? typeInfo.GetGenericTypeDefinition().GetTypeInfo() : typeInfo;
-			if (!TypeMappings.TryGetValue(shortTypeInfo, out var result))
-				result = fullTypeName ? typeInfo.FullName : typeInfo.Name;
+			var shortType = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+			if (!TypeMappings.TryGetValue(shortType, out var result))
+				result = fullTypeName ? type.FullName : type.Name;
 
 			if (result is null)
-				return typeInfo.Name;
+				return type.Name;
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 			var tickIdx = result.IndexOf('`', StringComparison.Ordinal);
@@ -476,14 +481,14 @@ namespace Xunit.Sdk
 			if (tickIdx > 0)
 				result = result.Substring(0, tickIdx);
 
-			if (typeInfo.IsGenericTypeDefinition)
-				result = string.Format(CultureInfo.CurrentCulture, "{0}<{1}>", result, new string(',', typeInfo.GenericTypeParameters.Length - 1));
-			else if (typeInfo.IsGenericType)
+			if (type.IsGenericTypeDefinition)
+				result = string.Format(CultureInfo.CurrentCulture, "{0}<{1}>", result, new string(',', type.GetGenericArguments().Length - 1));
+			else if (type.IsGenericType)
 			{
-				if (typeInfo.GetGenericTypeDefinition() == typeof(Nullable<>))
-					result = FormatTypeName(typeInfo.GenericTypeArguments[0]) + "?";
+				if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
+					result = FormatTypeName(type.GenericTypeArguments[0]) + "?";
 				else
-					result = string.Format(CultureInfo.CurrentCulture, "{0}<{1}>", result, string.Join(", ", typeInfo.GenericTypeArguments.Select(t => FormatTypeName(t))));
+					result = string.Format(CultureInfo.CurrentCulture, "{0}<{1}>", result, string.Join(", ", type.GenericTypeArguments.Select(t => FormatTypeName(t))));
 			}
 
 			return result + arraySuffix;
@@ -491,12 +496,12 @@ namespace Xunit.Sdk
 
 		static string FormatValueTypeValue(
 			object value,
-			TypeInfo typeInfo)
+			Type type)
 		{
-			if (typeInfo.IsGenericType && typeInfo.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+			if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
 			{
-				var k = typeInfo.GetDeclaredProperty("Key")?.GetValue(value, null);
-				var v = typeInfo.GetDeclaredProperty("Value")?.GetValue(value, null);
+				var k = type.GetProperty("Key")?.GetValue(value, null);
+				var v = type.GetProperty("Value")?.GetValue(value, null);
 
 				return string.Format(CultureInfo.CurrentCulture, "[{0}] = {1}", Format(k), Format(v));
 			}
@@ -514,11 +519,11 @@ namespace Xunit.Sdk
 				return null;
 
 			return
-				(from @interface in obj.GetType().GetTypeInfo().ImplementedInterfaces
-				 where @interface.GetTypeInfo().IsGenericType
+				(from @interface in obj.GetType().GetInterfaces()
+				 where @interface.IsGenericType
 				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
 				 where genericTypeDefinition == typeof(IGrouping<,>)
-				 select @interface.GetTypeInfo()).FirstOrDefault()?.GenericTypeArguments;
+				 select @interface).FirstOrDefault()?.GenericTypeArguments;
 		}
 
 #if XUNIT_NULLABLE
@@ -531,54 +536,53 @@ namespace Xunit.Sdk
 				return null;
 
 			return
-				(from @interface in obj.GetType().GetTypeInfo().ImplementedInterfaces
-				 where @interface.GetTypeInfo().IsGenericType
+				(from @interface in obj.GetType().GetInterfaces()
+				 where @interface.IsGenericType
 				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
 				 where genericTypeDefinition == typeof(ISet<>)
-				 select @interface.GetTypeInfo()).FirstOrDefault()?.GenericTypeArguments[0];
+				 select @interface).FirstOrDefault()?.GenericTypeArguments[0];
 		}
 
-		static bool IsAnonymousType(this TypeInfo typeInfo)
+		static bool IsAnonymousType(this Type type)
 		{
 			// There isn't a sanctioned way to do this, so we look for compiler-generated types that
 			// include "AnonymousType" in their names.
-			if (typeInfo.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
+			if (type.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
 				return false;
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-			return typeInfo.Name.Contains("AnonymousType", StringComparison.Ordinal);
+			return type.Name.Contains("AnonymousType", StringComparison.Ordinal);
 #else
-			return typeInfo.Name.Contains("AnonymousType");
+			return type.Name.Contains("AnonymousType");
 #endif
 		}
 
 		static bool IsEnumerableOfGrouping(IEnumerable collection)
 		{
 			var genericEnumerableType =
-				(from @interface in collection.GetType().GetTypeInfo().ImplementedInterfaces
-				 where @interface.GetTypeInfo().IsGenericType
+				(from @interface in collection.GetType().GetInterfaces()
+				 where @interface.IsGenericType
 				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
 				 where genericTypeDefinition == typeof(IEnumerable<>)
-				 select @interface.GetTypeInfo()).FirstOrDefault()?.GenericTypeArguments[0];
+				 select @interface).FirstOrDefault()?.GenericTypeArguments[0];
 
 			if (genericEnumerableType == null)
 				return false;
 
 			return
 				genericEnumerableType
-					.GetTypeInfo()
-					.ImplementedInterfaces
+					.GetInterfaces()
 					.Concat(new[] { genericEnumerableType })
-					.Any(i => i.GetTypeInfo().IsGenericType && i.GetGenericTypeDefinition() == typeof(IGrouping<,>));
+					.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IGrouping<,>));
 		}
 
-		static bool IsSZArrayType(this TypeInfo typeInfo) =>
+		static bool IsSZArrayType(this Type type) =>
 #if NET6_0_OR_GREATER
-			typeInfo.IsSZArray;
+			type.IsSZArray;
 #elif XUNIT_NULLABLE
-			typeInfo == typeInfo.GetElementType()!.MakeArrayType().GetTypeInfo();
+			type == type.GetElementType()!.MakeArrayType();
 #else
-			typeInfo == typeInfo.GetElementType().MakeArrayType().GetTypeInfo();
+			type == type.GetElementType().MakeArrayType();
 #endif
 
 		static bool SafeToMultiEnumerate(IEnumerable collection) =>
