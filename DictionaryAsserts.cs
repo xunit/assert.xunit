@@ -1,9 +1,4 @@
 #pragma warning disable CA1052 // Static holder types should be static
-#pragma warning disable IDE0018 // Inline variable declaration
-#pragma warning disable IDE0046 // Convert to conditional expression
-#pragma warning disable IDE0058 // Expression value is never used
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -50,8 +45,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expected), expected);
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			var value = default(TValue);
-			if (!collection.TryGetValue(expected, out value))
+			if (!collection.TryGetValue(expected, out var value))
 				throw ContainsException.ForKeyNotFound(
 					ArgumentFormatter.Format(expected),
 					CollectionTracker<TKey>.FormatStart(collection.Keys)
@@ -79,8 +73,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expected), expected);
 			GuardArgumentNotNull(nameof(collection), collection);
 
-			var value = default(TValue);
-			if (!collection.TryGetValue(expected, out value))
+			if (!collection.TryGetValue(expected, out var value))
 				throw ContainsException.ForKeyNotFound(
 					ArgumentFormatter.Format(expected),
 					CollectionTracker<TKey>.FormatStart(collection.Keys)

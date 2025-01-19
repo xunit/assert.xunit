@@ -1,7 +1,4 @@
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0046 // Convert to conditional expression
 #pragma warning disable IDE0090 // Use 'new(...)'
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 #pragma warning disable IDE0300 // Simplify collection initialization
 #pragma warning disable IDE0305 // Simplify collection initialization
 

@@ -1,10 +1,6 @@
 #pragma warning disable CA1052 // Static holder types should be static
-#pragma warning disable IDE0018 // Inline variable declaration
 #pragma warning disable IDE0028 // Simplify collection initialization
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0058 // Expression value is never used
 #pragma warning disable IDE0090 // Use 'new(...)'
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -539,9 +535,8 @@ namespace Xunit
 				var match = Regex.Match(actualString, expectedRegexPattern);
 				if (match.Success)
 				{
-					int pointerIndent;
 					var formattedExpected = AssertHelper.ShortenAndEncodeString(expectedRegexPattern);
-					var formattedActual = AssertHelper.ShortenAndEncodeString(actualString, match.Index, out pointerIndent);
+					var formattedActual = AssertHelper.ShortenAndEncodeString(actualString, match.Index, out var pointerIndent);
 
 					throw DoesNotMatchException.ForMatch(formattedExpected, match.Index, pointerIndent, formattedActual);
 				}
@@ -569,9 +564,8 @@ namespace Xunit
 				var match = expectedRegex.Match(actualString);
 				if (match.Success)
 				{
-					int pointerIndent;
 					var formattedExpected = AssertHelper.ShortenAndEncodeString(expectedRegex.ToString());
-					var formattedActual = AssertHelper.ShortenAndEncodeString(actualString, match.Index, out pointerIndent);
+					var formattedActual = AssertHelper.ShortenAndEncodeString(actualString, match.Index, out var pointerIndent);
 
 					throw DoesNotMatchException.ForMatch(formattedExpected, match.Index, pointerIndent, formattedActual);
 				}

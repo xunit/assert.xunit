@@ -1,6 +1,5 @@
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1052 // Static holder types should be static
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 
 #if XUNIT_NULLABLE
 #nullable enable

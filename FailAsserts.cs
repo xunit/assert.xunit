@@ -1,6 +1,4 @@
 #pragma warning disable CA1052 // Static holder types should be static
-#pragma warning disable IDE0022 // Use expression body for method
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -30,12 +28,10 @@ namespace Xunit
 		/// <param name="message">The optional failure message</param>
 #if XUNIT_NULLABLE
 		[DoesNotReturn]
-		public static void Fail(string? message = null)
+		public static void Fail(string? message = null) =>
 #else
-		public static void Fail(string message = null)
+		public static void Fail(string message = null) =>
 #endif
-		{
 			throw FailException.ForFailure(message);
-		}
 	}
 }

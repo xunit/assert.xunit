@@ -1,15 +1,8 @@
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1032 // Implement standard exception constructors
 #pragma warning disable CA2237 // Mark ISerializable types with SerializableAttribute
-#pragma warning disable IDE0016 // Use 'throw' expression
-#pragma warning disable IDE0019 // Use pattern matching
-#pragma warning disable IDE0022 // Use expression body for method
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0046 // Convert to conditional expression
 #pragma warning disable IDE0063 // Use simple 'using' statement
 #pragma warning disable IDE0090 // Use 'new(...)'
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
-#pragma warning disable IDE0270 // Use coalesce expression
 #pragma warning disable IDE0290 // Use primary constructor
 #pragma warning disable IDE0300 // Simplify collection initialization
 
@@ -64,14 +57,14 @@ namespace Xunit.Sdk
 			cachedDefaultComparers.GetOrAdd(type, itemType =>
 			{
 				var comparerType = typeof(AssertEqualityComparer<>).MakeGenericType(itemType);
-				var comparer = Activator.CreateInstance(comparerType, singleNullObject);
-				if (comparer == null)
-					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Could not create instance of AssertEqualityComparer<{0}>", itemType.FullName ?? itemType.Name));
+				var comparer =
+					Activator.CreateInstance(comparerType, singleNullObject)
+						?? throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Could not create instance of AssertEqualityComparer<{0}>", itemType.FullName ?? itemType.Name));
 
 				var wrapperType = typeof(AssertEqualityComparerAdapter<>).MakeGenericType(itemType);
-				var result = Activator.CreateInstance(wrapperType, new object[] { comparer }) as IEqualityComparer;
-				if (result == null)
-					throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Could not create instance of AssertEqualityComparerAdapter<{0}>", itemType.FullName ?? itemType.Name));
+				var result =
+					Activator.CreateInstance(wrapperType, new object[] { comparer }) as IEqualityComparer
+						?? throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, "Could not create instance of AssertEqualityComparerAdapter<{0}>", itemType.FullName ?? itemType.Name));
 
 				return result;
 			});
@@ -219,8 +212,7 @@ namespace Xunit.Sdk
 #endif
 			{
 				// Implements IEquatable<T>?
-				var equatable = x as IEquatable<T>;
-				if (equatable != null)
+				if (x is IEquatable<T> equatable)
 					return equatable.Equals(y);
 
 				// Implements IEquatable<typeof(y)>?
@@ -249,14 +241,11 @@ namespace Xunit.Sdk
 #endif
 
 			// Implements IStructuralEquatable?
-			var structuralEquatable = x as IStructuralEquatable;
-			if (structuralEquatable != null && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparer.Value)))
+			if (x is IStructuralEquatable structuralEquatable && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparer.Value)))
 				return true;
 
 			// Implements IComparable<T>?
-			var comparableGeneric = x as IComparable<T>;
-			if (comparableGeneric != null)
-			{
+			if (x is IComparable<T> comparableGeneric)
 				try
 				{
 					return comparableGeneric.CompareTo(y) == 0;
@@ -267,7 +256,6 @@ namespace Xunit.Sdk
 					// certain situations, such as if x can't compare against y.
 					// If this happens, just swallow up the exception and continue comparing.
 				}
-			}
 
 			// Implements IComparable<typeof(y)>?
 			if (xType != yType)
@@ -297,9 +285,7 @@ namespace Xunit.Sdk
 			}
 
 			// Implements IComparable?
-			var comparable = x as IComparable;
-			if (comparable != null)
-			{
+			if (x is IComparable comparable)
 				try
 				{
 					return comparable.CompareTo(y) == 0;
@@ -310,7 +296,6 @@ namespace Xunit.Sdk
 					// certain situations, such as if x can't compare against y.
 					// If this happens, just swallow up the exception and continue comparing.
 				}
-			}
 
 			// Special case KeyValuePair<K,V>
 			if (xType.IsConstructedGenericType &&
@@ -372,17 +357,8 @@ namespace Xunit.Sdk
 		{
 			readonly Func<T, T, bool> comparer;
 
-			public FuncEqualityComparer(Func<T, T, bool> comparer)
-			{
-#if NET6_0_OR_GREATER
-				ArgumentNullException.ThrowIfNull(comparer);
-#else
-				if (comparer == null)
-					throw new ArgumentNullException(nameof(comparer));
-#endif
-
-				this.comparer = comparer;
-			}
+			public FuncEqualityComparer(Func<T, T, bool> comparer) =>
+				this.comparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
 
 			public bool Equals(
 #if XUNIT_NULLABLE

@@ -1,8 +1,4 @@
 #pragma warning disable CA1032 // Implement standard exception constructors
-#pragma warning disable IDE0018 // Inline variable declaration
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0058 // Expression value is never used
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -152,11 +148,8 @@ namespace Xunit.Sdk
 		{
 			var message = "Assert.Equal() Failure: Strings differ";
 
-			int expectedPointer;
-			int actualPointer;
-
-			var formattedExpected = AssertHelper.ShortenAndEncodeString(expected, expectedIndex, out expectedPointer);
-			var formattedActual = AssertHelper.ShortenAndEncodeString(actual, actualIndex, out actualPointer);
+			var formattedExpected = AssertHelper.ShortenAndEncodeString(expected, expectedIndex, out var expectedPointer);
+			var formattedActual = AssertHelper.ShortenAndEncodeString(actual, actualIndex, out var actualPointer);
 
 			if (expected != null && expectedIndex > -1 && expectedIndex < expected.Length)
 				message += string.Format(CultureInfo.CurrentCulture, "{0}{1}\u2193 (pos {2})", newLineAndIndent, new string(' ', expectedPointer), expectedIndex);

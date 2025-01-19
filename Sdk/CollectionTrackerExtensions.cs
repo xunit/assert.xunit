@@ -1,9 +1,4 @@
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0046 // Convert to conditional expression
-#pragma warning disable IDE0058 // Expression value is never used
-#pragma warning disable IDE0078 // Use pattern matching
 #pragma warning disable IDE0090 // Use 'new(...)'
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 #pragma warning disable IDE0300 // Simplify collection initialization
 
 #if XUNIT_NULLABLE
@@ -39,10 +34,12 @@ namespace Xunit.Sdk
 	static class CollectionTrackerExtensions
 	{
 #if XUNIT_NULLABLE
-		static readonly MethodInfo? asTrackerOpenGeneric = typeof(CollectionTrackerExtensions).GetRuntimeMethods().FirstOrDefault(m => m.Name == nameof(AsTracker) && m.IsGenericMethod);
+		static readonly MethodInfo? asTrackerOpenGeneric =
 #else
-		static readonly MethodInfo asTrackerOpenGeneric = typeof(CollectionTrackerExtensions).GetRuntimeMethods().FirstOrDefault(m => m.Name == nameof(AsTracker) && m.IsGenericMethod);
+		static readonly MethodInfo asTrackerOpenGeneric =
 #endif
+			 typeof(CollectionTrackerExtensions).GetRuntimeMethods().FirstOrDefault(m => m.Name == nameof(AsTracker) && m.IsGenericMethod);
+
 		static readonly ConcurrentDictionary<Type, MethodInfo> cacheOfAsTrackerByType = new ConcurrentDictionary<Type, MethodInfo>();
 
 #if XUNIT_NULLABLE
@@ -71,8 +68,7 @@ namespace Xunit.Sdk
 			if (enumerable == null)
 				return null;
 
-			var result = enumerable as CollectionTracker;
-			if (result != null)
+			if (enumerable is CollectionTracker result)
 				return result;
 
 			// CollectionTracker.Wrap for the non-T enumerable uses the CastIterator, which has terrible
@@ -89,8 +85,7 @@ namespace Xunit.Sdk
 			var method = cacheOfAsTrackerByType.GetOrAdd(enumerableType, t => asTrackerOpenGeneric.MakeGenericMethod(enumerableType));
 #endif
 
-			result = method.Invoke(null, new object[] { enumerable }) as CollectionTracker;
-			return result ?? CollectionTracker.Wrap(enumerable);
+			return method.Invoke(null, new object[] { enumerable }) as CollectionTracker ?? CollectionTracker.Wrap(enumerable);
 		}
 
 		/// <summary>

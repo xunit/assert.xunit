@@ -2,13 +2,8 @@
 #pragma warning disable CA1052 // Static holder types should be static
 #pragma warning disable CA1720 // Identifier contains type name
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
-#pragma warning disable IDE0018 // Inline variable declaration
-#pragma warning disable IDE0019 // Use pattern matching
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0058 // Expression value is never used
 #pragma warning disable IDE0063 // Use simple 'using' statement
 #pragma warning disable IDE0066 // Convert switch statement to expression
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 #pragma warning disable IDE0305 // Simplify collection initialization
 
 #if XUNIT_NULLABLE
@@ -172,8 +167,7 @@ namespace Xunit
 					}
 					catch (Exception ex)
 					{
-						int? pointerIndent;
-						var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
+						var formattedCollection = tracker.FormatIndexedMismatch(index, out var pointerIndent);
 						throw CollectionException.ForMismatchedItem(ex, index, pointerIndent, formattedCollection);
 					}
 
@@ -213,8 +207,7 @@ namespace Xunit
 					}
 					catch (Exception ex)
 					{
-						int? pointerIndent;
-						var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
+						var formattedCollection = tracker.FormatIndexedMismatch(index, out var pointerIndent);
 						throw CollectionException.ForMismatchedItem(ex, index, pointerIndent, formattedCollection);
 					}
 
@@ -241,15 +234,13 @@ namespace Xunit
 
 			// We special case sets because they are constructed with their comparers, which we don't have access to.
 			// We want to let them do their normal logic when appropriate, and not try to use our default comparer.
-			var set = collection as ISet<T>;
-			if (set != null)
+			if (collection is ISet<T> set)
 			{
 				Contains(expected, set);
 				return;
 			}
-#if NET5_0_OR_GREATER
-			var readOnlySet = collection as IReadOnlySet<T>;
-			if (readOnlySet != null)
+#if NET6_0_OR_GREATER
+			if (collection is IReadOnlySet<T> readOnlySet)
 			{
 				Contains(expected, readOnlySet);
 				return;
@@ -353,15 +344,13 @@ namespace Xunit
 
 			// We special case sets because they are constructed with their comparers, which we don't have access to.
 			// We want to let them do their normal logic when appropriate, and not try to use our default comparer.
-			var set = collection as ISet<T>;
-			if (set != null)
+			if (collection is ISet<T> set)
 			{
 				DoesNotContain(expected, set);
 				return;
 			}
-#if NET5_0_OR_GREATER
-			var readOnlySet = collection as IReadOnlySet<T>;
-			if (readOnlySet != null)
+#if NET6_0_OR_GREATER
+			if (collection is IReadOnlySet<T> readOnlySet)
 			{
 				DoesNotContain(expected, readOnlySet);
 				return;
@@ -396,8 +385,7 @@ namespace Xunit
 				{
 					if (comparer.Equals(item, expected))
 					{
-						int? pointerIndent;
-						var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
+						var formattedCollection = tracker.FormatIndexedMismatch(index, out var pointerIndent);
 
 						throw DoesNotContainException.ForCollectionItemFound(
 							ArgumentFormatter.Format(expected),
@@ -434,8 +422,7 @@ namespace Xunit
 				{
 					if (filter(item))
 					{
-						int? pointerIndent;
-						var formattedCollection = tracker.FormatIndexedMismatch(index, out pointerIndent);
+						var formattedCollection = tracker.FormatIndexedMismatch(index, out var pointerIndent);
 
 						throw DoesNotContainException.ForCollectionFilterMatched(
 							index,

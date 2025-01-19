@@ -1,20 +1,11 @@
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1707 // Identifiers should not contain underscores
 #pragma warning disable CA1810 // Initialize reference type static fields inline
-#pragma warning disable CA1825 // Avoid zero-length array allocations
-#pragma warning disable CA2263 // Prefer generic overload when type is known
-#pragma warning disable IDE0018 // Inline variable declaration
 #pragma warning disable IDE0019 // Use pattern matching
-#pragma warning disable IDE0038 // Use pattern matching
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0045 // Convert to conditional expression
-#pragma warning disable IDE0046 // Convert to conditional expression
 #pragma warning disable IDE0057 // Use range operator
-#pragma warning disable IDE0058 // Expression value is never used
-#pragma warning disable IDE0078 // Use pattern matching
 #pragma warning disable IDE0090 // Use 'new(...)'
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 #pragma warning disable IDE0300 // Simplify collection initialization
+#pragma warning disable IDE0301 // Simplify collection initialization
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -78,8 +69,8 @@ namespace Xunit.Sdk
 		/// </summary>
 		public const int MAX_STRING_LENGTH = 50;
 
-		static readonly object[] EmptyObjects = new object[0];
-		static readonly Type[] EmptyTypes = new Type[0];
+		static readonly object[] EmptyObjects = Array.Empty<object>();
+		static readonly Type[] EmptyTypes = Array.Empty<Type>();
 
 #if XUNIT_NULLABLE
 		static readonly PropertyInfo? tupleIndexer;
@@ -152,12 +143,8 @@ namespace Xunit.Sdk
 			for (var i = 0; i < s.Length; i++)
 			{
 				var ch = s[i];
-#if XUNIT_NULLABLE
-				string? escapeSequence;
-#else
-				string escapeSequence;
-#endif
-				if (TryGetEscapeSequence(ch, out escapeSequence))
+
+				if (TryGetEscapeSequence(ch, out var escapeSequence))
 					builder.Append(escapeSequence);
 				else if (ch < 32) // C0 control char
 					builder.AppendFormat(CultureInfo.CurrentCulture, @"\x{0}", (+ch).ToString("x2", CultureInfo.CurrentCulture));
@@ -203,8 +190,8 @@ namespace Xunit.Sdk
 				if (value.GetType().GetTypeInfo().IsEnum)
 					return FormatEnumValue(value);
 
-				if (value is char)
-					return FormatCharValue((char)value);
+				if (value is char c)
+					return FormatCharValue(c);
 
 				if (value is float)
 					return FormatFloatValue(value);
@@ -215,18 +202,15 @@ namespace Xunit.Sdk
 				if (value is DateTime || value is DateTimeOffset)
 					return FormatDateTimeValue(value);
 
-				var stringParameter = value as string;
-				if (stringParameter != null)
+				if (value is string stringParameter)
 					return FormatStringValue(stringParameter);
 
 #if !XUNIT_ARGUMENTFORMATTER_PRIVATE
-				var tracker = value as CollectionTracker;
-				if (tracker != null)
+				if (value is CollectionTracker tracker)
 					return tracker.FormatStart(depth);
 #endif
 
-				var enumerable = value as IEnumerable;
-				if (enumerable != null)
+				if (value is IEnumerable enumerable)
 					return FormatEnumerableValue(enumerable, depth);
 
 				var type = value.GetType();
@@ -238,8 +222,7 @@ namespace Xunit.Sdk
 				if (typeInfo.IsValueType)
 					return FormatValueTypeValue(value, typeInfo);
 
-				var task = value as Task;
-				if (task != null)
+				if (value is Task task)
 				{
 					var typeParameters = typeInfo.GenericTypeArguments;
 					var typeName =
@@ -270,7 +253,7 @@ namespace Xunit.Sdk
 			catch (Exception ex)
 			{
 				// Sometimes an exception is thrown when formatting an argument, such as in ToString.
-				// In these cases, we don't want xunit to crash, as tests may have passed despite this.
+				// In these cases, we don't want to crash, as tests may have passed despite this.
 				return string.Format(CultureInfo.CurrentCulture, "{0} was thrown formatting an object of type \"{1}\"", ex.GetType().Name, value.GetType());
 			}
 		}
@@ -281,12 +264,7 @@ namespace Xunit.Sdk
 				return @"'\''";
 
 			// Take care of all of the escape sequences
-#if XUNIT_NULLABLE
-			string? escapeSequence;
-#else
-			string escapeSequence;
-#endif
-			if (TryGetEscapeSequence(value, out escapeSequence))
+			if (TryGetEscapeSequence(value, out var escapeSequence))
 				return string.Format(CultureInfo.CurrentCulture, "'{0}'", escapeSequence);
 
 			if (char.IsLetterOrDigit(value) || char.IsPunctuation(value) || char.IsSymbol(value) || value == ' ')
@@ -483,16 +461,11 @@ namespace Xunit.Sdk
 			}
 
 			// Map C# built-in type names
-#if XUNIT_NULLABLE
-			string? result;
-#else
-			string result;
-#endif
 			var shortTypeInfo = typeInfo.IsGenericType ? typeInfo.GetGenericTypeDefinition().GetTypeInfo() : typeInfo;
-			if (!TypeMappings.TryGetValue(shortTypeInfo, out result))
+			if (!TypeMappings.TryGetValue(shortTypeInfo, out var result))
 				result = fullTypeName ? typeInfo.FullName : typeInfo.Name;
 
-			if (result == null)
+			if (result is null)
 				return typeInfo.Name;
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -569,7 +542,7 @@ namespace Xunit.Sdk
 		{
 			// There isn't a sanctioned way to do this, so we look for compiler-generated types that
 			// include "AnonymousType" in their names.
-			if (typeInfo.GetCustomAttribute(typeof(CompilerGeneratedAttribute)) == null)
+			if (typeInfo.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
 				return false;
 
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER

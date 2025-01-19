@@ -1,14 +1,5 @@
 #pragma warning disable CA1031 // Do not catch general exception types
-#pragma warning disable CA2263 // Prefer generic overload when type is known
-#pragma warning disable IDE0018 // Inline variable declaration
-#pragma warning disable IDE0019 // Use pattern matching
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0046 // Convert to conditional expression
-#pragma warning disable IDE0058 // Expression value is never used
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
 #pragma warning disable IDE0090 // Use 'new(...)'
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
-#pragma warning disable IDE0270 // Null check can be simplified
 #pragma warning disable IDE0300 // Collection initialization can be simplified
 
 #if XUNIT_NULLABLE
@@ -108,8 +99,8 @@ namespace Xunit.Internal
 							&& !p.GetMethod.ReturnType.IsByRefLike
 #endif
 							&& p.GetIndexParameters().Length == 0
-							&& !p.GetCustomAttributes(typeof(ObsoleteAttribute)).Any()
-							&& !p.GetMethod.GetCustomAttributes(typeof(ObsoleteAttribute)).Any()
+							&& !p.GetCustomAttributes<ObsoleteAttribute>().Any()
+							&& !p.GetMethod.GetCustomAttributes<ObsoleteAttribute>().Any()
 						)
 #if XUNIT_NULLABLE
 						.Select(p => new { name = p.Name, getter = (Func<object?, object?>)p.GetValue });
@@ -184,13 +175,7 @@ namespace Xunit.Internal
 				var c = value[idx];
 				var paddingLength = 1;
 
-#if XUNIT_NULLABLE
-				string? encoding;
-#else
-				string encoding;
-#endif
-
-				if (encodings.TryGetValue(c, out encoding))
+				if (encodings.TryGetValue(c, out var encoding))
 				{
 					printedValue.Append(encoding);
 					paddingLength = encoding.Length;
@@ -211,26 +196,18 @@ namespace Xunit.Internal
 		}
 
 #if XUNIT_NULLABLE
-		internal static string ShortenAndEncodeString(string? value)
+		internal static string ShortenAndEncodeString(string? value) =>
 #else
-		internal static string ShortenAndEncodeString(string value)
+		internal static string ShortenAndEncodeString(string value) =>
 #endif
-		{
-			int pointerIndent;
-
-			return ShortenAndEncodeString(value, 0, out pointerIndent);
-		}
+			ShortenAndEncodeString(value, 0, out var _);
 
 #if XUNIT_NULLABLE
-		internal static string ShortenAndEncodeStringEnd(string? value)
+		internal static string ShortenAndEncodeStringEnd(string? value) =>
 #else
-		internal static string ShortenAndEncodeStringEnd(string value)
+		internal static string ShortenAndEncodeStringEnd(string value) =>
 #endif
-		{
-			int pointerIndent;
-
-			return ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out pointerIndent);
-		}
+			ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out var _);
 
 #if NET6_0_OR_GREATER
 
@@ -347,13 +324,8 @@ namespace Xunit.Internal
 				return EquivalentException.ForExceededDepth(50, prefix);
 
 			// Unwrap Lazy<T>
-			Type expectedType;
-			TypeInfo expectedTypeInfo;
-			expected = UnwrapLazy(expected, out expectedType, out expectedTypeInfo);
-
-			Type actualType;
-			TypeInfo actualTypeInfo;
-			actual = UnwrapLazy(actual, out actualType, out actualTypeInfo);
+			expected = UnwrapLazy(expected, out var expectedType, out var expectedTypeInfo);
+			actual = UnwrapLazy(actual, out var _, out var actualTypeInfo);
 
 			// Check for null equivalence
 			if (expected == null)
@@ -411,9 +383,7 @@ namespace Xunit.Internal
 				}
 
 				// Enumerables? Check equivalence of individual members
-				var enumerableExpected = expected as IEnumerable;
-				var enumerableActual = actual as IEnumerable;
-				if (enumerableExpected != null && enumerableActual != null)
+				if (expected is IEnumerable enumerableExpected && actual is IEnumerable enumerableActual)
 					return VerifyEquivalenceEnumerable(enumerableExpected, enumerableActual, strict, prefix, expectedRefs, actualRefs, depth);
 
 				return VerifyEquivalenceReference(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
@@ -436,8 +406,7 @@ namespace Xunit.Internal
 		{
 			try
 			{
-				var expectedComparable = expected as IComparable;
-				if (expectedComparable != null)
+				if (expected is IComparable expectedComparable)
 					return
 						expectedComparable.CompareTo(actual) == 0
 							? null
@@ -450,8 +419,7 @@ namespace Xunit.Internal
 
 			try
 			{
-				var actualComparable = actual as IComparable;
-				if (actualComparable != null)
+				if (actual is IComparable actualComparable)
 					return
 						actualComparable.CompareTo(expected) == 0
 							? null
@@ -564,10 +532,8 @@ namespace Xunit.Internal
 			var toArrayMethod =
 				typeof(Enumerable)
 					.GetRuntimeMethods()
-					.FirstOrDefault(m => m.IsStatic && m.IsPublic && m.Name == nameof(Enumerable.ToArray) && m.GetParameters().Length == 1);
-
-			if (toArrayMethod == null)
-				throw new InvalidOperationException("Could not find method Enumerable.ToArray<>");
+					.FirstOrDefault(m => m.IsStatic && m.IsPublic && m.Name == nameof(Enumerable.ToArray) && m.GetParameters().Length == 1)
+						?? throw new InvalidOperationException("Could not find method Enumerable.ToArray<>");
 
 			// Convert everything to an array so it doesn't endlessly loop on the IGrouping<> test
 			var expectedToArrayMethod = toArrayMethod.MakeGenericMethod(expectedGroupingTypes[1]);
@@ -593,8 +559,7 @@ namespace Xunit.Internal
 		{
 			var result = expected.Equals(actual);
 
-			var converted = default(object);
-			if (!result && TryConvert(expected, actual.GetType(), out converted))
+			if (!result && TryConvert(expected, actual.GetType(), out var converted))
 				result = converted.Equals(actual);
 			if (!result && TryConvert(actual, expected.GetType(), out converted))
 				result = converted.Equals(expected);
@@ -628,13 +593,7 @@ namespace Xunit.Internal
 
 			foreach (var kvp in expectedGetters)
 			{
-#if XUNIT_NULLABLE
-				Func<object?, object?>? actualGetter;
-#else
-				Func<object, object> actualGetter;
-#endif
-
-				if (!actualGetters.TryGetValue(kvp.Key, out actualGetter))
+				if (!actualGetters.TryGetValue(kvp.Key, out var actualGetter))
 					return EquivalentException.ForMemberListMismatch(expectedGetters.Keys, actualGetters.Keys, prefixDot);
 
 				var expectedMemberValue = kvp.Value(expected);

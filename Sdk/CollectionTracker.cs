@@ -1,17 +1,11 @@
-#pragma warning disable CA1063 // Implement IDisposable Correctly
 #pragma warning disable CA1000 // Do not declare static members on generic types
-#pragma warning disable IDE0016 // Use 'throw' expression
-#pragma warning disable IDE0018 // Inline variable declaration
+#pragma warning disable CA1063 // Implement IDisposable Correctly
+#pragma warning disable CA2213 // We move disposal to DisposeInternal, due to https://github.com/xunit/xunit/issues/2762
 #pragma warning disable IDE0019 // Use pattern matching
 #pragma warning disable IDE0028 // Simplify collection initialization
-#pragma warning disable IDE0034 // Simplify 'default' expression
-#pragma warning disable IDE0040 // Add accessibility modifiers
-#pragma warning disable IDE0046 // Convert to conditional expression
-#pragma warning disable IDE0058 // Expression value is never used
 #pragma warning disable IDE0063 // Use simple 'using' statement
 #pragma warning disable IDE0074 // Use compound assignment
 #pragma warning disable IDE0090 // Use 'new(...)'
-#pragma warning disable IDE0161 // Convert to file-scoped namespace
 #pragma warning disable IDE0290 // Use primary constructor
 #pragma warning disable IDE0300 // Simplify collection initialization
 
@@ -55,17 +49,8 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="innerEnumerable"></param>
 		/// <exception cref="ArgumentNullException"></exception>
-		protected CollectionTracker(IEnumerable innerEnumerable)
-		{
-#if NET6_0_OR_GREATER
-			ArgumentNullException.ThrowIfNull(innerEnumerable);
-#else
-			if (innerEnumerable == null)
-				throw new ArgumentNullException(nameof(innerEnumerable));
-#endif
-
-			InnerEnumerable = innerEnumerable;
-		}
+		protected CollectionTracker(IEnumerable innerEnumerable) =>
+			InnerEnumerable = innerEnumerable ?? throw new ArgumentNullException(nameof(innerEnumerable));
 
 		static readonly MethodInfo openGenericCompareTypedSetsMethod =
 			typeof(CollectionTracker)
@@ -437,13 +422,11 @@ namespace Xunit.Sdk
 		const int MAX_ENUMERABLE_LENGTH_HALF = ArgumentFormatter.MAX_ENUMERABLE_LENGTH / 2;
 
 		readonly IEnumerable<T> collection;
-#pragma warning disable CA2213 // We move disposal to DisposeInternal, due to https://github.com/xunit/xunit/issues/2762
 #if XUNIT_NULLABLE
 		Enumerator? enumerator;
 #else
 		Enumerator enumerator;
 #endif
-#pragma warning restore CA2213
 
 		/// <summary>
 		/// INTERNAL CONSTRUCTOR. DO NOT CALL.
@@ -451,23 +434,12 @@ namespace Xunit.Sdk
 		internal CollectionTracker(
 			IEnumerable collection,
 			IEnumerable<T> castCollection) :
-				base(collection)
-		{
-#if NET6_0_OR_GREATER
-			ArgumentNullException.ThrowIfNull(castCollection);
-#else
-			if (castCollection == null)
-				throw new ArgumentNullException(nameof(castCollection));
-#endif
-
-			this.collection = castCollection;
-		}
+				base(collection) =>
+					this.collection = castCollection ?? throw new ArgumentNullException(nameof(castCollection));
 
 		CollectionTracker(IEnumerable<T> collection) :
-			base(collection)
-		{
-			this.collection = collection;
-		}
+			base(collection) =>
+				this.collection = collection;
 
 		/// <summary>
 		/// Gets the number of iterations that have happened so far.
@@ -491,10 +463,7 @@ namespace Xunit.Sdk
 				return ArgumentFormatter.EllipsisInBrackets;
 			}
 
-			int startIndex;
-			int endIndex;
-
-			GetMismatchExtents(mismatchedIndex, out startIndex, out endIndex);
+			GetMismatchExtents(mismatchedIndex, out var startIndex, out var endIndex);
 
 			return FormatIndexedMismatch(
 #if XUNIT_NULLABLE
@@ -761,12 +730,7 @@ namespace Xunit.Sdk
 			if (enumerator == null || !index.HasValue)
 				return null;
 
-#if XUNIT_NULLABLE
-			T? item;
-#else
-			T item;
-#endif
-			if (!enumerator.TryGetCurrentItemAt(index.Value, out item))
+			if (!enumerator.TryGetCurrentItemAt(index.Value, out var item))
 				return null;
 
 			return item?.GetType().FullName;
@@ -875,7 +839,7 @@ namespace Xunit.Sdk
 				out T item)
 #endif
 			{
-				item = default(T);
+				item = default;
 
 				if (index < 0 || index <= CurrentIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH || index > CurrentIndex)
 					return false;
