@@ -65,7 +65,13 @@ namespace Xunit.Internal
 #endif
 
 		static readonly Lazy<Assembly[]> getAssemblies = new Lazy<Assembly[]>(AppDomain.CurrentDomain.GetAssemblies);
-
+		static readonly Lazy<int> maxCompareDepth = new Lazy<int>(() =>
+		{
+			var stringValue = Environment.GetEnvironmentVariable(EnvironmentVariables.AssertEquivalentMaxDepth);
+			if (stringValue is null || !int.TryParse(stringValue, out var intValue) || intValue <= 0)
+				return EnvironmentVariables.Defaults.AssertEquivalentMaxDepth;
+			return intValue;
+		});
 		static readonly Type objectType = typeof(object);
 		static readonly IEqualityComparer<object> referenceEqualityComparer = new ReferenceEqualityComparer();
 
@@ -154,10 +160,24 @@ namespace Xunit.Internal
 				return "null";
 			}
 
-			var start = Math.Max(index - 20, 0);
-			var end = Math.Min(start + 41, value.Length);
-			start = Math.Max(end - 41, 0);
-			var printedValue = new StringBuilder(100);
+			int start, end;
+
+			if (ArgumentFormatter.MaxStringLength == int.MaxValue)
+			{
+				start = 0;
+				end = value.Length;
+			}
+			else
+			{
+				var halfMaxLength = ArgumentFormatter.MaxStringLength / 2;
+				start = Math.Max(index - halfMaxLength, 0);
+				end = Math.Min(start + ArgumentFormatter.MaxStringLength, value.Length);
+				start = Math.Max(end - ArgumentFormatter.MaxStringLength, 0);
+			}
+
+			// Set the initial buffer to include the possibility of quotes and ellipses, plus a few extra
+			// characters for encoding before needing reallocation.
+			var printedValue = new StringBuilder(end - start + 10);
 			pointerIndent = 0;
 
 			if (start > 0)
@@ -315,8 +335,8 @@ namespace Xunit.Internal
 			int depth)
 		{
 			// Check for exceeded depth
-			if (depth == 50)
-				return EquivalentException.ForExceededDepth(50, prefix);
+			if (depth > maxCompareDepth.Value)
+				return EquivalentException.ForExceededDepth(maxCompareDepth.Value, prefix);
 
 			// Unwrap Lazy<T>
 			expected = UnwrapLazy(expected, out var expectedType);

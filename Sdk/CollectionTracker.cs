@@ -324,7 +324,18 @@ namespace Xunit.Sdk
 		}
 
 		/// <inheritdoc/>
-		public abstract void Dispose();
+		public void Dispose()
+		{
+			Dispose(true);
+
+			GC.SuppressFinalize(this);
+		}
+
+		/// <summary>
+		/// Override to provide an implementation of <see cref="IDisposable.Dispose"/>.
+		/// </summary>
+		/// <param name="disposing"></param>
+		protected abstract void Dispose(bool disposing);
 
 		/// <summary>
 		/// Formats the collection when you have a mismatched index. The formatted result will be the section of the
@@ -419,13 +430,11 @@ namespace Xunit.Sdk
 #endif
 	sealed class CollectionTracker<T> : CollectionTracker, IEnumerable<T>
 	{
-		const int MAX_ENUMERABLE_LENGTH_HALF = ArgumentFormatter.MAX_ENUMERABLE_LENGTH / 2;
-
 		readonly IEnumerable<T> collection;
 #if XUNIT_NULLABLE
-		Enumerator? enumerator;
+		BufferedEnumerator? enumerator;
 #else
-		Enumerator enumerator;
+		BufferedEnumerator enumerator;
 #endif
 
 		/// <summary>
@@ -448,7 +457,7 @@ namespace Xunit.Sdk
 			enumerator == null ? 0 : enumerator.CurrentIndex + 1;
 
 		/// <inheritdoc/>
-		public override void Dispose() =>
+		protected override void Dispose(bool disposing) =>
 			enumerator?.DisposeInternal();
 
 		/// <inheritdoc/>
@@ -457,7 +466,7 @@ namespace Xunit.Sdk
 			out int? pointerIndent,
 			int depth = 1)
 		{
-			if (depth == ArgumentFormatter.MAX_DEPTH)
+			if (depth > ArgumentFormatter.MaxEnumerableLength)
 			{
 				pointerIndent = 1;
 				return ArgumentFormatter.EllipsisInBrackets;
@@ -467,9 +476,9 @@ namespace Xunit.Sdk
 
 			return FormatIndexedMismatch(
 #if XUNIT_NULLABLE
-				enumerator!.CurrentItems,
+				enumerator!.CurrentItemsIndexer,
 #else
-				enumerator.CurrentItems,
+				enumerator.CurrentItemsIndexer,
 #endif
 				enumerator.MoveNext,
 				startIndex,
@@ -492,7 +501,7 @@ namespace Xunit.Sdk
 				throw new InvalidOperationException("Called FormatIndexedMismatch with indices without calling GetMismatchExtents first");
 
 			return FormatIndexedMismatch(
-				enumerator.CurrentItems,
+				enumerator.CurrentItemsIndexer,
 				enumerator.MoveNext,
 				startIndex,
 				endIndex,
@@ -517,15 +526,25 @@ namespace Xunit.Sdk
 			out int? pointerIndent,
 			int depth = 1)
 		{
-			if (depth == ArgumentFormatter.MAX_DEPTH)
+			if (depth > ArgumentFormatter.MaxEnumerableLength)
 			{
 				pointerIndent = 1;
 				return ArgumentFormatter.EllipsisInBrackets;
 			}
 
-			var startIndex = Math.Max(0, (mismatchedIndex ?? 0) - MAX_ENUMERABLE_LENGTH_HALF);
-			var endIndex = Math.Min(span.Length - 1, startIndex + ArgumentFormatter.MAX_ENUMERABLE_LENGTH - 1);
-			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+			int startIndex, endIndex;
+
+			if (ArgumentFormatter.MaxEnumerableLength == int.MaxValue)
+			{
+				startIndex = 0;
+				endIndex = span.Length - 1;
+			}
+			else
+			{
+				startIndex = Math.Max(0, (mismatchedIndex ?? 0) - ArgumentFormatter.MaxEnumerableLength / 2);
+				endIndex = Math.Min(span.Length - 1, startIndex + ArgumentFormatter.MaxEnumerableLength - 1);
+				startIndex = Math.Max(0, endIndex - ArgumentFormatter.MaxEnumerableLength + 1);
+			}
 
 			var moreItemsPastEndIndex = endIndex < span.Length - 1;
 			var items = new Dictionary<int, T>();
@@ -534,7 +553,7 @@ namespace Xunit.Sdk
 				items[idx] = span[idx];
 
 			return FormatIndexedMismatch(
-				items,
+				idx => items[idx],
 				() => moreItemsPastEndIndex,
 				startIndex,
 				endIndex,
@@ -546,7 +565,7 @@ namespace Xunit.Sdk
 #endif
 
 		static string FormatIndexedMismatch(
-			Dictionary<int, T> items,
+			Func<int, T> indexer,
 			Func<bool> moreItemsPastEndIndex,
 			int startIndex,
 			int endIndex,
@@ -568,7 +587,7 @@ namespace Xunit.Sdk
 				if (idx == mismatchedIndex)
 					pointerIndent = printedValues.Length;
 
-				printedValues.Append(ArgumentFormatter.Format(items[idx], depth));
+				printedValues.Append(ArgumentFormatter.Format(indexer(idx), depth));
 			}
 
 			if (moreItemsPastEndIndex())
@@ -581,18 +600,18 @@ namespace Xunit.Sdk
 		/// <inheritdoc/>
 		public override string FormatStart(int depth = 1)
 		{
-			if (depth == ArgumentFormatter.MAX_DEPTH)
+			if (depth > ArgumentFormatter.MaxEnumerableLength)
 				return ArgumentFormatter.EllipsisInBrackets;
 
 			if (enumerator == null)
-				enumerator = new Enumerator(collection.GetEnumerator());
+				enumerator = BufferedEnumerator.Create(collection.GetEnumerator());
 
 			// Ensure we have already seen enough data to format
-			while (enumerator.CurrentIndex <= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
+			while (enumerator.CurrentIndex <= ArgumentFormatter.MaxEnumerableLength)
 				if (!enumerator.MoveNext())
 					break;
 
-			return FormatStart(enumerator.StartItems, enumerator.CurrentIndex, depth);
+			return FormatStart(enumerator.StartItemsIndexer, enumerator.CurrentIndex, depth);
 		}
 
 		/// <summary>
@@ -607,7 +626,7 @@ namespace Xunit.Sdk
 		{
 			Assert.GuardArgumentNotNull(nameof(collection), collection);
 
-			if (depth == ArgumentFormatter.MAX_DEPTH)
+			if (depth > ArgumentFormatter.MaxEnumerableLength)
 				return ArgumentFormatter.EllipsisInBrackets;
 
 			var startItems = new List<T>();
@@ -615,7 +634,7 @@ namespace Xunit.Sdk
 			var spanEnumerator = collection.GetEnumerator();
 
 			// Ensure we have already seen enough data to format
-			while (currentIndex <= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
+			while (currentIndex <= ArgumentFormatter.MaxEnumerableLength)
 			{
 				if (!spanEnumerator.MoveNext())
 					break;
@@ -624,7 +643,7 @@ namespace Xunit.Sdk
 				++currentIndex;
 			}
 
-			return FormatStart(startItems, currentIndex, depth);
+			return FormatStart(idx => startItems[idx], currentIndex, depth);
 		}
 
 #if XUNIT_SPAN
@@ -638,7 +657,7 @@ namespace Xunit.Sdk
 			ReadOnlySpan<T> span,
 			int depth = 1)
 		{
-			if (depth == ArgumentFormatter.MAX_DEPTH)
+			if (depth > ArgumentFormatter.MaxEnumerableLength)
 				return ArgumentFormatter.EllipsisInBrackets;
 
 			var startItems = new List<T>();
@@ -646,7 +665,7 @@ namespace Xunit.Sdk
 			var spanEnumerator = span.GetEnumerator();
 
 			// Ensure we have already seen enough data to format
-			while (currentIndex <= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
+			while (currentIndex <= ArgumentFormatter.MaxEnumerableLength)
 			{
 				if (!spanEnumerator.MoveNext())
 					break;
@@ -655,27 +674,27 @@ namespace Xunit.Sdk
 				++currentIndex;
 			}
 
-			return FormatStart(startItems, currentIndex, depth);
+			return FormatStart(idx => startItems[idx], currentIndex, depth);
 		}
 #endif
 
 		static string FormatStart(
-			List<T> items,
+			Func<int, T> indexer,
 			int currentIndex,
 			int depth)
 		{
 			var printedValues = new StringBuilder("[");
-			var printLength = Math.Min(currentIndex + 1, ArgumentFormatter.MAX_ENUMERABLE_LENGTH);
+			var printLength = Math.Min(currentIndex + 1, ArgumentFormatter.MaxEnumerableLength);
 
 			for (var idx = 0; idx < printLength; ++idx)
 			{
 				if (idx != 0)
 					printedValues.Append(", ");
 
-				printedValues.Append(ArgumentFormatter.Format(items[idx], depth));
+				printedValues.Append(ArgumentFormatter.Format(indexer(idx), depth));
 			}
 
-			if (currentIndex >= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
+			if (currentIndex >= ArgumentFormatter.MaxEnumerableLength)
 				printedValues.Append(", " + ArgumentFormatter.Ellipsis);
 
 			printedValues.Append(']');
@@ -688,7 +707,7 @@ namespace Xunit.Sdk
 			if (enumerator != null)
 				throw new InvalidOperationException("Multiple enumeration is not supported");
 
-			enumerator = new Enumerator(collection.GetEnumerator());
+			enumerator = BufferedEnumerator.Create(collection.GetEnumerator());
 			return enumerator;
 		}
 
@@ -706,10 +725,18 @@ namespace Xunit.Sdk
 			out int endIndex)
 		{
 			if (enumerator == null)
-				enumerator = new Enumerator(collection.GetEnumerator());
+				enumerator = BufferedEnumerator.Create(collection.GetEnumerator());
 
-			startIndex = Math.Max(0, (mismatchedIndex ?? 0) - MAX_ENUMERABLE_LENGTH_HALF);
-			endIndex = startIndex + ArgumentFormatter.MAX_ENUMERABLE_LENGTH - 1;
+			if (ArgumentFormatter.MaxEnumerableLength == int.MaxValue)
+			{
+				startIndex = 0;
+				endIndex = int.MaxValue;
+			}
+			else
+			{
+				startIndex = Math.Max(0, (mismatchedIndex ?? 0) - ArgumentFormatter.MaxEnumerableLength / 2);
+				endIndex = startIndex + ArgumentFormatter.MaxEnumerableLength - 1;
+			}
 
 			// Make sure our window starts with startIndex and ends with endIndex, as appropriate
 			while (enumerator.CurrentIndex < endIndex)
@@ -717,7 +744,9 @@ namespace Xunit.Sdk
 					break;
 
 			endIndex = enumerator.CurrentIndex;
-			startIndex = Math.Max(0, endIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+
+			if (ArgumentFormatter.MaxEnumerableLength != int.MaxValue)
+				startIndex = Math.Max(0, endIndex - ArgumentFormatter.MaxEnumerableLength + 1);
 		}
 
 		/// <inheritdoc/>
@@ -743,19 +772,14 @@ namespace Xunit.Sdk
 		public static CollectionTracker<T> Wrap(IEnumerable<T> collection) =>
 			new CollectionTracker<T>(collection);
 
-		sealed class Enumerator : IEnumerator<T>
+		// TODO: Can't keep a ring buffer like this with int.MaxValue items
+		abstract class BufferedEnumerator : IEnumerator<T>
 		{
-			int currentItemsLastInsertionIndex = -1;
-			readonly T[] currentItemsRingBuffer = new T[ArgumentFormatter.MAX_ENUMERABLE_LENGTH];
-			readonly IEnumerator<T> innerEnumerator;
-
-			public Enumerator(IEnumerator<T> innerEnumerator)
-			{
-				this.innerEnumerator = innerEnumerator;
-			}
+			protected BufferedEnumerator(IEnumerator<T> innerEnumerator) =>
+				InnerEnumerator = innerEnumerator;
 
 			public T Current =>
-				innerEnumerator.Current;
+				InnerEnumerator.Current;
 
 #if XUNIT_NULLABLE
 			object? IEnumerator.Current =>
@@ -766,90 +790,186 @@ namespace Xunit.Sdk
 
 			public int CurrentIndex { get; private set; } = -1;
 
-			public Dictionary<int, T> CurrentItems
-			{
-				get
-				{
-					var result = new Dictionary<int, T>();
+			public abstract Func<int, T> CurrentItemsIndexer { get; }
 
-					if (CurrentIndex > -1)
-					{
-						var itemIndex = Math.Max(0, CurrentIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH + 1);
+			protected IEnumerator<T> InnerEnumerator { get; }
 
-						var indexInRingBuffer = (currentItemsLastInsertionIndex - CurrentIndex + itemIndex) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
-						if (indexInRingBuffer < 0)
-							indexInRingBuffer += ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+			public abstract Func<int, T> StartItemsIndexer { get; }
 
-						while (itemIndex <= CurrentIndex)
-						{
-							result[itemIndex] = currentItemsRingBuffer[indexInRingBuffer];
+			public static BufferedEnumerator Create(IEnumerator<T> innerEnumerator) =>
+				ArgumentFormatter.MaxEnumerableLength == int.MaxValue
+					? (BufferedEnumerator)new ListBufferedEnumerator(innerEnumerator)
+					: new RingBufferedEnumerator(innerEnumerator);
 
-							++itemIndex;
-							indexInRingBuffer = (indexInRingBuffer + 1) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
-						}
-					}
-
-					return result;
-				}
-			}
-
-			public List<T> StartItems { get; } = new List<T>();
-
-			public void Dispose()
-			{ }
+			public void Dispose() { }
 
 			public void DisposeInternal() =>
-				innerEnumerator.Dispose();
+				InnerEnumerator.Dispose();
 
-			public bool MoveNext()
+			public virtual bool MoveNext()
 			{
-				if (!innerEnumerator.MoveNext())
+				if (!InnerEnumerator.MoveNext())
 					return false;
 
 				CurrentIndex++;
-				var current = innerEnumerator.Current;
-
-				// Keep (MAX_ENUMERABLE_LENGTH + 1) items here, so we can
-				// print the start of the collection when lengths differ
-				if (CurrentIndex <= ArgumentFormatter.MAX_ENUMERABLE_LENGTH)
-					StartItems.Add(current);
-
-				// Keep a ring buffer filled with the most recent MAX_ENUMERABLE_LENGTH items
-				// so we can print out the items when we've found a bad index
-				currentItemsLastInsertionIndex = (currentItemsLastInsertionIndex + 1) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
-				currentItemsRingBuffer[currentItemsLastInsertionIndex] = current;
-
 				return true;
 			}
 
-			public void Reset()
+			public virtual void Reset()
 			{
-				innerEnumerator.Reset();
+				InnerEnumerator.Reset();
 
 				CurrentIndex = -1;
-				currentItemsLastInsertionIndex = -1;
-				StartItems.Clear();
 			}
 
-			public bool TryGetCurrentItemAt(
+			public abstract bool TryGetCurrentItemAt(
 				int index,
 #if XUNIT_NULLABLE
-				[MaybeNullWhen(false)] out T item)
+				[MaybeNullWhen(false)] out T item);
 #else
-				out T item)
+				out T item);
 #endif
+
+			// Used when ArgumentFormatter.MaxEnumerableLength is unlimited (int.MaxValue)
+			sealed class ListBufferedEnumerator : BufferedEnumerator
 			{
-				item = default;
+				readonly List<T> buffer = new List<T>();
 
-				if (index < 0 || index <= CurrentIndex - ArgumentFormatter.MAX_ENUMERABLE_LENGTH || index > CurrentIndex)
-					return false;
+				public ListBufferedEnumerator(IEnumerator<T> innerEnumerator) :
+					base(innerEnumerator)
+				{ }
 
-				var indexInRingBuffer = (currentItemsLastInsertionIndex - CurrentIndex + index) % ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
-				if (indexInRingBuffer < 0)
-					indexInRingBuffer += ArgumentFormatter.MAX_ENUMERABLE_LENGTH;
+				public override Func<int, T> CurrentItemsIndexer =>
+					idx => buffer[idx];
 
-				item = currentItemsRingBuffer[indexInRingBuffer];
-				return true;
+				public override Func<int, T> StartItemsIndexer =>
+					idx => buffer[idx];
+
+				public override bool MoveNext()
+				{
+					if (!base.MoveNext())
+						return false;
+
+					buffer.Add(InnerEnumerator.Current);
+					return true;
+				}
+
+				public override void Reset()
+				{
+					base.Reset();
+
+					buffer.Clear();
+				}
+
+				public override bool TryGetCurrentItemAt(
+					int index,
+#if XUNIT_NULLABLE
+					[MaybeNullWhen(false)] out T item)
+#else
+					out T item)
+#endif
+				{
+					if (index < 0 || index > CurrentIndex)
+					{
+						item = default;
+						return false;
+					}
+
+					item = buffer[index];
+					return true;
+				}
+			}
+
+			// Used when ArgumentFormatter.MaxEnumerableLength is not unlimited
+			sealed class RingBufferedEnumerator : BufferedEnumerator
+			{
+				int currentItemsLastInsertionIndex = -1;
+				readonly T[] currentItemsRingBuffer = new T[ArgumentFormatter.MaxEnumerableLength];
+				readonly List<T> startItems = new List<T>();
+
+				public override Func<int, T> CurrentItemsIndexer
+				{
+					get
+					{
+						var result = new Dictionary<int, T>();
+
+						if (CurrentIndex > -1)
+						{
+							var itemIndex = Math.Max(0, CurrentIndex - ArgumentFormatter.MaxEnumerableLength + 1);
+
+							var indexInRingBuffer = (currentItemsLastInsertionIndex - CurrentIndex + itemIndex) % ArgumentFormatter.MaxEnumerableLength;
+							if (indexInRingBuffer < 0)
+								indexInRingBuffer += ArgumentFormatter.MaxEnumerableLength;
+
+							while (itemIndex <= CurrentIndex)
+							{
+								result[itemIndex] = currentItemsRingBuffer[indexInRingBuffer];
+
+								++itemIndex;
+								indexInRingBuffer = (indexInRingBuffer + 1) % ArgumentFormatter.MaxEnumerableLength;
+							}
+						}
+
+						return idx => result[idx];
+					}
+				}
+
+				public override Func<int, T> StartItemsIndexer =>
+					idx => startItems[idx];
+
+				public RingBufferedEnumerator(IEnumerator<T> innerEnumerator) :
+					base(innerEnumerator)
+				{ }
+
+				public override bool MoveNext()
+				{
+					if (!base.MoveNext())
+						return false;
+
+					var current = InnerEnumerator.Current;
+
+					// Keep (MAX_ENUMERABLE_LENGTH + 1) items here, so we can
+					// print the start of the collection when lengths differ
+					if (CurrentIndex <= ArgumentFormatter.MaxEnumerableLength)
+						startItems.Add(current);
+
+					// Keep a ring buffer filled with the most recent MAX_ENUMERABLE_LENGTH items
+					// so we can print out the items when we've found a bad index
+					currentItemsLastInsertionIndex = (currentItemsLastInsertionIndex + 1) % ArgumentFormatter.MaxEnumerableLength;
+					currentItemsRingBuffer[currentItemsLastInsertionIndex] = current;
+
+					return true;
+				}
+
+				public override void Reset()
+				{
+					base.Reset();
+
+					currentItemsLastInsertionIndex = -1;
+					startItems.Clear();
+				}
+
+				public override bool TryGetCurrentItemAt(
+					int index,
+#if XUNIT_NULLABLE
+					[MaybeNullWhen(false)] out T item)
+#else
+					out T item)
+#endif
+				{
+					if (index < 0 || index <= CurrentIndex - ArgumentFormatter.MaxEnumerableLength || index > CurrentIndex)
+					{
+						item = default;
+						return false;
+					}
+
+					var indexInRingBuffer = (currentItemsLastInsertionIndex - CurrentIndex + index) % ArgumentFormatter.MaxEnumerableLength;
+					if (indexInRingBuffer < 0)
+						indexInRingBuffer += ArgumentFormatter.MaxEnumerableLength;
+
+					item = currentItemsRingBuffer[indexInRingBuffer];
+					return true;
+				}
 			}
 		}
 	}

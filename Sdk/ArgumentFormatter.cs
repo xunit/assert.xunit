@@ -6,6 +6,7 @@
 #pragma warning disable IDE0090 // Use 'new(...)'
 #pragma warning disable IDE0300 // Simplify collection initialization
 #pragma warning disable IDE0301 // Simplify collection initialization
+#pragma warning disable IDE0305 // Simplify collection initialization
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -30,6 +31,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit.Internal;
 
 #if XUNIT_ARGUMENTFORMATTER_PRIVATE
 namespace Xunit.Internal
@@ -47,27 +49,16 @@ namespace Xunit.Sdk
 #endif
 	static class ArgumentFormatter
 	{
+		static readonly Lazy<int> maxEnumerableLength = new Lazy<int>(
+			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxEnumerableLength, EnvironmentVariables.Defaults.PrintMaxEnumerableLength));
+		static readonly Lazy<int> maxObjectDepth = new Lazy<int>(
+			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxObjectDepth, EnvironmentVariables.Defaults.PrintMaxObjectDepth));
+		static readonly Lazy<int> maxObjectMemberCount = new Lazy<int>(
+			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxObjectMemberCount, EnvironmentVariables.Defaults.PrintMaxObjectMemberCount));
+		static readonly Lazy<int> maxStringLength = new Lazy<int>(
+			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxStringLength, EnvironmentVariables.Defaults.PrintMaxStringLength));
+
 		internal static readonly string EllipsisInBrackets = "[" + new string((char)0x00B7, 3) + "]";
-
-		/// <summary>
-		/// Gets the maximum printing depth, in terms of objects before truncation.
-		/// </summary>
-		public const int MAX_DEPTH = 3;
-
-		/// <summary>
-		/// Gets the maximum number of values printed for collections before truncation.
-		/// </summary>
-		public const int MAX_ENUMERABLE_LENGTH = 5;
-
-		/// <summary>
-		/// Gets the maximum number of items (properties or fields) printed in an object before truncation.
-		/// </summary>
-		public const int MAX_OBJECT_ITEM_COUNT = 5;
-
-		/// <summary>
-		/// Gets the maximum strength length before truncation.
-		/// </summary>
-		public const int MAX_STRING_LENGTH = 50;
 
 		static readonly object[] EmptyObjects = Array.Empty<object>();
 		static readonly Type[] EmptyTypes = Array.Empty<Type>();
@@ -122,6 +113,26 @@ namespace Xunit.Sdk
 		/// Gets the ellipsis value (three middle dots, aka U+00B7).
 		/// </summary>
 		public static string Ellipsis { get; } = new string((char)0x00B7, 3);
+
+		/// <summary>
+		/// Gets the maximum number of values printed for collections before truncation.
+		/// </summary>
+		public static int MaxEnumerableLength => maxEnumerableLength.Value;
+
+		/// <summary>
+		/// Gets the maximum printing depth, in terms of objects before truncation.
+		/// </summary>
+		public static int MaxObjectDepth => maxObjectDepth.Value;
+
+		/// <summary>
+		/// Gets the maximum number of items (properties or fields) printed in an object before truncation.
+		/// </summary>
+		public static int MaxObjectMemberCount => maxObjectMemberCount.Value;
+
+		/// <summary>
+		/// Gets the maximum strength length before truncation.
+		/// </summary>
+		public static int MaxStringLength => maxStringLength.Value;
 
 		/// <summary>
 		/// Escapes a string for printing, attempting to most closely model the value on how you would
@@ -281,7 +292,7 @@ namespace Xunit.Sdk
 		{
 			var typeName = isAnonymousType ? "" : type.Name + " ";
 
-			if (depth == MAX_DEPTH)
+			if (depth > MaxObjectDepth)
 				return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, Ellipsis);
 
 			var fields =
@@ -297,18 +308,16 @@ namespace Xunit.Sdk
 					.Select(p => new { name = p.Name, value = WrapAndGetFormattedValue(() => p.GetValue(value), depth) });
 
 			var parameters =
-				fields
-					.Concat(properties)
-					.OrderBy(p => p.name)
-					.Take(MAX_OBJECT_ITEM_COUNT + 1)
-					.ToList();
+				MaxObjectMemberCount == int.MaxValue
+					? fields.Concat(properties).OrderBy(p => p.name).ToList()
+					: fields.Concat(properties).OrderBy(p => p.name).Take(MaxObjectMemberCount + 1).ToList();
 
 			if (parameters.Count == 0)
 				return string.Format(CultureInfo.CurrentCulture, "{0}{{ }}", typeName);
 
-			var formattedParameters = string.Join(", ", parameters.Take(MAX_OBJECT_ITEM_COUNT).Select(p => string.Format(CultureInfo.CurrentCulture, "{0} = {1}", p.name, p.value)));
+			var formattedParameters = string.Join(", ", parameters.Take(MaxObjectMemberCount).Select(p => string.Format(CultureInfo.CurrentCulture, "{0} = {1}", p.name, p.value)));
 
-			if (parameters.Count > MAX_OBJECT_ITEM_COUNT)
+			if (parameters.Count > MaxObjectMemberCount)
 				formattedParameters += ", " + Ellipsis;
 
 			return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, formattedParameters);
@@ -331,7 +340,7 @@ namespace Xunit.Sdk
 			IEnumerable enumerable,
 			int depth)
 		{
-			if (depth == MAX_DEPTH)
+			if (depth > MaxObjectDepth)
 				return EllipsisInBrackets;
 
 			var result = new StringBuilder();
@@ -358,7 +367,7 @@ namespace Xunit.Sdk
 				if (idx != 0)
 					result.Append(", ");
 
-				if (idx == MAX_ENUMERABLE_LENGTH)
+				if (idx == MaxEnumerableLength)
 				{
 					result.Append(Ellipsis);
 					break;
@@ -387,9 +396,9 @@ namespace Xunit.Sdk
 			value = EscapeString(value).Replace(@"""", @"\"""); // escape double quotes
 #endif
 
-			if (value.Length > MAX_STRING_LENGTH)
+			if (value.Length > MaxStringLength)
 			{
-				var displayed = value.Substring(0, MAX_STRING_LENGTH);
+				var displayed = value.Substring(0, MaxStringLength);
 				return string.Format(CultureInfo.CurrentCulture, "\"{0}\"{1}", displayed, Ellipsis);
 			}
 
@@ -507,6 +516,21 @@ namespace Xunit.Sdk
 			}
 
 			return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "null";
+		}
+
+		static int GetEnvironmentValue(
+			string environmentVariableName,
+			int defaultValue,
+			bool allowMaxValue = true)
+		{
+			var stringValue = Environment.GetEnvironmentVariable(environmentVariableName);
+			if (string.IsNullOrWhiteSpace(stringValue) || !int.TryParse(stringValue, out var intValue))
+				return defaultValue;
+
+			if (intValue <= 0)
+				return allowMaxValue ? int.MaxValue : defaultValue;
+
+			return intValue;
 		}
 
 #if XUNIT_NULLABLE
