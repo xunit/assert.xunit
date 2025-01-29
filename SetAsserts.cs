@@ -44,7 +44,7 @@ namespace Xunit
 				);
 		}
 
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 		/// <summary>
 		/// Verifies that the read-only set contains the given object.
 		/// </summary>
@@ -137,7 +137,7 @@ namespace Xunit
 				);
 		}
 
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 		/// <summary>
 		/// Verifies that the read-only set does not contain the given item.
 		/// </summary>

@@ -239,7 +239,7 @@ namespace Xunit
 				Contains(expected, set);
 				return;
 			}
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 			if (collection is IReadOnlySet<T> readOnlySet)
 			{
 				Contains(expected, readOnlySet);
@@ -349,7 +349,7 @@ namespace Xunit
 				DoesNotContain(expected, set);
 				return;
 			}
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 			if (collection is IReadOnlySet<T> readOnlySet)
 			{
 				DoesNotContain(expected, readOnlySet);
