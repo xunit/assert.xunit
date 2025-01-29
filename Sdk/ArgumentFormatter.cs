@@ -143,7 +143,7 @@ namespace Xunit.Sdk
 		/// <param name="s">The string value to be escaped</param>
 		public static string EscapeString(string s)
 		{
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 			ArgumentNullException.ThrowIfNull(s);
 #else
 			if (s == null)
@@ -330,7 +330,7 @@ namespace Xunit.Sdk
 			string.Format(CultureInfo.CurrentCulture, "{0:G17}", value);
 
 		static string FormatEnumValue(object value) =>
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 			value.ToString()?.Replace(", ", " | ", StringComparison.Ordinal) ?? "null";
 #else
 			value.ToString()?.Replace(", ", " | ") ?? "null";
@@ -390,7 +390,7 @@ namespace Xunit.Sdk
 
 		static string FormatStringValue(string value)
 		{
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 			value = EscapeString(value).Replace(@"""", @"\""", StringComparison.Ordinal); // escape double quotes
 #else
 			value = EscapeString(value).Replace(@"""", @"\"""); // escape double quotes
@@ -444,7 +444,7 @@ namespace Xunit.Sdk
 			Type type,
 			bool fullTypeName = false)
 		{
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 			ArgumentNullException.ThrowIfNull(type, nameof(type));
 #else
 			if (type is null)
@@ -482,7 +482,7 @@ namespace Xunit.Sdk
 			if (result is null)
 				return type.Name;
 
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 			var tickIdx = result.IndexOf('`', StringComparison.Ordinal);
 #else
 			var tickIdx = result.IndexOf('`');
@@ -574,7 +574,7 @@ namespace Xunit.Sdk
 			if (type.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
 				return false;
 
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 			return type.Name.Contains("AnonymousType", StringComparison.Ordinal);
 #else
 			return type.Name.Contains("AnonymousType");
@@ -601,7 +601,7 @@ namespace Xunit.Sdk
 		}
 
 		static bool IsSZArrayType(this Type type) =>
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 			type.IsSZArray;
 #elif XUNIT_NULLABLE
 			type == type.GetElementType()!.MakeArrayType();

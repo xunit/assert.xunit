@@ -2,7 +2,7 @@
 
 This project contains the xUnit.net assertion library source code, intended to be used as a Git submodule (or via the `xunit.v3.assert.source` NuGet package).
 
-Code here is built with `netstandard2.0` and `net6.0` within xUnit.net v3. At a minimum the code needs to be able to support `net472` and later for .NET Framework, and `net6.0` and later for .NET. The minimum (and default) C# version is 7.3, unless specific features require targeting later compilers. Additionally, we compile with the full Roslyn analyzer set enabled when building for v3, so you will frequently see conditional code and/or rules being disabled as appropriate. These constraints are supported by the [suggested contribution workflow](#suggested-contribution-workflow), which aims to make it easy to know when you've used unavailable features.
+Code here is built with `netstandard2.0` and `net8.0` within xUnit.net v3. At a minimum the code needs to be able to support `net472` and later for .NET Framework, and `net8.0` and later for .NET. The minimum (and default) C# version is 7.3, unless specific features require targeting later compilers. Additionally, we compile with the full Roslyn analyzer set enabled when building for v3, so you will frequently see conditional code and/or rules being disabled as appropriate. These constraints are supported by the [suggested contribution workflow](#suggested-contribution-workflow), which aims to make it easy to know when you've used unavailable features.
 
 This code includes assertions for immutable collections as well as the `Span` and `Memory` family of types. If you experience compiler errors related to these types, you may need to add references to the following NuGet packages:
 

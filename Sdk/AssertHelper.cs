@@ -29,7 +29,7 @@ using Xunit.Sdk;
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 using System.Threading.Tasks;
 #endif
 
@@ -100,7 +100,7 @@ namespace Xunit.Internal
 							&& p.GetMethod != null
 							&& p.GetMethod.IsPublic
 							&& !p.GetMethod.IsStatic
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 							&& !p.GetMethod.ReturnType.IsByRefLike
 #endif
 							&& p.GetIndexParameters().Length == 0
@@ -228,7 +228,7 @@ namespace Xunit.Internal
 #endif
 			ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out var _);
 
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
 #if XUNIT_NULLABLE
 		[return: NotNullIfNotNull(nameof(data))]
@@ -637,7 +637,7 @@ namespace Xunit.Internal
 			return null;
 		}
 
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
 		static void WaitForValueTask(ValueTask valueTask)
 		{

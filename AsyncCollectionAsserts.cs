@@ -1,7 +1,7 @@
 #pragma warning disable CA1052 // Static holder types should be static
 #pragma warning disable CA1720 // Identifier contains type name
 
-#if NET6_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
 #if XUNIT_NULLABLE
 #nullable enable
