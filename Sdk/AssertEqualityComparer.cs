@@ -156,34 +156,22 @@ namespace Xunit.Sdk
 		{
 			int? _;
 
-#if XUNIT_FRAMEWORK
-			return Equals(x, y, out _);
-#else
 			using (var xTracker = x.AsNonStringTracker())
 			using (var yTracker = y.AsNonStringTracker())
 				return Equals(x, xTracker, y, yTracker, out _);
-#endif
 		}
 
 		internal bool Equals(
 #if XUNIT_NULLABLE
 			[AllowNull] T x,
-#if !XUNIT_FRAMEWORK
 			CollectionTracker? xTracker,
-#endif
 			[AllowNull] T y,
-#if !XUNIT_FRAMEWORK
 			CollectionTracker? yTracker,
-#endif
 #else
 			T x,
-#if !XUNIT_FRAMEWORK
 			CollectionTracker xTracker,
-#endif
 			T y,
-#if !XUNIT_FRAMEWORK
 			CollectionTracker yTracker,
-#endif
 #endif
 			out int? mismatchedIndex)
 		{
@@ -231,11 +219,9 @@ namespace Xunit.Sdk
 				}
 			}
 
-#if !XUNIT_FRAMEWORK
 			// Special case collections (before IStructuralEquatable because arrays implement that in a way we don't want to call)
 			if (xTracker != null && yTracker != null)
 				return CollectionTracker.AreCollectionsEqual(xTracker, yTracker, InnerComparer, InnerComparer == DefaultInnerComparer, out mismatchedIndex);
-#endif
 
 			// Implements IStructuralEquatable?
 			if (x is IStructuralEquatable structuralEquatable && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparer.Value)))
