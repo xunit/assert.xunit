@@ -4,6 +4,15 @@ This project contains the xUnit.net assertion library source code, intended to b
 
 Code here is built with `netstandard2.0` and `net6.0` within xUnit.net v3. At a minimum the code needs to be able to support `net472` and later for .NET Framework, and `net6.0` and later for .NET. The minimum (and default) C# version is 7.3, unless specific features require targeting later compilers. Additionally, we compile with the full Roslyn analyzer set enabled when building for v3, so you will frequently see conditional code and/or rules being disabled as appropriate. These constraints are supported by the [suggested contribution workflow](#suggested-contribution-workflow), which aims to make it easy to know when you've used unavailable features.
 
+This code includes assertions for immutable collections as well as the `Span` and `Memory` family of types. If you experience compiler errors related to these types, you may need to add references to the following NuGet packages:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="System.Memory" Version="4.6.0" />
+</ItemGroup>
+```
+
 > _**Note:** If your PR requires a newer target framework or a newer C# language to build, please start a discussion in the related issue(s) before starting any work. PRs that arbitrarily use newer target frameworks and/or newer C# language features will need to be fixed; you may be asked to fix them, or we may fix them for you, or we may decline the PR (at our discretion)._
 
 To open an issue for this project, please visit the [core xUnit.net project issue tracker](https://github.com/xunit/xunit/issues).
