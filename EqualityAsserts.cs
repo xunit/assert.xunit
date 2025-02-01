@@ -34,7 +34,6 @@ namespace Xunit
 		static readonly Type typeofHashSet = typeof(HashSet<>);
 		static readonly Type typeofSet = typeof(ISet<>);
 
-#if XUNIT_SPAN
 		/// <summary>
 		/// Verifies that two arrays of un-managed type T are equal, using Span&lt;T&gt;.SequenceEqual.
 		/// This can be significantly faster than generic enumerables, when the collections are actually
@@ -66,7 +65,6 @@ namespace Xunit
 				// of the sequence, including the "first mismatch" pointer
 				Equal<object>(expected, actual);
 		}
-#endif
 
 		/// <summary>
 		/// Verifies that two objects are equal, using a default comparer.
@@ -520,7 +518,6 @@ namespace Xunit
 			}
 		}
 
-#if XUNIT_SPAN
 		/// <summary>
 		/// Verifies that two arrays of un-managed type T are not equal, using Span&lt;T&gt;.SequenceEqual.
 		/// </summary>
@@ -546,7 +543,6 @@ namespace Xunit
 			if (expected.AsSpan().SequenceEqual(actual))
 				NotEqual<object>(expected, actual);
 		}
-#endif
 
 		/// <summary>
 		/// Verifies that two objects are not equal, using a default comparer.

@@ -8,11 +8,8 @@
 #endif
 
 using System.Collections.Generic;
-using Xunit.Sdk;
-
-#if XUNIT_IMMUTABLE_COLLECTIONS
 using System.Collections.Immutable;
-#endif
+using Xunit.Sdk;
 
 namespace Xunit
 {
@@ -91,7 +88,6 @@ namespace Xunit
 			SortedSet<T> set) =>
 				Contains(expected, (ISet<T>)set);
 
-#if XUNIT_IMMUTABLE_COLLECTIONS
 		/// <summary>
 		/// Verifies that the immutable hashset contains the given object.
 		/// </summary>
@@ -115,7 +111,6 @@ namespace Xunit
 			T expected,
 			ImmutableSortedSet<T> set) =>
 				Contains(expected, (ISet<T>)set);
-#endif
 
 		/// <summary>
 		/// Verifies that the set does not contain the given item.
@@ -183,7 +178,6 @@ namespace Xunit
 			SortedSet<T> set) =>
 				DoesNotContain(expected, (ISet<T>)set);
 
-#if XUNIT_IMMUTABLE_COLLECTIONS
 		/// <summary>
 		/// Verifies that the immutable hashset does not contain the given item.
 		/// </summary>
@@ -207,7 +201,6 @@ namespace Xunit
 			T expected,
 			ImmutableSortedSet<T> set) =>
 				DoesNotContain(expected, (ISet<T>)set);
-#endif
 
 		/// <summary>
 		/// Verifies that a set is a proper subset of another set.

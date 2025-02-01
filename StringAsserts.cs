@@ -62,8 +62,6 @@ namespace Xunit
 				throw ContainsException.ForSubStringNotFound(expectedSubstring, actualString);
 		}
 
-#if XUNIT_SPAN
-
 		/// <summary>
 		/// Verifies that a string contains a given sub-string, using the current culture.
 		/// </summary>
@@ -266,8 +264,6 @@ namespace Xunit
 			ReadOnlySpan<char> actualString) =>
 				Contains(expectedSubstring, actualString, StringComparison.CurrentCulture);
 
-#endif
-
 		/// <summary>
 		/// Verifies that a string does not contain a given sub-string, using the current culture.
 		/// </summary>
@@ -308,8 +304,6 @@ namespace Xunit
 					throw DoesNotContainException.ForSubStringFound(expectedSubstring, idx, actualString);
 			}
 		}
-
-#if XUNIT_SPAN
 
 		/// <summary>
 		/// Verifies that a string does not contain a given sub-string, using the current culture.
@@ -511,8 +505,6 @@ namespace Xunit
 			ReadOnlySpan<char> actualString) =>
 				DoesNotContain(expectedSubstring, actualString, StringComparison.CurrentCulture);
 
-#endif
-
 		/// <summary>
 		/// Verifies that a string does not match a regular expression.
 		/// </summary>
@@ -622,8 +614,6 @@ namespace Xunit
 			if (expectedEndString == null || actualString == null || !actualString.EndsWith(expectedEndString, comparisonType))
 				throw EndsWithException.ForStringNotFound(expectedEndString, actualString);
 		}
-
-#if XUNIT_SPAN
 
 		/// <summary>
 		/// Verifies that a string ends with a given sub-string, using the current culture.
@@ -824,8 +814,6 @@ namespace Xunit
 				throw EndsWithException.ForStringNotFound(expectedEndString.ToString(), actualString.ToString());
 		}
 
-#endif
-
 		/// <summary>
 		/// Verifies that two strings are equivalent.
 		/// </summary>
@@ -881,28 +869,13 @@ namespace Xunit
 		/// </remarks>
 
 		public static void Equal(
-#if XUNIT_SPAN
 			ReadOnlySpan<char> expected,
 			ReadOnlySpan<char> actual,
-#elif XUNIT_NULLABLE
-			string? expected,
-			string? actual,
-#else
-			string expected,
-			string actual,
-#endif
 			bool ignoreCase = false,
 			bool ignoreLineEndingDifferences = false,
 			bool ignoreWhiteSpaceDifferences = false,
 			bool ignoreAllWhiteSpace = false)
 		{
-#if !XUNIT_SPAN
-			if (expected == null && actual == null)
-				return;
-			if (expected == null || actual == null)
-				throw EqualException.ForMismatchedStrings(expected, actual, -1, -1);
-#endif
-
 			// Walk the string, keeping separate indices since we can skip variable amounts of
 			// data based on ignoreLineEndingDifferences and ignoreWhiteSpaceDifferences.
 			var expectedIndex = 0;
@@ -958,8 +931,6 @@ namespace Xunit
 			if (expectedIndex < expectedLength || actualIndex < actualLength)
 				throw EqualException.ForMismatchedStrings(expected.ToString(), actual.ToString(), expectedIndex, actualIndex);
 		}
-
-#if XUNIT_SPAN
 
 		/// <summary>
 		/// Verifies that two strings are equivalent.
@@ -1325,9 +1296,6 @@ namespace Xunit
 			bool ignoreWhiteSpaceDifferences = false,
 			bool ignoreAllWhiteSpace = false)
 		{
-			// This overload is inside #if XUNIT_SPAN because the string version is dynamically converted
-			// to a span version, so this string version is a backup that then delegates to the span version.
-
 			if (expected == null && actual == null)
 				return;
 			if (expected == null || actual == null)
@@ -1335,8 +1303,6 @@ namespace Xunit
 
 			Equal(expected.AsSpan(), actual.AsSpan(), ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
 		}
-
-#endif
 
 		/// <summary>
 		/// Verifies that a string matches a regular expression.
@@ -1415,8 +1381,6 @@ namespace Xunit
 			if (expectedStartString == null || actualString == null || !actualString.StartsWith(expectedStartString, comparisonType))
 				throw StartsWithException.ForStringNotFound(expectedStartString, actualString);
 		}
-
-#if XUNIT_SPAN
 
 		/// <summary>
 		/// Verifies that a string starts with a given sub-string, using the current culture.
@@ -1617,8 +1581,6 @@ namespace Xunit
 				throw StartsWithException.ForStringNotFound(expectedStartString.ToString(), actualString.ToString());
 		}
 
-#endif
-
 		static readonly HashSet<char> charsLineEndings = new HashSet<char>()
 		{
 			'\r',  // Carriage Return
@@ -1650,11 +1612,7 @@ namespace Xunit
 		};
 
 		static int SkipLineEnding(
-#if XUNIT_SPAN
 			ReadOnlySpan<char> value,
-#else
-			string value,
-#endif
 			int index)
 		{
 			if (value[index] == '\r')
@@ -1667,11 +1625,7 @@ namespace Xunit
 		}
 
 		static int SkipWhitespace(
-#if XUNIT_SPAN
 			ReadOnlySpan<char> value,
-#else
-			string value,
-#endif
 			int index)
 		{
 			while (index < value.Length)

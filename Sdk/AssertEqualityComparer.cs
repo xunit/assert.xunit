@@ -22,13 +22,10 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-
-#if XUNIT_IMMUTABLE_COLLECTIONS
-using System.Collections.Immutable;
-#endif
 
 #if XUNIT_NULLABLE
 using System.Diagnostics.CodeAnalysis;
@@ -192,9 +189,7 @@ namespace Xunit.Sdk
 
 			// ImmutableArray<T> defines IEquatable<ImmutableArray<T>> in a way that isn't consistent with the
 			// needs of an assertion library. https://github.com/xunit/xunit/issues/3137
-#if XUNIT_IMMUTABLE_COLLECTIONS
 			if (!xType.IsGenericType || xType.GetGenericTypeDefinition() != typeof(ImmutableArray<>))
-#endif
 			{
 				// Implements IEquatable<T>?
 				if (x is IEquatable<T> equatable)

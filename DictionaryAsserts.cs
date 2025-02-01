@@ -10,12 +10,9 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using Xunit.Sdk;
-
-#if XUNIT_IMMUTABLE_COLLECTIONS
-using System.Collections.Immutable;
-#endif
 
 namespace Xunit
 {
@@ -133,7 +130,6 @@ namespace Xunit
 #endif
 					=> Contains(expected, (IReadOnlyDictionary<TKey, TValue>)collection);
 
-#if XUNIT_IMMUTABLE_COLLECTIONS
 		/// <summary>
 		/// Verifies that a dictionary contains a given key.
 		/// </summary>
@@ -150,7 +146,6 @@ namespace Xunit
 				where TKey : notnull
 #endif
 					=> Contains(expected, (IReadOnlyDictionary<TKey, TValue>)collection);
-#endif
 
 		/// <summary>
 		/// Verifies that a dictionary does not contain a given key.
@@ -252,7 +247,6 @@ namespace Xunit
 #endif
 					=> DoesNotContain(expected, (IReadOnlyDictionary<TKey, TValue>)collection);
 
-#if XUNIT_IMMUTABLE_COLLECTIONS
 		/// <summary>
 		/// Verifies that a dictionary does not contain a given key.
 		/// </summary>
@@ -268,6 +262,5 @@ namespace Xunit
 				where TKey : notnull
 #endif
 					=> DoesNotContain(expected, (IReadOnlyDictionary<TKey, TValue>)collection);
-#endif
 	}
 }

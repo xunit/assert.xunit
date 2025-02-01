@@ -511,7 +511,6 @@ namespace Xunit.Sdk
 			);
 		}
 
-#if XUNIT_SPAN
 		/// <summary>
 		/// Formats a span with a mismatched index.
 		/// </summary>
@@ -562,7 +561,6 @@ namespace Xunit.Sdk
 				depth
 			);
 		}
-#endif
 
 		static string FormatIndexedMismatch(
 			Func<int, T> indexer,
@@ -646,7 +644,6 @@ namespace Xunit.Sdk
 			return FormatStart(idx => startItems[idx], currentIndex, depth);
 		}
 
-#if XUNIT_SPAN
 		/// <summary>
 		/// Formats the beginning part of a span.
 		/// </summary>
@@ -676,7 +673,6 @@ namespace Xunit.Sdk
 
 			return FormatStart(idx => startItems[idx], currentIndex, depth);
 		}
-#endif
 
 		static string FormatStart(
 			Func<int, T> indexer,

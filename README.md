@@ -12,17 +12,9 @@ To open an issue for this project, please visit the [core xUnit.net project issu
 
 Whether you are using this repository via Git submodule or via the [source-based NuGet package](https://www.nuget.org/packages/xunit.assert.source), the following pre-processor directives can be used to influence the code contained in this repository:
 
-### `XUNIT_IMMUTABLE_COLLECTIONS` (min: C# 7.3)
-
-There are assertions that target immutable collections. If you are using a target framework that is compatible with [`System.Collections.Immutable`](https://www.nuget.org/packages/System.Collections.Immutable), you should define `XUNIT_IMMUTABLE_COLLECTIONS` to enable the additional versions of those assertions that will consume immutable collections.
-
 ### `XUNIT_NULLABLE` (min: C# 9.0)
 
 Projects that consume this repository as source, which wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
-
-### `XUNIT_SPAN` (min: C# 7.3)
-
-There are optimized versions of `Assert.Equal` for arrays which use `Span<T>`- and/or `Memory<T>`-based comparison options. If you are using a target framework that supports `Span<T>` and `Memory<T>`, you should define `XUNIT_SPAN` to enable these new assertions. You may need to add a reference to [`System.Memory`](https://www.nuget.org/packages/System.Memory) for older target frameworks.
 
 ### `XUNIT_VISIBILITY_INTERNAL`
 
