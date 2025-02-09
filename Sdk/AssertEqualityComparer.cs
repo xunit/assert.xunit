@@ -10,7 +10,6 @@
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8601
-#pragma warning disable CS8602
 #pragma warning disable CS8604
 #pragma warning disable CS8605
 #pragma warning disable CS8618
@@ -111,11 +110,10 @@ namespace Xunit.Sdk
 	}
 
 	/// <summary>
-	/// Default implementation of <see cref="IEqualityComparer{T}"/> used by the xUnit.net equality assertions
-	/// (except for collections, which are handled directly by the appropriate assertion methods).
+	/// Default implementation of <see cref="IAssertEqualityComparer{T}" /> used by the assertion library.
 	/// </summary>
 	/// <typeparam name="T">The type that is being compared.</typeparam>
-	sealed class AssertEqualityComparer<T> : IEqualityComparer<T>
+	sealed class AssertEqualityComparer<T> : IAssertEqualityComparer<T>
 	{
 		internal static readonly IEqualityComparer DefaultInnerComparer = AssertEqualityComparer.GetDefaultInnerComparer(typeof(T));
 
@@ -144,45 +142,45 @@ namespace Xunit.Sdk
 		/// <inheritdoc/>
 		public bool Equals(
 #if XUNIT_NULLABLE
-			[AllowNull] T x,
-			[AllowNull] T y)
+			T? x,
+			T? y)
 #else
 			T x,
 			T y)
 #endif
 		{
-			int? _;
-
 			using (var xTracker = x.AsNonStringTracker())
 			using (var yTracker = y.AsNonStringTracker())
-				return Equals(x, xTracker, y, yTracker, out _);
+				return Equals(x, xTracker, y, yTracker).Equal;
 		}
 
-		internal bool Equals(
+		/// <inheritdoc/>
+		public AssertEqualityResult Equals(
 #if XUNIT_NULLABLE
-			[AllowNull] T x,
+			T? x,
 			CollectionTracker? xTracker,
-			[AllowNull] T y,
-			CollectionTracker? yTracker,
+			T? y,
+			CollectionTracker? yTracker)
 #else
 			T x,
 			CollectionTracker xTracker,
 			T y,
-			CollectionTracker yTracker,
+			CollectionTracker yTracker)
 #endif
-			out int? mismatchedIndex)
 		{
-			mismatchedIndex = null;
-
 			// Null?
 			if (x == null && y == null)
-				return true;
+				return AssertEqualityResult.ForResult(true, x, y);
 			if (x == null || y == null)
-				return false;
+				return AssertEqualityResult.ForResult(false, x, y);
 
 			// If you point at the same thing, you're equal
 			if (ReferenceEquals(x, y))
-				return true;
+				return AssertEqualityResult.ForResult(true, x, y);
+
+			// We want the inequality indices for strings
+			if (x is string xString && y is string yString)
+				return StringAssertEqualityComparer.Equivalent(xString, yString);
 
 			var xType = x.GetType();
 			var yType = y.GetType();
@@ -193,7 +191,7 @@ namespace Xunit.Sdk
 			{
 				// Implements IEquatable<T>?
 				if (x is IEquatable<T> equatable)
-					return equatable.Equals(y);
+					return AssertEqualityResult.ForResult(equatable.Equals(y), x, y);
 
 				// Implements IEquatable<typeof(y)>?
 				if (xType != yType)
@@ -203,12 +201,12 @@ namespace Xunit.Sdk
 					{
 						var equalsMethod = iequatableY.GetMethod(nameof(IEquatable<T>.Equals));
 						if (equalsMethod == null)
-							return false;
+							return AssertEqualityResult.ForResult(false, x, y);
 
 #if XUNIT_NULLABLE
-						return equalsMethod.Invoke(x, new object[] { y }) is true;
+						return AssertEqualityResult.ForResult(equalsMethod.Invoke(x, new object[] { y }) is true, x, y);
 #else
-						return (bool)equalsMethod.Invoke(x, new object[] { y });
+						return AssertEqualityResult.ForResult((bool)equalsMethod.Invoke(x, new object[] { y }), x, y);
 #endif
 					}
 				}
@@ -216,17 +214,17 @@ namespace Xunit.Sdk
 
 			// Special case collections (before IStructuralEquatable because arrays implement that in a way we don't want to call)
 			if (xTracker != null && yTracker != null)
-				return CollectionTracker.AreCollectionsEqual(xTracker, yTracker, InnerComparer, InnerComparer == DefaultInnerComparer, out mismatchedIndex);
+				return CollectionTracker.AreCollectionsEqual(xTracker, yTracker, InnerComparer, InnerComparer == DefaultInnerComparer);
 
 			// Implements IStructuralEquatable?
 			if (x is IStructuralEquatable structuralEquatable && structuralEquatable.Equals(y, new TypeErasedEqualityComparer(innerComparer.Value)))
-				return true;
+				return AssertEqualityResult.ForResult(true, x, y);
 
 			// Implements IComparable<T>?
 			if (x is IComparable<T> comparableGeneric)
 				try
 				{
-					return comparableGeneric.CompareTo(y) == 0;
+					return AssertEqualityResult.ForResult(comparableGeneric.CompareTo(y) == 0, x, y);
 				}
 				catch
 				{
@@ -243,14 +241,14 @@ namespace Xunit.Sdk
 				{
 					var compareToMethod = icomparableY.GetMethod(nameof(IComparable<T>.CompareTo));
 					if (compareToMethod == null)
-						return false;
+						return AssertEqualityResult.ForResult(false, x, y);
 
 					try
 					{
 #if XUNIT_NULLABLE
-						return compareToMethod.Invoke(x, new object[] { y }) is 0;
+						return AssertEqualityResult.ForResult(compareToMethod.Invoke(x, new object[] { y }) is 0, x, y);
 #else
-						return (int)compareToMethod.Invoke(x, new object[] { y }) == 0;
+						return AssertEqualityResult.ForResult((int)compareToMethod.Invoke(x, new object[] { y }) == 0, x, y);
 #endif
 					}
 					catch
@@ -266,7 +264,7 @@ namespace Xunit.Sdk
 			if (x is IComparable comparable)
 				try
 				{
-					return comparable.CompareTo(y) == 0;
+					return AssertEqualityResult.ForResult(comparable.CompareTo(y) == 0, x, y);
 				}
 				catch
 				{
@@ -287,7 +285,7 @@ namespace Xunit.Sdk
 				if (xKey == null)
 				{
 					if (yKey != null)
-						return false;
+						return AssertEqualityResult.ForResult(false, x, y);
 				}
 				else
 				{
@@ -296,24 +294,24 @@ namespace Xunit.Sdk
 
 					var keyComparer = AssertEqualityComparer.GetDefaultComparer(xKeyType == yKeyType ? xKeyType : typeof(object));
 					if (!keyComparer.Equals(xKey, yKey))
-						return false;
+						return AssertEqualityResult.ForResult(false, x, y);
 				}
 
 				var xValue = xType.GetRuntimeProperty("Value")?.GetValue(x);
 				var yValue = yType.GetRuntimeProperty("Value")?.GetValue(y);
 
 				if (xValue == null)
-					return yValue == null;
+					return AssertEqualityResult.ForResult(yValue is null, x, y);
 
 				var xValueType = xValue.GetType();
 				var yValueType = yValue?.GetType();
 
 				var valueComparer = AssertEqualityComparer.GetDefaultComparer(xValueType == yValueType ? xValueType : typeof(object));
-				return valueComparer.Equals(xValue, yValue);
+				return AssertEqualityResult.ForResult(valueComparer.Equals(xValue, yValue), x, y);
 			}
 
 			// Last case, rely on object.Equals
-			return object.Equals(x, y);
+			return AssertEqualityResult.ForResult(object.Equals(x, y), x, y);
 		}
 
 #if XUNIT_NULLABLE

@@ -7,6 +7,7 @@
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8600
 #pragma warning disable CS8604
+#pragma warning disable CS8625
 #endif
 
 using System;
@@ -125,6 +126,7 @@ namespace Xunit
 			var expectedTracker = expected.AsNonStringTracker();
 			var actualTracker = actual.AsNonStringTracker();
 			var exception = default(Exception);
+			var mismatchedIndex = default(int?);
 
 			try
 			{
@@ -149,8 +151,6 @@ namespace Xunit
 				}
 				else
 				{
-					int? mismatchedIndex = null;
-
 					// If we have "known" comparers, we can ignore them and instead do our own thing, since we know
 					// we want to be able to consume the tracker, and that's not type compatible.
 					var itemComparer = default(IEqualityComparer);
@@ -175,23 +175,36 @@ namespace Xunit
 
 					if (itemComparer != null)
 					{
-						try
-						{
-							bool result;
+						AssertEqualityResult result;
 
-							// Call AssertEqualityComparer.Equals because it checks for IEquatable<> before using CollectionTracker
-							if (aec != null)
-								result = aec.Equals(expected, expectedTracker, actual, actualTracker, out mismatchedIndex);
-							else
-								result = CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer, out mismatchedIndex);
+						// Call AssertEqualityComparer.Equals because it checks for IEquatable<> before using CollectionTracker
+						if (aec != null)
+							result = aec.Equals(expected, expectedTracker, actual, actualTracker);
+						else
+							result = CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer);
 
-							if (result)
-								return;
-						}
-						catch (Exception ex)
+						if (result.Equal)
+							return;
+
+						if (result.InnerResult is AssertEqualityResult innerResult)
 						{
-							exception = ex;
+							var innerExpectedString = innerResult.X as string;
+							var innerExpectedMismatch = innerResult.MismatchIndexX;
+							var innerActualString = innerResult.Y as string;
+							var innerActualMismatch = innerResult.MismatchIndexY;
+
+							if ((innerExpectedString != null || innerActualString != null) && innerExpectedMismatch.HasValue && innerActualMismatch.HasValue)
+								throw EqualException.ForMismatchedStrings(
+									innerExpectedString,
+									innerActualString,
+									innerExpectedMismatch.Value,
+									innerActualMismatch.Value,
+									"Collections differ at index " + result.MismatchIndexX
+								);
 						}
+
+						exception = result.Exception;
+						mismatchedIndex = result.MismatchIndexX;
 
 						var expectedStartIdx = -1;
 						var expectedEndIdx = -1;
@@ -600,6 +613,7 @@ namespace Xunit
 			var expectedTracker = expected.AsNonStringTracker();
 			var actualTracker = actual.AsNonStringTracker();
 			var exception = default(Exception);
+			var mismatchedIndex = default(int?);
 
 			try
 			{
@@ -637,8 +651,6 @@ namespace Xunit
 				}
 				else
 				{
-					int? mismatchedIndex = null;
-
 					// If we have "known" comparers, we can ignore them and instead do our own thing, since we know
 					// we want to be able to consume the tracker, and that's not type compatible.
 					var itemComparer = default(IEqualityComparer);
@@ -656,27 +668,29 @@ namespace Xunit
 
 					if (itemComparer != null)
 					{
-						try
+						AssertEqualityResult result;
+
+						// Call AssertEqualityComparer.Equals because it checks for IEquatable<> before using CollectionTracker
+						if (aec != null)
+							result = aec.Equals(expected, expectedTracker, actual, actualTracker);
+						else
+							result = CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer);
+
+						if (!result.Equal && result.Exception is null)
+							return;
+
+						mismatchedIndex = result.MismatchIndexX;
+
+						if (result.Exception is null)
 						{
-							bool result;
-
-							// Call AssertEqualityComparer.Equals because it checks for IEquatable<> before using CollectionTracker
-							if (aec != null)
-								result = aec.Equals(expected, expectedTracker, actual, actualTracker, out mismatchedIndex);
-							else
-								result = CollectionTracker.AreCollectionsEqual(expectedTracker, actualTracker, itemComparer, itemComparer == AssertEqualityComparer<T>.DefaultInnerComparer, out mismatchedIndex);
-
-							if (!result)
-								return;
-
 							// For NotEqual that doesn't throw, pointers are irrelevant, because
 							// the values are considered to be equal
 							formattedExpected = expectedTracker?.FormatStart() ?? "null";
 							formattedActual = actualTracker?.FormatStart() ?? "null";
 						}
-						catch (Exception ex)
+						else
 						{
-							exception = ex;
+							exception = result.Exception;
 
 							// When an exception was thrown, we want to provide a pointer so the user knows
 							// which item was being inspected when the exception was thrown

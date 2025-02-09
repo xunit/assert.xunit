@@ -1,9 +1,11 @@
+#pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable IDE0290 // Use primary constructor
 
 #if XUNIT_NULLABLE
 #nullable enable
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
+#pragma warning disable CS8604
 #pragma warning disable CS8767
 #endif
 
@@ -17,7 +19,7 @@ namespace Xunit.Sdk
 	/// A class that wraps <see cref="IEqualityComparer{T}"/> to add <see cref="IEqualityComparer"/>.
 	/// </summary>
 	/// <typeparam name="T">The type that is being compared.</typeparam>
-	sealed class AssertEqualityComparerAdapter<T> : IEqualityComparer, IEqualityComparer<T>
+	sealed class AssertEqualityComparerAdapter<T> : IEqualityComparer, IAssertEqualityComparer<T>
 	{
 		readonly IEqualityComparer<T> innerComparer;
 
@@ -51,6 +53,24 @@ namespace Xunit.Sdk
 #endif
 				innerComparer.Equals(x, y);
 
+		public AssertEqualityResult Equals(
+#if XUNIT_NULLABLE
+			T? x,
+			CollectionTracker? xTracker,
+			T? y,
+			CollectionTracker? yTracker)
+#else
+			T x,
+			CollectionTracker xTracker,
+			T y,
+			CollectionTracker yTracker)
+#endif
+		{
+			if (innerComparer is IAssertEqualityComparer<T> innerAssertEqualityComparer)
+				return innerAssertEqualityComparer.Equals(x, xTracker, y, yTracker);
+
+			return AssertEqualityResult.ForResult(Equals(x, y), x, y);
+		}
 
 		/// <inheritdoc/>
 		public int GetHashCode(object obj) =>

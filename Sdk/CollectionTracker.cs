@@ -1,4 +1,5 @@
 #pragma warning disable CA1000 // Do not declare static members on generic types
+#pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1063 // Implement IDisposable Correctly
 #pragma warning disable CA2213 // We move disposal to DisposeInternal, due to https://github.com/xunit/xunit/issues/2762
 #pragma warning disable IDE0019 // Use pattern matching
@@ -14,17 +15,21 @@
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8601
+#pragma warning disable CS8602
 #pragma warning disable CS8603
 #pragma warning disable CS8604
 #pragma warning disable CS8605
 #pragma warning disable CS8618
+#pragma warning disable CS8625
 #endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 
 #if XUNIT_NULLABLE
@@ -60,7 +65,7 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Gets the inner enumerable that this collection track is wrapping. This is mostly
 		/// provided for simplifying other APIs which require both the tracker and the collection
-		/// (for example, <see cref="AreCollectionsEqual"/>).
+		/// (for example, <see cref="AreCollectionsEqual(CollectionTracker?, CollectionTracker?, IEqualityComparer, bool)"/>).
 		/// </summary>
 		protected internal IEnumerable InnerEnumerable { get; protected set; }
 
@@ -75,6 +80,8 @@ namespace Xunit.Sdk
 		/// comparer from <see cref="AssertEqualityComparer{T}"/>; pass <c>false</c>, otherwise.</param>
 		/// <param name="mismatchedIndex">The output mismatched item index when the collections are not equal</param>
 		/// <returns>Returns <c>true</c> if the collections are equal; <c>false</c>, otherwise.</returns>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Please use the overload that returns AssertEqualityResult")]
 		public static bool AreCollectionsEqual(
 #if XUNIT_NULLABLE
 			CollectionTracker? x,
@@ -87,18 +94,26 @@ namespace Xunit.Sdk
 			bool isDefaultItemComparer,
 			out int? mismatchedIndex)
 		{
-			Assert.GuardArgumentNotNull(nameof(itemComparer), itemComparer);
+			var result = AreCollectionsEqual(x, y, itemComparer, isDefaultItemComparer);
 
-			mismatchedIndex = null;
+			if (result.Exception != null)
+				ExceptionDispatchInfo.Capture(result.Exception).Throw();
 
-			return
-				CheckIfDictionariesAreEqual(x, y) ??
-				CheckIfSetsAreEqual(x, y, isDefaultItemComparer ? null : itemComparer) ??
-				CheckIfArraysAreEqual(x, y, itemComparer, isDefaultItemComparer, out mismatchedIndex) ??
-				CheckIfEnumerablesAreEqual(x, y, itemComparer, isDefaultItemComparer, out mismatchedIndex);
+			mismatchedIndex = result.MismatchIndexX;
+			return result.Equal;
 		}
 
-		static bool? CheckIfArraysAreEqual(
+		/// <summary>
+		/// Determine if two enumerable collections are equal. It contains logic that varies depending
+		/// on the collection type (supporting arrays, dictionaries, sets, and generic enumerables).
+		/// </summary>
+		/// <param name="x">First value to compare</param>
+		/// <param name="y">Second value to comare</param>
+		/// <param name="itemComparer">The comparer used for individual item comparisons</param>
+		/// <param name="isDefaultItemComparer">Pass <c>true</c> if the <paramref name="itemComparer"/> is the default item
+		/// comparer from <see cref="AssertEqualityComparer{T}"/>; pass <c>false</c>, otherwise.</param>
+		/// <returns>Returns <c>true</c> if the collections are equal; <c>false</c>, otherwise.</returns>
+		public static AssertEqualityResult AreCollectionsEqual(
 #if XUNIT_NULLABLE
 			CollectionTracker? x,
 			CollectionTracker? y,
@@ -107,11 +122,36 @@ namespace Xunit.Sdk
 			CollectionTracker y,
 #endif
 			IEqualityComparer itemComparer,
-			bool isDefaultItemComparer,
-			out int? mismatchedIndex)
+			bool isDefaultItemComparer)
 		{
-			mismatchedIndex = null;
+			Assert.GuardArgumentNotNull(nameof(itemComparer), itemComparer);
 
+			try
+			{
+				return
+					CheckIfDictionariesAreEqual(x, y) ??
+					CheckIfSetsAreEqual(x, y, isDefaultItemComparer ? null : itemComparer) ??
+					CheckIfArraysAreEqual(x, y, itemComparer, isDefaultItemComparer) ??
+					CheckIfEnumerablesAreEqual(x, y, itemComparer, isDefaultItemComparer);
+			}
+			catch (Exception ex)
+			{
+				return AssertEqualityResult.ForResult(false, x?.InnerEnumerable, y?.InnerEnumerable, ex);
+			}
+		}
+
+#if XUNIT_NULLABLE
+		static AssertEqualityResult? CheckIfArraysAreEqual(
+			CollectionTracker? x,
+			CollectionTracker? y,
+#else
+		static AssertEqualityResult CheckIfArraysAreEqual(
+			CollectionTracker x,
+			CollectionTracker y,
+#endif
+			IEqualityComparer itemComparer,
+			bool isDefaultItemComparer)
+		{
 			if (x == null || y == null)
 				return null;
 
@@ -125,16 +165,16 @@ namespace Xunit.Sdk
 			// version, since that's uses the trackers and gets us the mismatch pointer.
 			if (expectedArray.Rank == 1 && expectedArray.GetLowerBound(0) == 0 &&
 				actualArray.Rank == 1 && actualArray.GetLowerBound(0) == 0)
-				return CheckIfEnumerablesAreEqual(x, y, itemComparer, isDefaultItemComparer, out mismatchedIndex);
+				return CheckIfEnumerablesAreEqual(x, y, itemComparer, isDefaultItemComparer);
 
 			if (expectedArray.Rank != actualArray.Rank)
-				return false;
+				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 
 			// Differing bounds, aka object[2,1] vs. object[1,2]
 			// You can also have non-zero-based arrays, so we don't just check lengths
 			for (var rank = 0; rank < expectedArray.Rank; rank++)
 				if (expectedArray.GetLowerBound(rank) != actualArray.GetLowerBound(rank) || expectedArray.GetUpperBound(rank) != actualArray.GetUpperBound(rank))
-					return false;
+					return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 
 			// Enumeration will flatten everything identically, so just enumerate at this point
 			var expectedEnumerator = x.GetSafeEnumerator();
@@ -146,18 +186,19 @@ namespace Xunit.Sdk
 				var hasActual = actualEnumerator.MoveNext();
 
 				if (!hasExpected || !hasActual)
-					return hasExpected == hasActual;
+					return AssertEqualityResult.ForResult(hasExpected == hasActual, x.InnerEnumerable, y.InnerEnumerable);
 
 				if (!itemComparer.Equals(expectedEnumerator.Current, actualEnumerator.Current))
-					return false;
+					return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 			}
 		}
 
-		static bool? CheckIfDictionariesAreEqual(
 #if XUNIT_NULLABLE
+		static AssertEqualityResult? CheckIfDictionariesAreEqual(
 			CollectionTracker? x,
 			CollectionTracker? y)
 #else
+		static AssertEqualityResult CheckIfDictionariesAreEqual(
 			CollectionTracker x,
 			CollectionTracker y)
 #endif
@@ -172,7 +213,7 @@ namespace Xunit.Sdk
 				return null;
 
 			if (dictionaryX.Count != dictionaryY.Count)
-				return false;
+				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 
 			var dictionaryYKeys = new HashSet<object>(dictionaryY.Keys.Cast<object>());
 
@@ -182,7 +223,7 @@ namespace Xunit.Sdk
 			foreach (var key in dictionaryX.Keys.Cast<object>())
 			{
 				if (!dictionaryYKeys.Contains(key))
-					return false;
+					return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 
 				var valueX = dictionaryX[key];
 				var valueY = dictionaryY[key];
@@ -190,10 +231,10 @@ namespace Xunit.Sdk
 				if (valueX == null)
 				{
 					if (valueY != null)
-						return false;
+						return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 				}
 				else if (valueY == null)
-					return false;
+					return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 				else
 				{
 					var valueXType = valueX.GetType();
@@ -201,16 +242,16 @@ namespace Xunit.Sdk
 
 					var comparer = AssertEqualityComparer.GetDefaultComparer(valueXType == valueYType ? valueXType : typeof(object));
 					if (!comparer.Equals(valueX, valueY))
-						return false;
+						return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 				}
 
 				dictionaryYKeys.Remove(key);
 			}
 
-			return dictionaryYKeys.Count == 0;
+			return AssertEqualityResult.ForResult(dictionaryYKeys.Count == 0, x.InnerEnumerable, y.InnerEnumerable);
 		}
 
-		static bool CheckIfEnumerablesAreEqual(
+		static AssertEqualityResult CheckIfEnumerablesAreEqual(
 #if XUNIT_NULLABLE
 			CollectionTracker? x,
 			CollectionTracker? y,
@@ -219,20 +260,24 @@ namespace Xunit.Sdk
 			CollectionTracker y,
 #endif
 			IEqualityComparer itemComparer,
-			bool isDefaultItemComparer,
-			out int? mismatchIndex)
+			bool isDefaultItemComparer)
 		{
-			mismatchIndex = null;
-
 			if (x == null)
-				return y == null;
+				return AssertEqualityResult.ForResult(y == null, null, y?.InnerEnumerable);
 			if (y == null)
-				return false;
+				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, null);
+
+			var assertQualityComparererType =
+				itemComparer
+					.GetType()
+					.GetInterfaces()
+					.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAssertEqualityComparer<>));
+			var comparisonType = assertQualityComparererType?.GenericTypeArguments[0];
+			var equalsMethod = assertQualityComparererType?.GetMethod("Equals");
 
 			var enumeratorX = x.GetSafeEnumerator();
 			var enumeratorY = y.GetSafeEnumerator();
-
-			mismatchIndex = 0;
+			var mismatchIndex = 0;
 
 			while (true)
 			{
@@ -240,15 +285,9 @@ namespace Xunit.Sdk
 				var hasNextY = enumeratorY.MoveNext();
 
 				if (!hasNextX || !hasNextY)
-				{
-					if (hasNextX == hasNextY)
-					{
-						mismatchIndex = null;
-						return true;
-					}
-
-					return false;
-				}
+					return hasNextX == hasNextY
+						? AssertEqualityResult.ForResult(true, x.InnerEnumerable, y.InnerEnumerable)
+						: AssertEqualityResult.ForMismatch(x.InnerEnumerable, y.InnerEnumerable, mismatchIndex);
 
 				var xCurrent = enumeratorX.Current;
 				var yCurrent = enumeratorY.Current;
@@ -256,27 +295,46 @@ namespace Xunit.Sdk
 				using (var xCurrentTracker = isDefaultItemComparer ? xCurrent.AsNonStringTracker() : null)
 				using (var yCurrentTracker = isDefaultItemComparer ? yCurrent.AsNonStringTracker() : null)
 				{
-					if (xCurrentTracker != null && yCurrentTracker != null)
+					try
 					{
-						int? _;
-						var innerCompare = AreCollectionsEqual(xCurrentTracker, yCurrentTracker, AssertEqualityComparer<object>.DefaultInnerComparer, true, out _);
-						if (!innerCompare)
-							return false;
+						if (xCurrentTracker != null && yCurrentTracker != null)
+						{
+							var innerCompare = AreCollectionsEqual(xCurrentTracker, yCurrentTracker, AssertEqualityComparer<object>.DefaultInnerComparer, true);
+							if (!innerCompare.Equal)
+								return AssertEqualityResult.ForMismatch(x.InnerEnumerable, y.InnerEnumerable, mismatchIndex, innerResult: innerCompare);
+						}
+						else
+						{
+							var assertEqualityResult = default(AssertEqualityResult);
+							if (comparisonType?.IsAssignableFrom(xCurrent?.GetType()) == true && comparisonType?.IsAssignableFrom(yCurrent?.GetType()) == true)
+								assertEqualityResult = equalsMethod?.Invoke(itemComparer, new[] { xCurrent, null, yCurrent, null }) as AssertEqualityResult;
+
+							if (assertEqualityResult != null)
+							{
+								if (!assertEqualityResult.Equal)
+									return AssertEqualityResult.ForMismatch(x.InnerEnumerable, y.InnerEnumerable, mismatchIndex, innerResult: assertEqualityResult);
+							}
+							else if (!itemComparer.Equals(xCurrent, yCurrent))
+								return AssertEqualityResult.ForMismatch(x.InnerEnumerable, y.InnerEnumerable, mismatchIndex);
+						}
 					}
-					else if (!itemComparer.Equals(xCurrent, yCurrent))
-						return false;
+					catch (Exception ex)
+					{
+						return AssertEqualityResult.ForMismatch(x.InnerEnumerable, y.InnerEnumerable, mismatchIndex, ex);
+					}
 
 					mismatchIndex++;
 				}
 			}
 		}
 
-		static bool? CheckIfSetsAreEqual(
 #if XUNIT_NULLABLE
+		static AssertEqualityResult? CheckIfSetsAreEqual(
 			CollectionTracker? x,
 			CollectionTracker? y,
 			IEqualityComparer? itemComparer)
 #else
+		static AssertEqualityResult CheckIfSetsAreEqual(
 			CollectionTracker x,
 			CollectionTracker y,
 			IEqualityComparer itemComparer)
@@ -292,13 +350,13 @@ namespace Xunit.Sdk
 				return null;
 
 			if (elementTypeX != elementTypeY)
-				return false;
+				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 
 			var genericCompareMethod = openGenericCompareTypedSetsMethod.MakeGenericMethod(elementTypeX);
 #if XUNIT_NULLABLE
-			return (bool)genericCompareMethod.Invoke(null, new object?[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer })!;
+			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object?[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer })!, x.InnerEnumerable, y.InnerEnumerable);
 #else
-			return (bool)genericCompareMethod.Invoke(null, new object[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer });
+			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer }), x.InnerEnumerable, y.InnerEnumerable);
 #endif
 		}
 

@@ -10,7 +10,6 @@
 #endif
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Xunit.Internal;
@@ -876,60 +875,9 @@ namespace Xunit
 			bool ignoreWhiteSpaceDifferences = false,
 			bool ignoreAllWhiteSpace = false)
 		{
-			// Walk the string, keeping separate indices since we can skip variable amounts of
-			// data based on ignoreLineEndingDifferences and ignoreWhiteSpaceDifferences.
-			var expectedIndex = 0;
-			var actualIndex = 0;
-			var expectedLength = expected.Length;
-			var actualLength = actual.Length;
-
-			// Block used to fix edge case of Equal("", " ") when ignoreAllWhiteSpace enabled.
-			if (ignoreAllWhiteSpace)
-			{
-				if (expectedLength == 0 && SkipWhitespace(actual, 0) == actualLength)
-					return;
-				if (actualLength == 0 && SkipWhitespace(expected, 0) == expectedLength)
-					return;
-			}
-
-			while (expectedIndex < expectedLength && actualIndex < actualLength)
-			{
-				var expectedChar = expected[expectedIndex];
-				var actualChar = actual[actualIndex];
-
-				if (ignoreLineEndingDifferences && charsLineEndings.Contains(expectedChar) && charsLineEndings.Contains(actualChar))
-				{
-					expectedIndex = SkipLineEnding(expected, expectedIndex);
-					actualIndex = SkipLineEnding(actual, actualIndex);
-				}
-				else if (ignoreAllWhiteSpace && (charsWhitespace.Contains(expectedChar) || charsWhitespace.Contains(actualChar)))
-				{
-					expectedIndex = SkipWhitespace(expected, expectedIndex);
-					actualIndex = SkipWhitespace(actual, actualIndex);
-				}
-				else if (ignoreWhiteSpaceDifferences && charsWhitespace.Contains(expectedChar) && charsWhitespace.Contains(actualChar))
-				{
-					expectedIndex = SkipWhitespace(expected, expectedIndex);
-					actualIndex = SkipWhitespace(actual, actualIndex);
-				}
-				else
-				{
-					if (ignoreCase)
-					{
-						expectedChar = char.ToUpperInvariant(expectedChar);
-						actualChar = char.ToUpperInvariant(actualChar);
-					}
-
-					if (expectedChar != actualChar)
-						break;
-
-					expectedIndex++;
-					actualIndex++;
-				}
-			}
-
-			if (expectedIndex < expectedLength || actualIndex < actualLength)
-				throw EqualException.ForMismatchedStrings(expected.ToString(), actual.ToString(), expectedIndex, actualIndex);
+			var result = StringAssertEqualityComparer.Equivalent(expected, actual, ignoreCase, ignoreLineEndingDifferences, ignoreWhiteSpaceDifferences, ignoreAllWhiteSpace);
+			if (!result.Equal)
+				throw EqualException.ForMismatchedStrings(expected.ToString(), actual.ToString(), result.MismatchIndexX ?? -1, result.MismatchIndexY ?? -1);
 		}
 
 		/// <summary>
@@ -1686,64 +1634,6 @@ namespace Xunit
 		{
 			if (!actualString.StartsWith(expectedStartString, comparisonType))
 				throw StartsWithException.ForStringNotFound(expectedStartString.ToString(), actualString.ToString());
-		}
-
-		static readonly HashSet<char> charsLineEndings = new HashSet<char>()
-		{
-			'\r',  // Carriage Return
-			'\n',  // Line feed
-		};
-		static readonly HashSet<char> charsWhitespace = new HashSet<char>()
-		{
-			'\t',      // Tab
-			' ',       // Space
-			'\u00A0',  // No-Break Space
-			'\u1680',  // Ogham Space Mark
-			'\u180E',  // Mongolian Vowel Separator
-			'\u2000',  // En Quad
-			'\u2001',  // Em Quad
-			'\u2002',  // En Space
-			'\u2003',  // Em Space
-			'\u2004',  // Three-Per-Em Space
-			'\u2005',  // Four-Per-Em Space
-			'\u2006',  // Six-Per-Em Space
-			'\u2007',  // Figure Space
-			'\u2008',  // Punctuation Space
-			'\u2009',  // Thin Space
-			'\u200A',  // Hair Space
-			'\u200B',  // Zero Width Space
-			'\u202F',  // Narrow No-Break Space
-			'\u205F',  // Medium Mathematical Space
-			'\u3000',  // Ideographic Space
-			'\uFEFF',  // Zero Width No-Break Space
-		};
-
-		static int SkipLineEnding(
-			ReadOnlySpan<char> value,
-			int index)
-		{
-			if (value[index] == '\r')
-				++index;
-
-			if (index < value.Length && value[index] == '\n')
-				++index;
-
-			return index;
-		}
-
-		static int SkipWhitespace(
-			ReadOnlySpan<char> value,
-			int index)
-		{
-			while (index < value.Length)
-			{
-				if (charsWhitespace.Contains(value[index]))
-					index++;
-				else
-					return index;
-			}
-
-			return index;
 		}
 	}
 }

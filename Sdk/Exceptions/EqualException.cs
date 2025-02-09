@@ -1,4 +1,5 @@
 #pragma warning disable CA1032 // Implement standard exception constructors
+#pragma warning disable IDE0090 // Use 'new(...)'
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -144,10 +145,31 @@ namespace Xunit.Sdk
 			string actual,
 #endif
 			int expectedIndex,
-			int actualIndex)
-		{
-			var message = "Assert.Equal() Failure: Strings differ";
+			int actualIndex) =>
+				ForMismatchedStrings(expected, actual, expectedIndex, actualIndex, "Strings differ");
 
+		/// <summary>
+		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two string
+		/// values are not equal.
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
+		/// <param name="expectedIndex">The index point in the expected string where the values differ</param>
+		/// <param name="actualIndex">The index point in the actual string where the values differ</param>
+		/// <param name="banner">The banner to display in the assertion heading</param>
+		public static EqualException ForMismatchedStrings(
+#if XUNIT_NULLABLE
+			string? expected,
+			string? actual,
+#else
+			string expected,
+			string actual,
+#endif
+			int expectedIndex,
+			int actualIndex,
+			string banner)
+		{
+			var message = "Assert.Equal() Failure: " + banner;
 			var formattedExpected = AssertHelper.ShortenAndEncodeString(expected, expectedIndex, out var expectedPointer);
 			var formattedActual = AssertHelper.ShortenAndEncodeString(actual, actualIndex, out var actualPointer);
 
