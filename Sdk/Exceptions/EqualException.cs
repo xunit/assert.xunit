@@ -146,7 +146,7 @@ namespace Xunit.Sdk
 #endif
 			int expectedIndex,
 			int actualIndex) =>
-				ForMismatchedStrings(expected, actual, expectedIndex, actualIndex, "Strings differ");
+				ForMismatchedStringsWithHeader(expected, actual, expectedIndex, actualIndex, "Strings differ");
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two string
@@ -156,8 +156,8 @@ namespace Xunit.Sdk
 		/// <param name="actual">The actual value</param>
 		/// <param name="expectedIndex">The index point in the expected string where the values differ</param>
 		/// <param name="actualIndex">The index point in the actual string where the values differ</param>
-		/// <param name="banner">The banner to display in the assertion heading</param>
-		public static EqualException ForMismatchedStrings(
+		/// <param name="header">The header to display in the assertion heading</param>
+		public static EqualException ForMismatchedStringsWithHeader(
 #if XUNIT_NULLABLE
 			string? expected,
 			string? actual,
@@ -167,9 +167,9 @@ namespace Xunit.Sdk
 #endif
 			int expectedIndex,
 			int actualIndex,
-			string banner)
+			string header)
 		{
-			var message = "Assert.Equal() Failure: " + banner;
+			var message = "Assert.Equal() Failure: " + header;
 			var formattedExpected = AssertHelper.ShortenAndEncodeString(expected, expectedIndex, out var expectedPointer);
 			var formattedActual = AssertHelper.ShortenAndEncodeString(actual, actualIndex, out var actualPointer);
 

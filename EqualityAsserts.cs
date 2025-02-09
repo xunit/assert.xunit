@@ -194,7 +194,7 @@ namespace Xunit
 							var innerActualMismatch = innerResult.MismatchIndexY;
 
 							if ((innerExpectedString != null || innerActualString != null) && innerExpectedMismatch.HasValue && innerActualMismatch.HasValue)
-								throw EqualException.ForMismatchedStrings(
+								throw EqualException.ForMismatchedStringsWithHeader(
 									innerExpectedString,
 									innerActualString,
 									innerExpectedMismatch.Value,
