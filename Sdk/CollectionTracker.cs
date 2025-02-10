@@ -81,7 +81,7 @@ namespace Xunit.Sdk
 		/// <param name="mismatchedIndex">The output mismatched item index when the collections are not equal</param>
 		/// <returns>Returns <c>true</c> if the collections are equal; <c>false</c>, otherwise.</returns>
 		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("Please use the overload that returns AssertEqualityResult")]
+		[Obsolete("Please use the overload that returns AssertEqualityResult. This overload will be removed in the next major version.")]
 		public static bool AreCollectionsEqual(
 #if XUNIT_NULLABLE
 			CollectionTracker? x,
