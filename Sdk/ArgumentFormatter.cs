@@ -62,17 +62,6 @@ namespace Xunit.Sdk
 
 		static readonly object[] EmptyObjects = Array.Empty<object>();
 		static readonly Type[] EmptyTypes = Array.Empty<Type>();
-
-#if XUNIT_NULLABLE
-		static readonly PropertyInfo? tupleIndexer;
-		static readonly Type? tupleInterfaceType;
-		static readonly PropertyInfo? tupleLength;
-#else
-		static readonly PropertyInfo tupleIndexer;
-		static readonly Type tupleInterfaceType;
-		static readonly PropertyInfo tupleLength;
-#endif
-
 		// List of intrinsic types => C# type names
 		static readonly Dictionary<Type, string> TypeMappings = new Dictionary<Type, string>
 		{
@@ -95,6 +84,18 @@ namespace Xunit.Sdk
 			{ typeof(UIntPtr), "nuint" },
 		};
 
+#if !NET8_0_OR_GREATER
+
+#if XUNIT_NULLABLE
+		static readonly PropertyInfo? tupleIndexer;
+		static readonly Type? tupleInterfaceType;
+		static readonly PropertyInfo? tupleLength;
+#else
+		static readonly PropertyInfo tupleIndexer;
+		static readonly Type tupleInterfaceType;
+		static readonly PropertyInfo tupleLength;
+#endif
+
 		static ArgumentFormatter()
 		{
 			tupleInterfaceType = Type.GetType("System.Runtime.CompilerServices.ITuple");
@@ -108,6 +109,8 @@ namespace Xunit.Sdk
 			if (tupleIndexer == null || tupleLength == null)
 				tupleInterfaceType = null;
 		}
+
+#endif
 
 		/// <summary>
 		/// Gets the ellipsis value (three middle dots, aka U+00B7).
@@ -226,8 +229,13 @@ namespace Xunit.Sdk
 
 				var type = value.GetType();
 
+#if NET8_0_OR_GREATER
+				if (value is ITuple tuple)
+					return FormatTupleValue(tuple, depth);
+#else
 				if (tupleInterfaceType != null && type.GetInterfaces().Contains(tupleInterfaceType))
 					return FormatTupleValue(value, depth);
+#endif
 
 				if (type.IsValueType)
 					return FormatValueTypeValue(value, type);
@@ -406,11 +414,17 @@ namespace Xunit.Sdk
 		}
 
 		static string FormatTupleValue(
+#if NET8_0_OR_GREATER
+			ITuple tupleParameter,
+#else
 			object tupleParameter,
+#endif
 			int depth)
 		{
 			var result = new StringBuilder("Tuple (");
-#if XUNIT_NULLABLE
+#if NET8_0_OR_GREATER
+			var length = tupleParameter.Length;
+#elif XUNIT_NULLABLE
 			var length = (int)tupleLength!.GetValue(tupleParameter)!;
 #else
 			var length = (int)tupleLength.GetValue(tupleParameter);
@@ -421,7 +435,9 @@ namespace Xunit.Sdk
 				if (idx != 0)
 					result.Append(", ");
 
-#if XUNIT_NULLABLE
+#if NET8_0_OR_GREATER
+				var value = tupleParameter[idx];
+#elif XUNIT_NULLABLE
 				var value = tupleIndexer!.GetValue(tupleParameter, new object[] { idx });
 #else
 				var value = tupleIndexer.GetValue(tupleParameter, new object[] { idx });
