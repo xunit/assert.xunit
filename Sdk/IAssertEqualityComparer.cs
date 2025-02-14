@@ -11,6 +11,10 @@
 using System;
 using System.Collections.Generic;
 
+#if XUNIT_AOT
+using System.Diagnostics.CodeAnalysis;
+#endif
+
 namespace Xunit.Sdk
 {
 	/// <summary>
@@ -18,6 +22,9 @@ namespace Xunit.Sdk
 	/// when formatting results for assertion failures.
 	/// </summary>
 	/// <typeparam name="T">The type of the objects being compared.</typeparam>
+#if XUNIT_AOT
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
+#endif
 	public interface IAssertEqualityComparer<T> : IEqualityComparer<T>
 	{
 		/// <summary>

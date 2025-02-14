@@ -4,7 +4,12 @@
 #nullable enable
 #endif
 
+#if XUNIT_AOT
+using System;
+using System.Diagnostics.CodeAnalysis;
+#else
 using Xunit.Internal;
+#endif
 
 namespace Xunit
 {
@@ -15,6 +20,17 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+#if XUNIT_AOT
+		/// <summary>
+		/// This assertion requires reflection, which is not available in Native AOT.
+		/// </summary>
+		[RequiresDynamicCode("This assertion requires reflection, which is not available in Native AOT")]
+		public static void Equivalent(
+			object? expected,
+			object? actual,
+			bool strict = false) =>
+				throw new PlatformNotSupportedException("Assert.Equivalent is not supported with Native AOT");
+#else
 		/// <summary>
 		/// Verifies that two objects are equivalent, using a default comparer. This comparison is done
 		/// without regard to type, and only inspects public property and field values for individual
@@ -42,5 +58,6 @@ namespace Xunit
 			if (ex != null)
 				throw ex;
 		}
+#endif
 	}
 }

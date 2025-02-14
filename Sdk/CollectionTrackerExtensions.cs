@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-#if XUNIT_NULLABLE
+#if XUNIT_AOT || XUNIT_NULLABLE
 using System.Diagnostics.CodeAnalysis;
 #endif
 
@@ -33,6 +33,8 @@ namespace Xunit.Sdk
 #endif
 	static class CollectionTrackerExtensions
 	{
+#if !XUNIT_AOT
+
 #if XUNIT_NULLABLE
 		static readonly MethodInfo? asTrackerOpenGeneric =
 #else
@@ -41,6 +43,8 @@ namespace Xunit.Sdk
 			 typeof(CollectionTrackerExtensions).GetRuntimeMethods().FirstOrDefault(m => m.Name == nameof(AsTracker) && m.IsGenericMethod);
 
 		static readonly ConcurrentDictionary<Type, MethodInfo> cacheOfAsTrackerByType = new ConcurrentDictionary<Type, MethodInfo>();
+
+#endif
 
 #if XUNIT_NULLABLE
 		internal static CollectionTracker? AsNonStringTracker(this object? value)
@@ -71,6 +75,9 @@ namespace Xunit.Sdk
 			if (enumerable is CollectionTracker result)
 				return result;
 
+#if XUNIT_AOT
+			return CollectionTracker.Wrap(enumerable);
+#else
 			// CollectionTracker.Wrap for the non-T enumerable uses the CastIterator, which has terrible
 			// performance during iteration. We do our best to try to get a T and dynamically invoke the
 			// generic version of AsTracker as we can.
@@ -86,6 +93,7 @@ namespace Xunit.Sdk
 #endif
 
 			return method.Invoke(null, new object[] { enumerable }) as CollectionTracker ?? CollectionTracker.Wrap(enumerable);
+#endif
 		}
 
 		/// <summary>

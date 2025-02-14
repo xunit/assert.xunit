@@ -32,7 +32,7 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 
-#if XUNIT_NULLABLE
+#if XUNIT_AOT || XUNIT_NULLABLE
 using System.Diagnostics.CodeAnalysis;
 #endif
 
@@ -58,9 +58,9 @@ namespace Xunit.Sdk
 			InnerEnumerable = innerEnumerable ?? throw new ArgumentNullException(nameof(innerEnumerable));
 
 		static readonly MethodInfo openGenericCompareTypedSetsMethod =
-			typeof(CollectionTracker)
+			typeof(CollectionTrackerHelpers)
 				.GetRuntimeMethods()
-				.Single(m => m.Name == nameof(CompareTypedSets));
+				.Single(m => m.Name == nameof(CollectionTrackerHelpers.CompareTypedSets));
 
 		/// <summary>
 		/// Gets the inner enumerable that this collection track is wrapping. This is mostly
@@ -273,7 +273,9 @@ namespace Xunit.Sdk
 					.GetInterfaces()
 					.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAssertEqualityComparer<>));
 			var comparisonType = assertQualityComparererType?.GenericTypeArguments[0];
+#pragma warning disable IL2075 // The compiler can't see that we've decorated IAssertEqualityComparer<>
 			var equalsMethod = assertQualityComparererType?.GetMethod("Equals");
+#pragma warning restore IL2075
 
 			var enumeratorX = x.GetSafeEnumerator();
 			var enumeratorY = y.GetSafeEnumerator();
@@ -352,33 +354,14 @@ namespace Xunit.Sdk
 			if (elementTypeX != elementTypeY)
 				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 
+#pragma warning disable IL3050 // CollectionTrackerHelpers is marked to allow reflection
 			var genericCompareMethod = openGenericCompareTypedSetsMethod.MakeGenericMethod(elementTypeX);
+#pragma warning restore IL3050
 #if XUNIT_NULLABLE
 			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object?[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer })!, x.InnerEnumerable, y.InnerEnumerable);
 #else
 			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer }), x.InnerEnumerable, y.InnerEnumerable);
 #endif
-		}
-
-		static bool CompareTypedSets<T>(
-			ISet<T> setX,
-			ISet<T> setY,
-#if XUNIT_NULLABLE
-			IEqualityComparer<T>? itemComparer)
-#else
-			IEqualityComparer<T> itemComparer)
-#endif
-		{
-			if (setX.Count != setY.Count)
-				return false;
-
-			if (itemComparer != null)
-			{
-				setX = new HashSet<T>(setX, itemComparer);
-				setY = new HashSet<T>(setY, itemComparer);
-			}
-
-			return setX.SetEquals(setY);
 		}
 
 		/// <inheritdoc/>
@@ -1024,6 +1007,33 @@ namespace Xunit.Sdk
 					return true;
 				}
 			}
+		}
+	}
+
+#if XUNIT_AOT
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
+#endif
+	static class CollectionTrackerHelpers
+	{
+		public static bool CompareTypedSets<T>(
+			ISet<T> setX,
+			ISet<T> setY,
+#if XUNIT_NULLABLE
+			IEqualityComparer<T>? itemComparer)
+#else
+			IEqualityComparer<T> itemComparer)
+#endif
+		{
+			if (setX.Count != setY.Count)
+				return false;
+
+			if (itemComparer != null)
+			{
+				setX = new HashSet<T>(setX, itemComparer);
+				setY = new HashSet<T>(setY, itemComparer);
+			}
+
+			return setX.SetEquals(setY);
 		}
 	}
 }

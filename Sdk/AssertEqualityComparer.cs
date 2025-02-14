@@ -34,12 +34,16 @@ namespace Xunit.Sdk
 {
 	static class AssertEqualityComparer
 	{
+#if XUNIT_AOT
+		static readonly IEqualityComparer defaultComparer = new AssertEqualityComparerAdapter<object>(new AssertEqualityComparer<object>());
+#else
 		static readonly ConcurrentDictionary<Type, IEqualityComparer> cachedDefaultComparers = new ConcurrentDictionary<Type, IEqualityComparer>();
 		static readonly ConcurrentDictionary<Type, IEqualityComparer> cachedDefaultInnerComparers = new ConcurrentDictionary<Type, IEqualityComparer>();
 #if XUNIT_NULLABLE
 		static readonly object?[] singleNullObject = new object?[] { null };
 #else
 		static readonly object[] singleNullObject = new object[] { null };
+#endif
 #endif
 
 		/// <summary>
@@ -49,6 +53,9 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="type">The type to be compared</param>
 		internal static IEqualityComparer GetDefaultComparer(Type type) =>
+#if XUNIT_AOT
+			defaultComparer;
+#else
 			cachedDefaultComparers.GetOrAdd(type, itemType =>
 			{
 				var comparerType = typeof(AssertEqualityComparer<>).MakeGenericType(itemType);
@@ -63,6 +70,7 @@ namespace Xunit.Sdk
 
 				return result;
 			});
+#endif
 
 		/// <summary>
 		/// Gets the default comparer to be used as an inner comparer for the provided <paramref name="type"/>
@@ -71,6 +79,9 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="type">The type to create an inner comparer for</param>
 		internal static IEqualityComparer GetDefaultInnerComparer(Type type) =>
+#if XUNIT_AOT
+			defaultComparer;
+#else
 			cachedDefaultInnerComparers.GetOrAdd(type, t =>
 			{
 				var innerType = typeof(object);
@@ -89,6 +100,7 @@ namespace Xunit.Sdk
 
 				return GetDefaultComparer(innerType);
 			});
+#endif
 
 		/// <summary>
 		/// This exception is thrown when an operation failure has occured during equality comparison operations.
@@ -117,8 +129,10 @@ namespace Xunit.Sdk
 	{
 		internal static readonly IEqualityComparer DefaultInnerComparer = AssertEqualityComparer.GetDefaultInnerComparer(typeof(T));
 
+#if !XUNIT_AOT
 		static readonly ConcurrentDictionary<Type, Type> cacheOfIComparableOfT = new ConcurrentDictionary<Type, Type>();
 		static readonly ConcurrentDictionary<Type, Type> cacheOfIEquatableOfT = new ConcurrentDictionary<Type, Type>();
+#endif
 		readonly Lazy<IEqualityComparer> innerComparer;
 		static readonly Type typeKeyValuePair = typeof(KeyValuePair<,>);
 
@@ -193,6 +207,7 @@ namespace Xunit.Sdk
 				if (x is IEquatable<T> equatable)
 					return AssertEqualityResult.ForResult(equatable.Equals(y), x, y);
 
+#if !XUNIT_AOT
 				// Implements IEquatable<typeof(y)>?
 				if (xType != yType)
 				{
@@ -210,6 +225,7 @@ namespace Xunit.Sdk
 #endif
 					}
 				}
+#endif
 			}
 
 			// Special case collections (before IStructuralEquatable because arrays implement that in a way we don't want to call)
@@ -233,6 +249,7 @@ namespace Xunit.Sdk
 					// If this happens, just swallow up the exception and continue comparing.
 				}
 
+#if !XUNIT_AOT
 			// Implements IComparable<typeof(y)>?
 			if (xType != yType)
 			{
@@ -259,6 +276,7 @@ namespace Xunit.Sdk
 					}
 				}
 			}
+#endif
 
 			// Implements IComparable?
 			if (x is IComparable comparable)
@@ -375,6 +393,15 @@ namespace Xunit.Sdk
 				this.innerComparer = innerComparer;
 			}
 
+#if XUNIT_AOT
+
+			public new bool Equals(
+				object? x,
+				object? y) =>
+					new AssertEqualityComparer<object>(innerComparer: innerComparer).Equals(x, y);
+
+#else
+
 #if XUNIT_NULLABLE
 			static MethodInfo? s_equalsMethod;
 #else
@@ -406,7 +433,7 @@ namespace Xunit.Sdk
 				// Lazily initialize and cache the EqualsGeneric<U> method.
 				if (s_equalsMethod == null)
 				{
-					s_equalsMethod = typeof(TypeErasedEqualityComparer).GetMethod(nameof(EqualsGeneric), BindingFlags.NonPublic | BindingFlags.Instance);
+					s_equalsMethod = typeof(TypeErasedEqualityComparer).GetMethod(nameof(EqualsGeneric), BindingFlags.Public | BindingFlags.Instance);
 					if (s_equalsMethod == null)
 						return false;
 				}
@@ -418,10 +445,12 @@ namespace Xunit.Sdk
 #endif
 			}
 
-			bool EqualsGeneric<U>(
+			public bool EqualsGeneric<U>(
 				U x,
 				U y) =>
 					new AssertEqualityComparer<U>(innerComparer: innerComparer).Equals(x, y);
+
+#endif
 
 			public int GetHashCode(object obj) =>
 				GuardArgumentNotNull(nameof(obj), obj).GetHashCode();
