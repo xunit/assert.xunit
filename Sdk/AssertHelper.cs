@@ -16,14 +16,17 @@
 #endif
 
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using Xunit.Sdk;
+
+#if !XUNIT_AOT
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Globalization;
+using System.Reflection;
+#endif
 
 #if XUNIT_NULLABLE
 using System.Diagnostics.CodeAnalysis;
@@ -49,6 +52,8 @@ namespace Xunit.Internal
 			{ '\v', @"\v" },  // Vertical tab
 			{ '\\', @"\\" },  // Backslash
 		};
+
+#if !XUNIT_AOT
 
 #if XUNIT_NULLABLE
 		static readonly ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>>();
@@ -80,7 +85,8 @@ namespace Xunit.Internal
 #else
 		static Dictionary<string, Func<object, object>> GetGettersForType(Type type) =>
 #endif
-			gettersByType.GetOrAdd(type, _type =>
+			gettersByType.GetOrAdd(type,
+			(_type) =>
 			{
 				var fieldGetters =
 					_type
@@ -125,6 +131,9 @@ namespace Xunit.Internal
 		static Type GetTypeByName(string typeName)
 #endif
 		{
+#if XUNIT_AOT
+			throw new NotSupportedException();
+#else
 			try
 			{
 				foreach (var assembly in getAssemblies.Value)
@@ -140,7 +149,10 @@ namespace Xunit.Internal
 			{
 				throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Fatal error: Exception occurred while trying to retrieve type '{0}'", typeName), ex);
 			}
+#endif
 		}
+
+#endif  // !XUNIT_AOT
 
 		internal static bool IsCompilerGenerated(Type type) =>
 			type.CustomAttributes.Any(a => a.AttributeType.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
@@ -254,6 +266,8 @@ namespace Xunit.Internal
 		}
 
 #endif
+
+#if !XUNIT_AOT
 
 		static bool TryConvert(
 			object value,
@@ -637,6 +651,8 @@ namespace Xunit.Internal
 			return null;
 		}
 
+#endif  // !XUNIT_AOT
+
 #if NET8_0_OR_GREATER
 
 		static void WaitForValueTask(ValueTask valueTask)
@@ -662,6 +678,8 @@ namespace Xunit.Internal
 #endif
 	}
 
+#if !XUNIT_AOT
+
 	sealed class ReferenceEqualityComparer : IEqualityComparer<object>
 	{
 		public new bool Equals(
@@ -681,4 +699,6 @@ namespace Xunit.Internal
 #endif
 			obj.GetHashCode();
 	}
+
+#endif  // !XUNIT_AOT
 }

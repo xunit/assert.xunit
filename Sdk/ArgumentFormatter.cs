@@ -256,7 +256,7 @@ namespace Xunit.Sdk
 				var isAnonymousType = type.IsAnonymousType();
 				if (!isAnonymousType)
 				{
-					var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
+					var toString = type.GetRuntimeMethod(nameof(ToString), EmptyTypes);
 
 					if (toString != null && toString.DeclaringType != typeof(object))
 #if XUNIT_NULLABLE
@@ -303,6 +303,9 @@ namespace Xunit.Sdk
 			if (depth > MaxObjectDepth)
 				return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, Ellipsis);
 
+#if XUNIT_AOT
+			var formattedParameters = Ellipsis;
+#else
 			var fields =
 				type
 					.GetRuntimeFields()
@@ -327,6 +330,7 @@ namespace Xunit.Sdk
 
 			if (parameters.Count > MaxObjectMemberCount)
 				formattedParameters += ", " + Ellipsis;
+#endif
 
 			return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, formattedParameters);
 		}
@@ -353,6 +357,7 @@ namespace Xunit.Sdk
 
 			var result = new StringBuilder();
 
+#if !XUNIT_AOT
 			var groupingTypes = GetGroupingTypes(enumerable);
 			if (groupingTypes != null)
 			{
@@ -362,6 +367,10 @@ namespace Xunit.Sdk
 			}
 			else if (!SafeToMultiEnumerate(enumerable))
 				return EllipsisInBrackets;
+#else
+			if (!SafeToMultiEnumerate(enumerable))
+				return EllipsisInBrackets;
+#endif
 
 			// This should only be used on values that are known to be re-enumerable
 			// safely, like collections that implement IDictionary or IList.
@@ -525,10 +534,14 @@ namespace Xunit.Sdk
 		{
 			if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
 			{
+#if XUNIT_AOT
+				return value.ToString() ?? "null";
+#else
 				var k = type.GetProperty("Key")?.GetValue(value, null);
 				var v = type.GetProperty("Value")?.GetValue(value, null);
 
 				return string.Format(CultureInfo.CurrentCulture, "[{0}] = {1}", Format(k), Format(v));
+#endif
 			}
 
 			return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "null";
@@ -599,6 +612,9 @@ namespace Xunit.Sdk
 
 		static bool IsEnumerableOfGrouping(IEnumerable collection)
 		{
+#if XUNIT_AOT
+			return false;
+#else
 			var genericEnumerableType =
 				(from @interface in collection.GetType().GetInterfaces()
 				 where @interface.IsGenericType
@@ -614,6 +630,7 @@ namespace Xunit.Sdk
 					.GetInterfaces()
 					.Concat(new[] { genericEnumerableType })
 					.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IGrouping<,>));
+#endif
 		}
 
 		static bool IsSZArrayType(this Type type) =>
