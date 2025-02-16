@@ -1,30 +1,52 @@
-#pragma warning disable CA1510 // Use ArgumentNullException throw helper
-#pragma warning disable IDE0063 // Use simple 'using' statement
-
 #if XUNIT_NULLABLE
 #nullable enable
-#else
-// In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
-#pragma warning disable CS8604
 #endif
 
-using System;
+using System.Collections;
 using System.Collections.Generic;
-
-#if XUNIT_AOT
-using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace Xunit.Sdk
 {
+	/// <summary>
+	/// Represents an assert equality comparer that may know additional information about the
+	/// type of objects it's comparing; in particular, to turn an <see cref="object"/> into
+	/// a potentially type-aware <see cref="CollectionTracker"/> for non-strings.
+	/// </summary>
+	public interface IAssertEqualityComparer : IEqualityComparer
+	{
+		/// <summary>
+		/// Gets the inner comparer used when comparing items inside of a collection.
+		/// </summary>
+		IEqualityComparer InnerComparer { get; }
+
+		// NOTE: In order to make this work, what you need to do is construct a Func of some kind when
+		// making the AssertEqualityComparer<T> when you know it's IEnumerable<T> so that it can use
+		// that func to create the CollectionTracker<T>.
+		// 
+		// Also, since we're here, should we eliminate all tests against AEC<T> and instead push as
+		// much of the public interface into IAEC or IAEC<T> instead?
+		//
+		// And also, IAEC<T> should derive from IAEC, and then maybe we can get rid of the type
+		// erased wrapper, since everything would be forced to support object in addition to T.
+
+		/// <summary>
+		/// Get a potentially type-safe instance of <see cref="CollectionTracker{T}"/> given an
+		/// object which may implement <see cref="IEnumerable{T}"/>. May also return an <see cref="object"/>
+		/// version if the object only implements <see cref="IEnumerable"/>.
+		/// </summary>
+		/// <param name="obj">The potential collection object to wrap with a tracker</param>
+#if XUNIT_NULLABLE
+		CollectionTracker? AsNonStringTracker(object? obj);
+#else
+		CollectionTracker AsNonStringTracker(object obj);
+#endif
+	}
+
 	/// <summary>
 	/// Represents a specialized version of <see cref="IEqualityComparer{T}"/> that returns information useful
 	/// when formatting results for assertion failures.
 	/// </summary>
 	/// <typeparam name="T">The type of the objects being compared.</typeparam>
-#if XUNIT_AOT
-	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
-#endif
 	public interface IAssertEqualityComparer<T> : IEqualityComparer<T>
 	{
 		/// <summary>
@@ -47,36 +69,5 @@ namespace Xunit.Sdk
 			T y,
 			CollectionTracker yTracker);
 #endif
-	}
-
-	/// <summary>
-	/// Extension methods for <see cref="IAssertEqualityComparer{T}"/>
-	/// </summary>
-	public static class IAssertEqualityComparerExtensions
-	{
-		/// <summary>
-		/// Compares two values and determines if they are equal.
-		/// </summary>
-		/// <param name="comparer">The comparer</param>
-		/// <param name="x">The first value</param>
-		/// <param name="y">The second value</param>
-		/// <returns>Success or failure information</returns>
-		public static AssertEqualityResult Equals<T>(
-			this IAssertEqualityComparer<T> comparer,
-#if XUNIT_NULLABLE
-			T? x,
-			T? y)
-#else
-			T x,
-			T y)
-#endif
-		{
-			if (comparer is null)
-				throw new ArgumentNullException(nameof(comparer));
-
-			using (var xTracker = x.AsNonStringTracker())
-			using (var yTracker = y.AsNonStringTracker())
-				return comparer.Equals(x, xTracker, y, yTracker);
-		}
 	}
 }

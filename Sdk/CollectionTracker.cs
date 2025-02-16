@@ -28,9 +28,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
+
+#if !XUNIT_AOT
+using System.Reflection;
+#endif
 
 #if XUNIT_AOT || XUNIT_NULLABLE
 using System.Diagnostics.CodeAnalysis;
@@ -57,10 +60,12 @@ namespace Xunit.Sdk
 		protected CollectionTracker(IEnumerable innerEnumerable) =>
 			InnerEnumerable = innerEnumerable ?? throw new ArgumentNullException(nameof(innerEnumerable));
 
+#if !XUNIT_AOT
 		static readonly MethodInfo openGenericCompareTypedSetsMethod =
 			typeof(CollectionTrackerHelpers)
 				.GetRuntimeMethods()
 				.Single(m => m.Name == nameof(CollectionTrackerHelpers.CompareTypedSets));
+#endif
 
 		/// <summary>
 		/// Gets the inner enumerable that this collection track is wrapping. This is mostly
@@ -273,9 +278,9 @@ namespace Xunit.Sdk
 					.GetInterfaces()
 					.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAssertEqualityComparer<>));
 			var comparisonType = assertQualityComparererType?.GenericTypeArguments[0];
-#pragma warning disable IL2075 // The compiler can't see that we've decorated IAssertEqualityComparer<>
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The return value of the source method does not have matching annotations.
 			var equalsMethod = assertQualityComparererType?.GetMethod("Equals");
-#pragma warning restore IL2075
+#pragma warning restore IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The return value of the source method does not have matching annotations.
 
 			var enumeratorX = x.GetSafeEnumerator();
 			var enumeratorY = y.GetSafeEnumerator();
@@ -345,22 +350,37 @@ namespace Xunit.Sdk
 			if (x == null || y == null)
 				return null;
 
-			var elementTypeX = ArgumentFormatter.GetSetElementType(x.InnerEnumerable);
+			return x.CheckIfSetsAreEqual(y, itemComparer);
+		}
+
+#if XUNIT_NULLABLE
+		internal virtual AssertEqualityResult? CheckIfSetsAreEqual(
+			CollectionTracker y,
+			IEqualityComparer? itemComparer)
+#else
+		internal virtual AssertEqualityResult CheckIfSetsAreEqual(
+			CollectionTracker y,
+			IEqualityComparer itemComparer)
+#endif
+		{
+#if XUNIT_AOT
+			return null;
+#else
+			var elementTypeX = ArgumentFormatter.GetSetElementType(InnerEnumerable);
 			var elementTypeY = ArgumentFormatter.GetSetElementType(y.InnerEnumerable);
 
 			if (elementTypeX == null || elementTypeY == null)
 				return null;
 
 			if (elementTypeX != elementTypeY)
-				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
+				return AssertEqualityResult.ForResult(false, InnerEnumerable, y.InnerEnumerable);
 
-#pragma warning disable IL3050 // CollectionTrackerHelpers is marked to allow reflection
 			var genericCompareMethod = openGenericCompareTypedSetsMethod.MakeGenericMethod(elementTypeX);
-#pragma warning restore IL3050
 #if XUNIT_NULLABLE
-			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object?[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer })!, x.InnerEnumerable, y.InnerEnumerable);
+			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object?[] { InnerEnumerable, y.InnerEnumerable, itemComparer })!, InnerEnumerable, y.InnerEnumerable);
 #else
-			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer }), x.InnerEnumerable, y.InnerEnumerable);
+			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object[] { InnerEnumerable, y.InnerEnumerable, itemComparer }), InnerEnumerable, y.InnerEnumerable);
+#endif
 #endif
 		}
 
@@ -496,6 +516,24 @@ namespace Xunit.Sdk
 		/// </summary>
 		public int IterationCount =>
 			enumerator == null ? 0 : enumerator.CurrentIndex + 1;
+
+#if XUNIT_AOT
+
+		internal override AssertEqualityResult? CheckIfSetsAreEqual(
+			CollectionTracker y,
+			IEqualityComparer? itemComparer)
+		{
+			if (InnerEnumerable is not ISet<T> setX || y.InnerEnumerable is not ISet<T> setY || itemComparer is not IEqualityComparer<T> typedItemComparer)
+				return null;
+
+			return AssertEqualityResult.ForResult(
+				CollectionTrackerHelpers.CompareTypedSets(setX, setY, typedItemComparer),
+				InnerEnumerable,
+				y.InnerEnumerable
+			);
+		}
+
+#endif  // XUNIT_AOT
 
 		/// <inheritdoc/>
 		protected override void Dispose(bool disposing) =>
@@ -1011,9 +1049,6 @@ namespace Xunit.Sdk
 		}
 	}
 
-#if XUNIT_AOT
-	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicMethods)]
-#endif
 	static class CollectionTrackerHelpers
 	{
 		public static bool CompareTypedSets<T>(

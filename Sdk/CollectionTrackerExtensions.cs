@@ -10,12 +10,15 @@
 #pragma warning disable CS8604
 #endif
 
-using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+
+#if !XUNIT_AOT
+using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
+#endif
 
 #if XUNIT_AOT || XUNIT_NULLABLE
 using System.Diagnostics.CodeAnalysis;
