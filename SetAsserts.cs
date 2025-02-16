@@ -1,5 +1,4 @@
 #pragma warning disable CA1052 // Static holder types should be static
-
 #if XUNIT_NULLABLE
 #nullable enable
 #else
@@ -201,6 +200,61 @@ namespace Xunit
 			T expected,
 			ImmutableSortedSet<T> set) =>
 				DoesNotContain(expected, (ISet<T>)set);
+
+		/// <summary>
+		/// Verifies that two sequences are equivalent, using a default comparer.
+		/// </summary>
+		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The value to be compared against</param>
+		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+		public static void Equal<T>(
+#if XUNIT_NULLABLE
+			ISet<T>? expected,
+			ISet<T>? actual) =>
+#else
+			ISet<T> expected,
+			ISet<T> actual) =>
+#endif
+				Equal(expected, actual, GetEqualityComparer<T>());
+
+		//		/// <summary>
+		//		/// Verifies that two sequences are equivalent, using a custom equatable comparer.
+		//		/// </summary>
+		//		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		//		/// <param name="expected">The expected value</param>
+		//		/// <param name="actual">The value to be compared against</param>
+		//		/// <param name="comparer">The comparer used to compare the two objects</param>
+		//		/// <exception cref="EqualException">Thrown when the objects are not equal</exception>
+		//		public static void Equal<T>(
+		//#if XUNIT_NULLABLE
+		//			ISet<T>? expected,
+		//			ISet<T>? actual,
+		//#else
+		//			ISet<T> expected,
+		//			ISet<T> actual,
+		//#endif
+		//			IEqualityComparer<T> comparer) =>
+		//				Equal(expected, actual, GetEqualityComparer<T>(new AssertEqualityComparerAdapter<T>(comparer)));
+
+		//		/// <summary>
+		//		/// Verifies that two collections are equal, using a comparer function against
+		//		/// items in the two collections.
+		//		/// </summary>
+		//		/// <typeparam name="T">The type of the objects to be compared</typeparam>
+		//		/// <param name="expected">The expected value</param>
+		//		/// <param name="actual">The value to be compared against</param>
+		//		/// <param name="comparer">The function to compare two items for equality</param>
+		//		public static void Equal<T>(
+		//#if XUNIT_NULLABLE
+		//			ISet<T>? expected,
+		//			ISet<T>? actual,
+		//#else
+		//			ISet<T> expected,
+		//			ISet<T> actual,
+		//#endif
+		//			Func<T, T, bool> comparer) =>
+		//				Equal(expected, actual, AssertEqualityComparer<T>.FromComparer(comparer));
 
 		/// <summary>
 		/// Verifies that a set is a proper subset of another set.

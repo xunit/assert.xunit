@@ -8,6 +8,7 @@
 #pragma warning disable CS8767
 #endif
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -28,6 +29,16 @@ namespace Xunit
 		public AssertEquivalenceComparer(bool strict) =>
 			this.strict = strict;
 
+#if XUNIT_AOT
+
+		/// <inheritdoc/>
+		public new bool Equals(
+			object? x,
+			object? y) =>
+				throw new PlatformNotSupportedException("AssertEquivalenceComparer.Equals is not supported with Native AOT");
+
+#else
+
 		/// <inheritdoc/>
 		public new bool Equals(
 #if XUNIT_NULLABLE
@@ -41,6 +52,8 @@ namespace Xunit
 			Assert.Equivalent(x, y, strict);
 			return true;
 		}
+
+#endif
 
 		/// <inheritdoc/>
 		public int GetHashCode(object obj) =>
@@ -69,6 +82,18 @@ namespace Xunit
 		public AssertEquivalenceComparer(bool strict) =>
 			this.strict = strict;
 
+#if XUNIT_AOT
+
+#pragma warning disable CA1065  // This function must throw here, because it's impossible to implement in Native AOT
+		/// <inheritdoc/>
+		public bool Equals(
+			T? x,
+			T? y) =>
+				throw new PlatformNotSupportedException("AssertEquivalenceComparer<T>.Equals is not supported with Native AOT");
+#pragma warning restore CA1065
+
+#else
+
 		/// <inheritdoc/>
 		public bool Equals(
 #if XUNIT_NULLABLE
@@ -82,6 +107,8 @@ namespace Xunit
 			Assert.Equivalent(x, y, strict);
 			return true;
 		}
+
+#endif
 
 		/// <inheritdoc/>
 		public int GetHashCode(T obj) =>
