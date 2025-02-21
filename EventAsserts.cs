@@ -58,7 +58,7 @@ namespace Xunit
 		{
 			var raisedEvent = RaisesInternal(attach, detach, testCode) ?? throw RaisesException.ForNoEvent(typeof(T));
 
-			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().IsAssignableTo(typeof(T)))
 				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
@@ -80,7 +80,7 @@ namespace Xunit
 		{
 			var raisedEvent = RaisesInternal(attach, detach, testCode) ?? throw RaisesException.ForNoEvent(typeof(T));
 
-			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().IsAssignableTo(typeof(T)))
 				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
@@ -108,7 +108,7 @@ namespace Xunit
 		{
 			var raisedEvent = RaisesInternal(handler, attach, detach, testCode) ?? throw RaisesException.ForNoEvent(typeof(T));
 
-			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().IsAssignableTo(typeof(T)))
 				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
@@ -235,7 +235,7 @@ namespace Xunit
 		{
 			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode) ?? throw RaisesException.ForNoEvent(typeof(T));
 
-			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().IsAssignableTo(typeof(T)))
 				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
@@ -257,7 +257,7 @@ namespace Xunit
 		{
 			var raisedEvent = await RaisesAsyncInternal(attach, detach, testCode) ?? throw RaisesException.ForNoEvent(typeof(T));
 
-			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().Equals(typeof(T)))
+			if (raisedEvent.Arguments != null && !raisedEvent.Arguments.GetType().IsAssignableTo(typeof(T)))
 				throw RaisesException.ForIncorrectType(typeof(T), raisedEvent.Arguments.GetType());
 
 			return raisedEvent;
