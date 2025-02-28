@@ -113,10 +113,12 @@ namespace Xunit.Internal
 						.Select(p => new { name = p.Name, getter = (Func<object, object>)p.GetValue });
 #endif
 
+				// Without a group by, properties which are replacing a parent property with "new" would cause an exception.
 				return
 					fieldGetters
 						.Concat(propertyGetters)
-						.ToDictionary(g => g.name, g => g.getter);
+						.GroupBy(g => g.name)
+						.ToDictionary(g => g.Key, g => g.First().getter);
 			});
 
 #if XUNIT_NULLABLE
