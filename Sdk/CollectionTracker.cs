@@ -826,7 +826,6 @@ namespace Xunit.Sdk
 		public static CollectionTracker<T> Wrap(IEnumerable<T> collection) =>
 			new CollectionTracker<T>(collection);
 
-		// TODO: Can't keep a ring buffer like this with int.MaxValue items
 		abstract class BufferedEnumerator : IEnumerator<T>
 		{
 			protected BufferedEnumerator(IEnumerator<T> innerEnumerator) =>
