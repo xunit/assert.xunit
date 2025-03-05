@@ -51,9 +51,9 @@ namespace Xunit.Internal
 		};
 
 #if XUNIT_NULLABLE
-		static readonly ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object?, object?>>>();
+		static readonly ConcurrentDictionary<Type, Dictionary<string, List<Func<object?, object?>>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, List<Func<object?, object?>>>>();
 #else
-		static readonly ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, Func<object, object>>>();
+		static readonly ConcurrentDictionary<Type, Dictionary<string, List<Func<object, object>>>> gettersByType = new ConcurrentDictionary<Type, Dictionary<string, List<Func<object, object>>>>();
 #endif
 
 #if XUNIT_NULLABLE
@@ -76,9 +76,9 @@ namespace Xunit.Internal
 		static readonly IEqualityComparer<object> referenceEqualityComparer = new ReferenceEqualityComparer();
 
 #if XUNIT_NULLABLE
-		static Dictionary<string, Func<object?, object?>> GetGettersForType(Type type) =>
+		static Dictionary<string, List<Func<object?, object?>>> GetGettersForType(Type type) =>
 #else
-		static Dictionary<string, Func<object, object>> GetGettersForType(Type type) =>
+		static Dictionary<string, List<Func<object, object>>> GetGettersForType(Type type) =>
 #endif
 			gettersByType.GetOrAdd(type, _type =>
 			{
@@ -113,10 +113,12 @@ namespace Xunit.Internal
 						.Select(p => new { name = p.Name, getter = (Func<object, object>)p.GetValue });
 #endif
 
+				// Without a group by, properties which are replacing a parent property with "new" would cause an exception.
 				return
 					fieldGetters
 						.Concat(propertyGetters)
-						.ToDictionary(g => g.name, g => g.getter);
+						.GroupBy(g => g.name)
+						.ToDictionary(g => g.Key, g => g.Select(v => v.getter).ToList());
 			});
 
 #if XUNIT_NULLABLE
@@ -608,15 +610,37 @@ namespace Xunit.Internal
 
 			foreach (var kvp in expectedGetters)
 			{
-				if (!actualGetters.TryGetValue(kvp.Key, out var actualGetter))
+#if XUNIT_NULLABLE
+				List<Func<object?, object?>?> allActualGetter;
+#else
+				List<Func<object, object>> allActualGetter;
+#endif
+
+				if (!actualGetters.TryGetValue(kvp.Key, out allActualGetter))
 					return EquivalentException.ForMemberListMismatch(expectedGetters.Keys, actualGetters.Keys, prefixDot);
 
-				var expectedMemberValue = kvp.Value(expected);
-				var actualMemberValue = actualGetter(actual);
+				if (kvp.Value.Count != allActualGetter.Count)
+				{
+					return EquivalentException.ForMemberCountMismatch(kvp.Key, kvp.Value.Count, allActualGetter.Count);
+				}
 
-				var ex = VerifyEquivalence(expectedMemberValue, actualMemberValue, strict, prefixDot + kvp.Key, expectedRefs, actualRefs, depth + 1);
-				if (ex != null)
-					return ex;
+				foreach (var expectedGetter in kvp.Value)
+				{
+					var expectedMemberValue = expectedGetter(expected);
+					EquivalentException ex = null;
+					foreach (var actualGetter in allActualGetter)
+					{
+						var actualMemberValue = actualGetter(actual);
+						ex = VerifyEquivalence(expectedMemberValue, actualMemberValue, strict, prefixDot + kvp.Key, expectedRefs, actualRefs, depth + 1);
+						if (ex == null)
+						{
+							break;
+						}
+					}
+
+					if (ex != null)
+						return ex;
+				}
 			}
 
 			return null;
