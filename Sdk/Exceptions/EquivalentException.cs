@@ -256,5 +256,13 @@ namespace Xunit.Sdk
 						ArgumentFormatter.FormatTypeName(Assert.GuardArgumentNotNull(nameof(actualType), actualType), fullTypeName: true)
 					)
 				);
+
+		public static EquivalentException ForMemberCountMismatch(string propertyName, int expectedCount, int actualCount)
+		{
+			return new EquivalentException(
+				$"Assert.Equivalent() Failure: Mismatched member count for '{propertyName}'{Environment.NewLine}Expected: {expectedCount}{Environment.NewLine}Actual:   {actualCount}"
+
+				)
+		}
 	}
 }
