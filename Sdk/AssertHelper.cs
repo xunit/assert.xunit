@@ -107,11 +107,28 @@ namespace Xunit.Internal
 							&& !p.GetCustomAttributes<ObsoleteAttribute>().Any()
 							&& !p.GetMethod.GetCustomAttributes<ObsoleteAttribute>().Any()
 						)
+						.GroupBy(p => p.Name)
+						.Select(group =>
+						{
+							// When there is more than one property with the same name, we take the one from
+							// the most derived class. Start assuming the first one is the correct one, and then
+							// visit each in turn to see whether it's more derived or not.
+							var targetProperty = group.First();
+
+							foreach (var candidateProperty in group.Skip(1))
+								for (var candidateType = candidateProperty.DeclaringType?.BaseType; candidateType != null; candidateType = candidateType.BaseType)
+									if (targetProperty.DeclaringType == candidateType)
+									{
+										targetProperty = candidateProperty;
+										break;
+									}
+
 #if XUNIT_NULLABLE
-						.Select(p => new { name = p.Name, getter = (Func<object?, object?>)p.GetValue });
+							return new { name = targetProperty.Name, getter = (Func<object?, object?>)targetProperty.GetValue };
 #else
-						.Select(p => new { name = p.Name, getter = (Func<object, object>)p.GetValue });
+							return new { name = targetProperty.Name, getter = (Func<object, object>)targetProperty.GetValue };
 #endif
+						});
 
 				return
 					fieldGetters
