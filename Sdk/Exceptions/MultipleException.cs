@@ -22,8 +22,10 @@ namespace Xunit.Sdk
 #endif
 	partial class MultipleException : XunitException
 	{
-		MultipleException(IEnumerable<Exception> innerExceptions) :
-			base("Assert.Multiple() Failure: Multiple failures were encountered")
+		MultipleException(
+			string assertionName,
+			IEnumerable<Exception> innerExceptions) :
+				base("Assert." + assertionName + "() Failure: Multiple failures were encountered")
 		{
 			Assert.GuardArgumentNotNull(nameof(innerExceptions), innerExceptions);
 
@@ -49,6 +51,14 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="innerExceptions">The inner exceptions</param>
 		public static MultipleException ForFailures(IReadOnlyCollection<Exception> innerExceptions) =>
-			new MultipleException(innerExceptions);
+			new MultipleException("Multiple", innerExceptions);
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="MultipleException"/> class to be thrown
+		/// when <see cref="Assert.MultipleAsync"/> caught 2 or more exceptions.
+		/// </summary>
+		/// <param name="innerExceptions">The inner exceptions</param>
+		public static MultipleException ForFailuresAsync(IReadOnlyCollection<Exception> innerExceptions) =>
+			new MultipleException("MultipleAsync", innerExceptions);
 	}
 }
