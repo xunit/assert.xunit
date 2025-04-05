@@ -470,6 +470,129 @@ namespace Xunit
 		}
 
 		/// <summary>
+		/// Verifies that an event is not raised.
+		/// </summary>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <exception cref="NotRaisesException">Thrown when an unexpected event was raised.</exception>
+		public static void NotRaisedAny(
+			Action<Action> attach,
+			Action<Action> detach,
+			Action testCode)
+		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			if (RaisesInternal(attach, detach, testCode))
+				throw NotRaisesException.ForUnexpectedEvent();
+		}
+
+		/// <summary>
+		/// Verifies that an event with the exact or a derived event args is not raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <exception cref="NotRaisesException">Thrown when an unexpected event was raised.</exception>
+		public static void NotRaisedAny<T>(
+			Action<Action<T>> attach,
+			Action<Action<T>> detach,
+			Action testCode)
+		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			if (RaisesInternal(attach, detach, testCode) != null)
+				throw NotRaisesException.ForUnexpectedEvent(typeof(T));
+		}
+
+		/// <summary>
+		/// Verifies that an event with the exact or a derived event args is not raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <exception cref="NotRaisesException">Thrown when an unexpected event was raised.</exception>
+		public static void NotRaisedAny<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Action testCode)
+		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			if (RaisesInternal(attach, detach, testCode) != null)
+				throw NotRaisesException.ForUnexpectedEvent(typeof(T));
+		}
+
+		/// <summary>
+		/// Verifies that an event is not raised.
+		/// </summary>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <exception cref="NotRaisesException">Thrown when an unexpected event was raised.</exception>
+		public static async Task NotRaisedAnyAsync(
+			Action<Action> attach,
+			Action<Action> detach,
+			Func<Task> testCode)
+		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			if (await RaisesAsyncInternal(attach, detach, testCode))
+				throw NotRaisesException.ForUnexpectedEvent();
+		}
+
+		/// <summary>
+		/// Verifies that an event with the exact or a derived event args is not raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <exception cref="NotRaisesException">Thrown when an unexpected event was raised.</exception>
+		public static async Task NotRaisedAnyAsync<T>(
+			Action<Action<T>> attach,
+			Action<Action<T>> detach,
+			Func<Task> testCode)
+		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+			if (await RaisesAsyncInternal(attach, detach, testCode) != null)
+				throw NotRaisesException.ForUnexpectedEvent(typeof(T));
+		}
+
+		/// <summary>
+		/// Verifies that an event with the exact or a derived event args is not raised.
+		/// </summary>
+		/// <typeparam name="T">The type of the event arguments to expect</typeparam>
+		/// <param name="attach">Code to attach the event handler</param>
+		/// <param name="detach">Code to detach the event handler</param>
+		/// <param name="testCode">A delegate to the code to be tested</param>
+		/// <exception cref="NotRaisesException">Thrown when an unexpected event was raised.</exception>
+		public static async Task NotRaisedAnyAsync<T>(
+			Action<EventHandler<T>> attach,
+			Action<EventHandler<T>> detach,
+			Func<Task> testCode)
+		{
+			GuardArgumentNotNull(nameof(attach), attach);
+			GuardArgumentNotNull(nameof(detach), detach);
+			GuardArgumentNotNull(nameof(testCode), testCode);
+
+			if (await RaisesAsyncInternal(attach, detach, testCode) != null)
+				throw NotRaisesException.ForUnexpectedEvent(typeof(T));
+		}
+
+		/// <summary>
 		/// Represents a raised event after the fact.
 		/// </summary>
 		/// <typeparam name="T">The type of the event arguments.</typeparam>
