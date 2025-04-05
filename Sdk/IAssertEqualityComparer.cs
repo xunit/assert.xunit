@@ -18,7 +18,12 @@ namespace Xunit.Sdk
 	/// when formatting results for assertion failures.
 	/// </summary>
 	/// <typeparam name="T">The type of the objects being compared.</typeparam>
-	public interface IAssertEqualityComparer<T> : IEqualityComparer<T>
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
+#else
+	public
+#endif
+	interface IAssertEqualityComparer<T> : IEqualityComparer<T>
 	{
 		/// <summary>
 		/// Compares two values and determines if they are equal.
