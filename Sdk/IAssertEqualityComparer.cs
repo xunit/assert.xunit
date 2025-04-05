@@ -50,7 +50,12 @@ namespace Xunit.Sdk
 	/// <summary>
 	/// Extension methods for <see cref="IAssertEqualityComparer{T}"/>
 	/// </summary>
-	public static class IAssertEqualityComparerExtensions
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
+#else
+	public
+#endif
+	static class IAssertEqualityComparerExtensions
 	{
 		/// <summary>
 		/// Compares two values and determines if they are equal.
