@@ -307,13 +307,13 @@ namespace Xunit.Sdk
 				type
 					.GetRuntimeFields()
 					.Where(f => f.IsPublic && !f.IsStatic)
-					.Select(f => new { name = f.Name, value = WrapAndGetFormattedValue(() => f.GetValue(value), depth) });
+					.Select(f => new { name = f.Name, value = WrapAndGetFormattedValue(() => f.GetValue(value), depth + 1) });
 
 			var properties =
 				type
 					.GetRuntimeProperties()
 					.Where(p => p.GetMethod != null && p.GetMethod.IsPublic && !p.GetMethod.IsStatic)
-					.Select(p => new { name = p.Name, value = WrapAndGetFormattedValue(() => p.GetValue(value), depth) });
+					.Select(p => new { name = p.Name, value = WrapAndGetFormattedValue(() => p.GetValue(value), depth + 1) });
 
 			var parameters =
 				MaxObjectMemberCount == int.MaxValue
