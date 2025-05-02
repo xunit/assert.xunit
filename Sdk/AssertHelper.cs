@@ -1,6 +1,9 @@
 #pragma warning disable CA1031 // Do not catch general exception types
+#pragma warning disable IDE0019 // Use pattern matching
 #pragma warning disable IDE0090 // Use 'new(...)'
 #pragma warning disable IDE0300 // Collection initialization can be simplified
+#pragma warning disable IDE0301 // Simplify collection initialization
+#pragma warning disable IDE0305 // Simplify collection initialization
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -10,6 +13,7 @@
 #pragma warning disable CS8601
 #pragma warning disable CS8603
 #pragma warning disable CS8604
+#pragma warning disable CS8620
 #pragma warning disable CS8621
 #pragma warning disable CS8625
 #pragma warning disable CS8767
@@ -21,6 +25,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using Xunit.Sdk;
@@ -35,8 +40,12 @@ using System.Threading.Tasks;
 
 namespace Xunit.Internal
 {
-	internal static class AssertHelper
+	/// <summary>
+	/// INTERNAL CLASS. DO NOT USE.
+	/// </summary>
+	public static class AssertHelper
 	{
+		static readonly IReadOnlyList<IReadOnlyList<string>> emptyExclusions = Array.Empty<IReadOnlyList<string>>();
 		static readonly Dictionary<char, string> encodings = new Dictionary<char, string>
 		{
 			{ '\0', @"\0" },  // Null
@@ -162,6 +171,59 @@ namespace Xunit.Internal
 		internal static bool IsCompilerGenerated(Type type) =>
 			type.CustomAttributes.Any(a => a.AttributeType.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
 
+		/// <summary/>
+		public static IReadOnlyList<IReadOnlyList<string>> ParseMemberExpressions(params LambdaExpression[] expressions)
+		{
+			var result = new List<IReadOnlyList<string>>();
+
+			foreach (var expression in expressions ?? throw new ArgumentNullException(nameof(expressions)))
+			{
+				var memberExpression = default(MemberExpression);
+
+				// The incoming expressions are T => object?, so any boxed struct starts with a conversion
+				if (expression.Body.NodeType == ExpressionType.Convert && expression.Body is UnaryExpression unaryExpression)
+					memberExpression = unaryExpression.Operand as MemberExpression;
+				else
+					memberExpression = expression.Body as MemberExpression;
+
+				if (memberExpression is null)
+					throw new ArgumentException(
+						string.Format(
+							CultureInfo.CurrentCulture,
+							"Expression '{0}' is not supported. Only property or field expressions from the lambda parameter are supported.",
+							expression
+						),
+						nameof(expressions)
+					);
+
+				var pieces = new Stack<string>();
+
+				while (true)
+				{
+					pieces.Push(memberExpression.Member.Name);
+
+					if (memberExpression.Expression?.NodeType == ExpressionType.Parameter)
+						break;
+
+					memberExpression = memberExpression.Expression as MemberExpression;
+
+					if (memberExpression is null)
+						throw new ArgumentException(
+							string.Format(
+								CultureInfo.CurrentCulture,
+								"Expression '{0}' is not supported. Only property or field expressions from the lambda parameter are supported.",
+								expression
+							),
+							nameof(expressions)
+						);
+				}
+
+				result.Add(pieces.ToArray());
+			}
+
+			return result;
+		}
+
 		internal static string ShortenAndEncodeString(
 #if XUNIT_NULLABLE
 			string? value,
@@ -270,7 +332,7 @@ namespace Xunit.Internal
 			}
 		}
 
-#endif
+#endif  // NET8_0_OR_GREATER
 
 		static bool TryConvert(
 			object value,
@@ -324,6 +386,7 @@ namespace Xunit.Internal
 			return value;
 		}
 
+		/// <summary/>
 #if XUNIT_NULLABLE
 		public static EquivalentException? VerifyEquivalence(
 			object? expected,
@@ -333,8 +396,22 @@ namespace Xunit.Internal
 			object expected,
 			object actual,
 #endif
-			bool strict) =>
-				VerifyEquivalence(expected, actual, strict, string.Empty, new HashSet<object>(referenceEqualityComparer), new HashSet<object>(referenceEqualityComparer), 1);
+			bool strict,
+#if XUNIT_NULLABLE
+			IReadOnlyList<IReadOnlyList<string>>? exclusions = null) =>
+#else
+			IReadOnlyList<IReadOnlyList<string>> exclusions = null) =>
+#endif
+				VerifyEquivalence(
+					expected,
+					actual,
+					strict,
+					string.Empty,
+					new HashSet<object>(referenceEqualityComparer),
+					new HashSet<object>(referenceEqualityComparer),
+					1,
+					exclusions ?? emptyExclusions
+				);
 
 #if XUNIT_NULLABLE
 		static EquivalentException? VerifyEquivalence(
@@ -349,7 +426,8 @@ namespace Xunit.Internal
 			string prefix,
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
-			int depth)
+			int depth,
+			IReadOnlyList<IReadOnlyList<string>> exclusions)
 		{
 			// Check for exceeded depth
 			if (depth > maxCompareDepth.Value)
@@ -397,7 +475,7 @@ namespace Xunit.Internal
 				// FileSystemInfo has a recursion problem when getting the root directory
 				if (fileSystemInfoType.Value != null)
 					if (fileSystemInfoType.Value.IsAssignableFrom(expectedType) && fileSystemInfoType.Value.IsAssignableFrom(actualType))
-						return VerifyEquivalenceFileSystemInfo(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
+						return VerifyEquivalenceFileSystemInfo(expected, actual, strict, prefix, expectedRefs, actualRefs, depth, exclusions);
 
 				// Uri can throw for relative URIs
 				var expectedUri = expected as Uri;
@@ -416,9 +494,9 @@ namespace Xunit.Internal
 
 				// Enumerables? Check equivalence of individual members
 				if (expected is IEnumerable enumerableExpected && actual is IEnumerable enumerableActual)
-					return VerifyEquivalenceEnumerable(enumerableExpected, enumerableActual, strict, prefix, expectedRefs, actualRefs, depth);
+					return VerifyEquivalenceEnumerable(enumerableExpected, enumerableActual, strict, prefix, expectedRefs, actualRefs, depth, exclusions);
 
-				return VerifyEquivalenceReference(expected, actual, strict, prefix, expectedRefs, actualRefs, depth);
+				return VerifyEquivalenceReference(expected, actual, strict, prefix, expectedRefs, actualRefs, depth, exclusions);
 			}
 			finally
 			{
@@ -483,7 +561,8 @@ namespace Xunit.Internal
 			string prefix,
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
-			int depth)
+			int depth,
+			IReadOnlyList<IReadOnlyList<string>> exclusions)
 		{
 #if XUNIT_NULLABLE
 			var expectedValues = expected.Cast<object?>().ToList();
@@ -500,7 +579,7 @@ namespace Xunit.Internal
 				var actualIdx = 0;
 
 				for (; actualIdx < actualValues.Count; ++actualIdx)
-					if (VerifyEquivalence(expectedValue, actualValues[actualIdx], strict, "", expectedRefs, actualRefs, depth) == null)
+					if (VerifyEquivalence(expectedValue, actualValues[actualIdx], strict, "", expectedRefs, actualRefs, depth, exclusions) == null)
 						break;
 
 				if (actualIdx == actualValues.Count)
@@ -526,7 +605,8 @@ namespace Xunit.Internal
 			string prefix,
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
-			int depth)
+			int depth,
+			IReadOnlyList<IReadOnlyList<string>> exclusions)
 		{
 			if (fileSystemInfoFullNameProperty.Value == null)
 				throw new InvalidOperationException("Could not find 'FullName' property on type 'System.IO.FileSystemInfo'");
@@ -540,7 +620,7 @@ namespace Xunit.Internal
 			var fullName = fileSystemInfoFullNameProperty.Value.GetValue(expected);
 			var expectedAnonymous = new { FullName = fullName };
 
-			return VerifyEquivalenceReference(expectedAnonymous, actual, strict, prefix, expectedRefs, actualRefs, depth);
+			return VerifyEquivalenceReference(expectedAnonymous, actual, strict, prefix, expectedRefs, actualRefs, depth, exclusions);
 		}
 
 #if XUNIT_NULLABLE
@@ -610,7 +690,8 @@ namespace Xunit.Internal
 			string prefix,
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
-			int depth)
+			int depth,
+			IReadOnlyList<IReadOnlyList<string>> exclusions)
 		{
 			Assert.GuardArgumentNotNull(nameof(prefix), prefix);
 
@@ -623,15 +704,28 @@ namespace Xunit.Internal
 			if (strict && expectedGetters.Count != actualGetters.Count)
 				return EquivalentException.ForMemberListMismatch(expectedGetters.Keys, actualGetters.Keys, prefixDot);
 
+			var excludedAtThisLevel =
+				new HashSet<string>(
+					exclusions
+						.Select(e => e.Count >= depth ? e[depth - 1] : null)
+						.Where(e => e != null)
+#if XUNIT_NULLABLE
+						.Select(e => e!)
+#endif
+				);
+
 			foreach (var kvp in expectedGetters)
 			{
+				if (excludedAtThisLevel.Contains(kvp.Key))
+					continue;
+
 				if (!actualGetters.TryGetValue(kvp.Key, out var actualGetter))
 					return EquivalentException.ForMemberListMismatch(expectedGetters.Keys, actualGetters.Keys, prefixDot);
 
 				var expectedMemberValue = kvp.Value(expected);
 				var actualMemberValue = actualGetter(actual);
 
-				var ex = VerifyEquivalence(expectedMemberValue, actualMemberValue, strict, prefixDot + kvp.Key, expectedRefs, actualRefs, depth + 1);
+				var ex = VerifyEquivalence(expectedMemberValue, actualMemberValue, strict, prefixDot + kvp.Key, expectedRefs, actualRefs, depth + 1, exclusions);
 				if (ex != null)
 					return ex;
 			}
