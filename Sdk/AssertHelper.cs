@@ -43,7 +43,12 @@ namespace Xunit.Internal
 	/// <summary>
 	/// INTERNAL CLASS. DO NOT USE.
 	/// </summary>
-	public static class AssertHelper
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
+#else
+	public
+#endif
+	static class AssertHelper
 	{
 		static readonly IReadOnlyList<IReadOnlyList<string>> emptyExclusions = Array.Empty<IReadOnlyList<string>>();
 		static readonly Dictionary<char, string> encodings = new Dictionary<char, string>

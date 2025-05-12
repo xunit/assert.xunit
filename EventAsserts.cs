@@ -596,7 +596,12 @@ namespace Xunit
 		/// Represents a raised event after the fact.
 		/// </summary>
 		/// <typeparam name="T">The type of the event arguments.</typeparam>
-		public class RaisedEvent<T>
+#if XUNIT_VISIBILITY_INTERNAL
+		internal
+#else
+		public
+#endif
+		class RaisedEvent<T>
 		{
 			/// <summary>
 			/// The sender of the event. When the event is recorded via <see cref="Action{T}"/> rather

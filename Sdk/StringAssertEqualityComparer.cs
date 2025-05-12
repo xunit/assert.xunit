@@ -17,7 +17,12 @@ namespace Xunit.Sdk
 	/// <summary>
 	/// This static class offers equivalence comparisons for string values
 	/// </summary>
-	public static class StringAssertEqualityComparer
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
+#else
+	public
+#endif
+	static class StringAssertEqualityComparer
 	{
 		static readonly HashSet<char> charsLineEndings = new HashSet<char>()
 		{

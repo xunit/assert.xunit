@@ -20,7 +20,12 @@ namespace Xunit.Sdk
 	/// Indicates the result of comparing two values for equality. Includes success/failure information, as well
 	/// as indices where the values differ, if the values are indexed (e.g., collections or strings).
 	/// </summary>
-	public class AssertEqualityResult : IEquatable<AssertEqualityResult>
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
+#else
+	public
+#endif
+	class AssertEqualityResult : IEquatable<AssertEqualityResult>
 	{
 		AssertEqualityResult(
 			bool equal,

@@ -17,7 +17,12 @@ namespace Xunit
 	/// An implementation of <see cref="IEqualityComparer"/> that uses the same logic
 	/// from <see cref="Assert.Equivalent"/>.
 	/// </summary>
-	public class AssertEquivalenceComparer : IEqualityComparer
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
+#else
+	public
+#endif
+	class AssertEquivalenceComparer : IEqualityComparer
 	{
 		readonly bool strict;
 
@@ -58,7 +63,12 @@ namespace Xunit
 	/// to ensure strict ordering of collections while doing equivalence comparisons for
 	/// the items inside the collection, per <see href="https://github.com/xunit/xunit/discussions/3186"/>.
 	/// </remarks>
-	public class AssertEquivalenceComparer<T> : IEqualityComparer<T>
+#if XUNIT_VISIBILITY_INTERNAL
+	internal
+#else
+	public
+#endif
+	class AssertEquivalenceComparer<T> : IEqualityComparer<T>
 	{
 		readonly bool strict;
 
