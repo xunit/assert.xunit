@@ -26,10 +26,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Text;
 
 #if XUNIT_NULLABLE
@@ -68,40 +66,6 @@ namespace Xunit.Sdk
 		/// (for example, <see cref="AreCollectionsEqual(CollectionTracker?, CollectionTracker?, IEqualityComparer, bool)"/>).
 		/// </summary>
 		protected internal IEnumerable InnerEnumerable { get; protected set; }
-
-		/// <summary>
-		/// Determine if two enumerable collections are equal. It contains logic that varies depending
-		/// on the collection type (supporting arrays, dictionaries, sets, and generic enumerables).
-		/// </summary>
-		/// <param name="x">First value to compare</param>
-		/// <param name="y">Second value to comare</param>
-		/// <param name="itemComparer">The comparer used for individual item comparisons</param>
-		/// <param name="isDefaultItemComparer">Pass <c>true</c> if the <paramref name="itemComparer"/> is the default item
-		/// comparer from <see cref="AssertEqualityComparer{T}"/>; pass <c>false</c>, otherwise.</param>
-		/// <param name="mismatchedIndex">The output mismatched item index when the collections are not equal</param>
-		/// <returns>Returns <c>true</c> if the collections are equal; <c>false</c>, otherwise.</returns>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("Please use the overload that returns AssertEqualityResult. This overload will be removed in the next major version.")]
-		public static bool AreCollectionsEqual(
-#if XUNIT_NULLABLE
-			CollectionTracker? x,
-			CollectionTracker? y,
-#else
-			CollectionTracker x,
-			CollectionTracker y,
-#endif
-			IEqualityComparer itemComparer,
-			bool isDefaultItemComparer,
-			out int? mismatchedIndex)
-		{
-			var result = AreCollectionsEqual(x, y, itemComparer, isDefaultItemComparer);
-
-			if (result.Exception != null)
-				ExceptionDispatchInfo.Capture(result.Exception).Throw();
-
-			mismatchedIndex = result.MismatchIndexX;
-			return result.Equal;
-		}
 
 		/// <summary>
 		/// Determine if two enumerable collections are equal. It contains logic that varies depending
