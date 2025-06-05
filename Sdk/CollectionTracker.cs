@@ -1,6 +1,7 @@
 #pragma warning disable CA1000 // Do not declare static members on generic types
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1063 // Implement IDisposable Correctly
+#pragma warning disable CA1508 // Avoid dead conditional code
 #pragma warning disable CA2213 // We move disposal to DisposeInternal, due to https://github.com/xunit/xunit/issues/2762
 #pragma warning disable IDE0019 // Use pattern matching
 #pragma warning disable IDE0028 // Simplify collection initialization
@@ -47,7 +48,7 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	abstract class CollectionTracker : IDisposable
+abstract class CollectionTracker : IDisposable
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="CollectionTracker"/> class.
@@ -57,10 +58,12 @@ namespace Xunit.Sdk
 		protected CollectionTracker(IEnumerable innerEnumerable) =>
 			InnerEnumerable = innerEnumerable ?? throw new ArgumentNullException(nameof(innerEnumerable));
 
+#if !XUNIT_AOT
 		static readonly MethodInfo openGenericCompareTypedSetsMethod =
 			typeof(CollectionTracker)
 				.GetRuntimeMethods()
 				.Single(m => m.Name == nameof(CompareTypedSets));
+#endif
 
 		/// <summary>
 		/// Gets the inner enumerable that this collection track is wrapping. This is mostly
@@ -267,6 +270,7 @@ namespace Xunit.Sdk
 			if (y == null)
 				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, null);
 
+#if !XUNIT_AOT
 			var assertQualityComparererType =
 				itemComparer
 					.GetType()
@@ -274,6 +278,7 @@ namespace Xunit.Sdk
 					.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IAssertEqualityComparer<>));
 			var comparisonType = assertQualityComparererType?.GenericTypeArguments[0];
 			var equalsMethod = assertQualityComparererType?.GetMethod("Equals");
+#endif
 
 			var enumeratorX = x.GetSafeEnumerator();
 			var enumeratorY = y.GetSafeEnumerator();
@@ -306,8 +311,10 @@ namespace Xunit.Sdk
 						else
 						{
 							var assertEqualityResult = default(AssertEqualityResult);
+#if !XUNIT_AOT
 							if (comparisonType?.IsAssignableFrom(xCurrent?.GetType()) == true && comparisonType?.IsAssignableFrom(yCurrent?.GetType()) == true)
 								assertEqualityResult = equalsMethod?.Invoke(itemComparer, new[] { xCurrent, null, yCurrent, null }) as AssertEqualityResult;
+#endif
 
 							if (assertEqualityResult != null)
 							{
@@ -352,12 +359,19 @@ namespace Xunit.Sdk
 			if (elementTypeX != elementTypeY)
 				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
 
+#if XUNIT_AOT
+			if (itemComparer == null)
+				return null;
+
+			return AssertEqualityResult.ForResult(CompareTypedSets<object>((ISet<object>)x.InnerEnumerable, (ISet<object>)y.InnerEnumerable, (IEqualityComparer<object>)itemComparer), x.InnerEnumerable, y.InnerEnumerable);
+#else
 			var genericCompareMethod = openGenericCompareTypedSetsMethod.MakeGenericMethod(elementTypeX);
 #if XUNIT_NULLABLE
 			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object?[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer })!, x.InnerEnumerable, y.InnerEnumerable);
 #else
 			return AssertEqualityResult.ForResult((bool)genericCompareMethod.Invoke(null, new object[] { x.InnerEnumerable, y.InnerEnumerable, itemComparer }), x.InnerEnumerable, y.InnerEnumerable);
 #endif
+#endif  // XUNIT_AOT
 		}
 
 		static bool CompareTypedSets<T>(
