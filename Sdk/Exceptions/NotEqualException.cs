@@ -102,6 +102,62 @@ namespace Xunit.Sdk
 			return new NotEqualException(message, error);
 		}
 
+#if XUNIT_AOT
+
+		/// <summary>
+		/// Creates a new instance of <see cref="NotEqualException"/> to be thrown when two sets
+		/// are equal.
+		/// </summary>
+		/// <param name="expected">The expected collection</param>
+		/// <param name="expectedType">The type of the expected set, when they differ in type</param>
+		/// <param name="actual">The actual collection</param>
+		/// <param name="actualType">The type of the actual set, when they differ in type</param>
+		/// <param name="collectionDisplay">The display name for the collection type</param>
+		public static NotEqualException ForEqualSets(
+			string expected,
+#if XUNIT_NULLABLE
+			string? expectedType,
+#else
+			string expectedType,
+#endif
+			string actual,
+#if XUNIT_NULLABLE
+			string? actualType,
+#else
+			string actualType,
+#endif
+			string collectionDisplay)
+		{
+			Assert.GuardArgumentNotNull(nameof(expected), expected);
+			Assert.GuardArgumentNotNull(nameof(actual), actual);
+
+			var message = string.Format(CultureInfo.CurrentCulture, "Assert.NotEqual() Failure: {0} are equal", collectionDisplay);
+			var expectedTypeText = "";
+			var actualTypeText = "";
+			if (expectedType != null && actualType != null && expectedType != actualType)
+			{
+				var length = Math.Max(expectedType.Length, actualType.Length) + 1;
+
+				expectedTypeText = expectedType.PadRight(length);
+				actualTypeText = actualType.PadRight(length);
+			}
+
+			message += string.Format(
+				CultureInfo.CurrentCulture,
+				"{0}Expected: Not {1}{2}{3}Actual:       {4}{5}",
+				Environment.NewLine,
+				expectedTypeText,
+				expected,
+				Environment.NewLine,
+				actualTypeText,
+				actual
+			);
+
+			return new NotEqualException(message);
+		}
+
+#endif
+
 		/// <summary>
 		/// Creates a new instance of <see cref="NotEqualException"/> to be thrown when two values
 		/// are equal. This may be simple values (like intrinsics) or complex values (like
