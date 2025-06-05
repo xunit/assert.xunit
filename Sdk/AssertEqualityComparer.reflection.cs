@@ -1,3 +1,5 @@
+#if !XUNIT_AOT
+
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable CA1032 // Implement standard exception constructors
 #pragma warning disable IDE0063 // Use simple 'using' statement
@@ -36,10 +38,12 @@ namespace Xunit.Sdk
 	{
 		static readonly ConcurrentDictionary<Type, IEqualityComparer> cachedDefaultComparers = new ConcurrentDictionary<Type, IEqualityComparer>();
 		static readonly ConcurrentDictionary<Type, IEqualityComparer> cachedDefaultInnerComparers = new ConcurrentDictionary<Type, IEqualityComparer>();
+#if !XUNIT_AOT
 #if XUNIT_NULLABLE
 		static readonly object?[] singleNullObject = new object?[] { null };
 #else
 		static readonly object[] singleNullObject = new object[] { null };
+#endif
 #endif
 
 		/// <summary>
@@ -49,6 +53,9 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="type">The type to be compared</param>
 		internal static IEqualityComparer GetDefaultComparer(Type type) =>
+#if XUNIT_AOT
+			cachedDefaultComparers.GetOrAdd(typeof(object), _ => new AssertEqualityComparerAdapter<object>(new AssertEqualityComparer<object>()));
+#else
 			cachedDefaultComparers.GetOrAdd(type, itemType =>
 			{
 				var comparerType = typeof(AssertEqualityComparer<>).MakeGenericType(itemType);
@@ -63,6 +70,7 @@ namespace Xunit.Sdk
 
 				return result;
 			});
+#endif
 
 		/// <summary>
 		/// Gets the default comparer to be used as an inner comparer for the provided <paramref name="type"/>
@@ -75,6 +83,7 @@ namespace Xunit.Sdk
 			{
 				var innerType = typeof(object);
 
+#if !XUNIT_AOT
 				// string is enumerable, but we don't treat it like a collection
 				if (t != typeof(string))
 				{
@@ -86,6 +95,7 @@ namespace Xunit.Sdk
 					if (enumerableOfT != null)
 						innerType = enumerableOfT.GenericTypeArguments[0];
 				}
+#endif
 
 				return GetDefaultComparer(innerType);
 			});
@@ -117,10 +127,13 @@ namespace Xunit.Sdk
 	{
 		internal static readonly IEqualityComparer DefaultInnerComparer = AssertEqualityComparer.GetDefaultInnerComparer(typeof(T));
 
+#if !XUNIT_AOT
 		static readonly ConcurrentDictionary<Type, Type> cacheOfIComparableOfT = new ConcurrentDictionary<Type, Type>();
 		static readonly ConcurrentDictionary<Type, Type> cacheOfIEquatableOfT = new ConcurrentDictionary<Type, Type>();
-		readonly Lazy<IEqualityComparer> innerComparer;
 		static readonly Type typeKeyValuePair = typeof(KeyValuePair<,>);
+#endif
+
+		readonly Lazy<IEqualityComparer> innerComparer;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="AssertEqualityComparer{T}" /> class.
@@ -193,6 +206,8 @@ namespace Xunit.Sdk
 				if (x is IEquatable<T> equatable)
 					return AssertEqualityResult.ForResult(equatable.Equals(y), x, y);
 
+#if !XUNIT_AOT
+
 				// Implements IEquatable<typeof(y)>?
 				if (xType != yType)
 				{
@@ -210,6 +225,8 @@ namespace Xunit.Sdk
 #endif
 					}
 				}
+
+#endif  // !XUNIT_AOT
 			}
 
 			// Special case collections (before IStructuralEquatable because arrays implement that in a way we don't want to call)
@@ -232,6 +249,8 @@ namespace Xunit.Sdk
 					// certain situations, such as if x can't compare against y.
 					// If this happens, just swallow up the exception and continue comparing.
 				}
+
+#if !XUNIT_AOT
 
 			// Implements IComparable<typeof(y)>?
 			if (xType != yType)
@@ -260,6 +279,8 @@ namespace Xunit.Sdk
 				}
 			}
 
+#endif  // !XUNIT_AOT
+
 			// Implements IComparable?
 			if (x is IComparable comparable)
 				try
@@ -272,6 +293,8 @@ namespace Xunit.Sdk
 					// certain situations, such as if x can't compare against y.
 					// If this happens, just swallow up the exception and continue comparing.
 				}
+
+#if !XUNIT_AOT
 
 			// Special case KeyValuePair<K,V>
 			if (xType.IsConstructedGenericType &&
@@ -309,6 +332,8 @@ namespace Xunit.Sdk
 				var valueComparer = AssertEqualityComparer.GetDefaultComparer(xValueType == yValueType ? xValueType : typeof(object));
 				return AssertEqualityResult.ForResult(valueComparer.Equals(xValue, yValue), x, y);
 			}
+
+#endif  // !XUNIT_AOT
 
 			// Last case, rely on object.Equals
 			return AssertEqualityResult.ForResult(object.Equals(x, y), x, y);
@@ -366,6 +391,9 @@ namespace Xunit.Sdk
 			}
 		}
 
+#if XUNIT_AOT
+		[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.NonPublicMethods)]
+#endif
 		sealed class TypeErasedEqualityComparer : IEqualityComparer
 		{
 			readonly IEqualityComparer innerComparer;
@@ -375,10 +403,12 @@ namespace Xunit.Sdk
 				this.innerComparer = innerComparer;
 			}
 
+#if !XUNIT_AOT
 #if XUNIT_NULLABLE
-			static MethodInfo? s_equalsMethod;
+			static MethodInfo? equalsMethod;
 #else
-			static MethodInfo s_equalsMethod;
+			static MethodInfo equalsMethod;
+#endif
 #endif
 
 			public new bool Equals(
@@ -395,6 +425,9 @@ namespace Xunit.Sdk
 				if (y == null)
 					return false;
 
+#if XUNIT_AOT
+				return EqualsGeneric(x, y);
+#else
 				// Delegate checking of whether two objects are equal to AssertEqualityComparer.
 				// To get the best result out of AssertEqualityComparer, we attempt to specialize the
 				// comparer for the objects that we are checking.
@@ -404,18 +437,19 @@ namespace Xunit.Sdk
 				var objectType = x.GetType() == y.GetType() ? x.GetType() : typeof(object);
 
 				// Lazily initialize and cache the EqualsGeneric<U> method.
-				if (s_equalsMethod == null)
+				if (equalsMethod == null)
 				{
-					s_equalsMethod = typeof(TypeErasedEqualityComparer).GetMethod(nameof(EqualsGeneric), BindingFlags.NonPublic | BindingFlags.Instance);
-					if (s_equalsMethod == null)
+					equalsMethod = typeof(TypeErasedEqualityComparer).GetMethod(nameof(EqualsGeneric), BindingFlags.NonPublic | BindingFlags.Instance);
+					if (equalsMethod == null)
 						return false;
 				}
 
 #if XUNIT_NULLABLE
-				return s_equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y }) is true;
+				return equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y }) is true;
 #else
-				return (bool)s_equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y });
+				return (bool)equalsMethod.MakeGenericMethod(objectType).Invoke(this, new object[] { x, y });
 #endif
+#endif  // XUNIT_AOT
 			}
 
 			bool EqualsGeneric<U>(
@@ -446,3 +480,5 @@ namespace Xunit.Sdk
 		}
 	}
 }
+
+#endif

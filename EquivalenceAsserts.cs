@@ -1,3 +1,5 @@
+#if !XUNIT_AOT
+
 #pragma warning disable CA1052 // Static holder types should be static
 
 #if XUNIT_NULLABLE
@@ -9,7 +11,13 @@
 
 using System;
 using System.Linq.Expressions;
+
+#if XUNIT_AOT
+using System.Diagnostics.CodeAnalysis;
+#else
+using System.Linq;
 using Xunit.Internal;
+#endif
 
 namespace Xunit
 {
@@ -20,6 +28,12 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+#if XUNIT_AOT
+		/// <summary>
+		/// This assertion requires reflection, which is not available in Native AOT.
+		/// </summary>
+		[RequiresDynamicCode("This requires reflection, which is not available in Native AOT")]
+#else
 		/// <summary>
 		/// Verifies that two objects are equivalent, using a default comparer. This comparison is done
 		/// without regard to type, and only inspects public property and field values for individual
@@ -36,6 +50,7 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The actual value</param>
 		/// <param name="strict">A flag which enables strict comparison mode</param>
+#endif
 		public static void Equivalent(
 #if XUNIT_NULLABLE
 			object? expected,
@@ -46,11 +61,21 @@ namespace Xunit
 #endif
 			bool strict = false)
 		{
+#if XUNIT_AOT
+			throw new PlatformNotSupportedException("This requires reflection, which is not available in Native AOT");
+#else
 			var ex = AssertHelper.VerifyEquivalence(expected, actual, strict);
 			if (ex != null)
 				throw ex;
+#endif
 		}
 
+#if XUNIT_AOT
+		/// <summary>
+		/// This assertion requires reflection, which is not available in Native AOT.
+		/// </summary>
+		[RequiresDynamicCode("This requires reflection, which is not available in Native AOT")]
+#else
 		/// <summary>
 		/// Verifies that two objects are equivalent, using a default comparer. This comparison is done
 		/// without regard to type, and only inspects public property and field values for individual
@@ -62,6 +87,7 @@ namespace Xunit
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The actual value</param>
 		/// <param name="exclusionExpressions">The expressions for exclusions</param>
+#endif
 		public static void EquivalentWithExclusions<T>(
 #if XUNIT_NULLABLE
 			object? expected,
@@ -76,6 +102,12 @@ namespace Xunit
 #endif
 				EquivalentWithExclusions(expected, actual, strict: false, exclusionExpressions);
 
+#if XUNIT_AOT
+		/// <summary>
+		/// This assertion requires reflection, which is not available in Native AOT.
+		/// </summary>
+		[RequiresDynamicCode("This requires reflection, which is not available in Native AOT")]
+#else
 		/// <summary>
 		/// Verifies that two objects are equivalent, using a default comparer. This comparison is done
 		/// without regard to type, and only inspects public property and field values for individual
@@ -95,6 +127,7 @@ namespace Xunit
 		/// <param name="actual">The actual value</param>
 		/// <param name="strict">A flag which enables strict comparison mode</param>
 		/// <param name="exclusionExpressions">The expressions for exclusions</param>
+#endif
 		public static void EquivalentWithExclusions<T>(
 #if XUNIT_NULLABLE
 			object? expected,
@@ -109,13 +142,23 @@ namespace Xunit
 			params Expression<Func<T, object>>[] exclusionExpressions)
 #endif
 		{
+#if XUNIT_AOT
+			throw new PlatformNotSupportedException("This requires reflection, which is not available in Native AOT");
+#else
 			var exclusions = AssertHelper.ParseExclusionExpressions(exclusionExpressions);
 
 			var ex = AssertHelper.VerifyEquivalence(expected, actual, strict, exclusions);
 			if (ex != null)
 				throw ex;
+#endif
 		}
 
+#if XUNIT_AOT
+		/// <summary>
+		/// This assertion requires reflection, which is not available in Native AOT.
+		/// </summary>
+		[RequiresDynamicCode("This requires reflection, which is not available in Native AOT")]
+#else
 		/// <summary>
 		/// Verifies that two objects are equivalent, using a default comparer. This comparison is done
 		/// without regard to type, and only inspects public property and field values for individual
@@ -128,6 +171,7 @@ namespace Xunit
 		/// <param name="actual">The actual value</param>
 		/// <param name="exclusionExpressions">The expressions for exclusions. This should be provided
 		/// in <c>"Member.SubMember.SubSubMember"</c> form for deep exclusions.</param>
+#endif
 		public static void EquivalentWithExclusions(
 #if XUNIT_NULLABLE
 			object? expected,
@@ -139,6 +183,12 @@ namespace Xunit
 			params string[] exclusionExpressions) =>
 				EquivalentWithExclusions(expected, actual, strict: false, exclusionExpressions);
 
+#if XUNIT_AOT
+		/// <summary>
+		/// This assertion requires reflection, which is not available in Native AOT.
+		/// </summary>
+		[RequiresDynamicCode("This requires reflection, which is not available in Native AOT")]
+#else
 		/// <summary>
 		/// Verifies that two objects are equivalent, using a default comparer. This comparison is done
 		/// without regard to type, and only inspects public property and field values for individual
@@ -159,6 +209,7 @@ namespace Xunit
 		/// <param name="strict">A flag which enables strict comparison mode</param>
 		/// <param name="exclusionExpressions">The expressions for exclusions. This should be provided
 		/// in <c>"Member1.Member2.Member3"</c> form for deep exclusions.</param>
+#endif
 		public static void EquivalentWithExclusions(
 #if XUNIT_NULLABLE
 			object? expected,
@@ -170,11 +221,17 @@ namespace Xunit
 			bool strict,
 			params string[] exclusionExpressions)
 		{
+#if XUNIT_AOT
+			throw new PlatformNotSupportedException("This requires reflection, which is not available in Native AOT");
+#else
 			var exclusions = AssertHelper.ParseExclusionExpressions(exclusionExpressions);
 
 			var ex = AssertHelper.VerifyEquivalence(expected, actual, strict, exclusions);
 			if (ex != null)
 				throw ex;
+#endif
 		}
 	}
 }
+
+#endif  // !XUNIT_AOT

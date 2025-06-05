@@ -60,8 +60,10 @@ namespace Xunit.Sdk
 
 		internal static readonly string EllipsisInBrackets = "[" + new string((char)0x00B7, 3) + "]";
 
+#if !XUNIT_AOT
 		static readonly object[] EmptyObjects = Array.Empty<object>();
 		static readonly Type[] EmptyTypes = Array.Empty<Type>();
+#endif
 		// List of intrinsic types => C# type names
 		static readonly Dictionary<Type, string> TypeMappings = new Dictionary<Type, string>
 		{
@@ -254,6 +256,8 @@ namespace Xunit.Sdk
 				// TODO: ValueTask?
 
 				var isAnonymousType = type.IsAnonymousType();
+
+#if !XUNIT_AOT
 				if (!isAnonymousType)
 				{
 					var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
@@ -265,6 +269,7 @@ namespace Xunit.Sdk
 						return ((string)toString.Invoke(value, EmptyObjects)) ?? "null";
 #endif
 				}
+#endif
 
 				return FormatComplexValue(value, depth, type, isAnonymousType);
 			}
@@ -300,6 +305,9 @@ namespace Xunit.Sdk
 		{
 			var typeName = isAnonymousType ? "" : type.Name + " ";
 
+#if XUNIT_AOT
+			return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, Ellipsis);
+#else
 			if (depth > MaxObjectDepth)
 				return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, Ellipsis);
 
@@ -329,6 +337,7 @@ namespace Xunit.Sdk
 				formattedParameters += ", " + Ellipsis;
 
 			return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, formattedParameters);
+#endif
 		}
 
 		static string FormatDateTimeValue(object value) =>
@@ -353,6 +362,7 @@ namespace Xunit.Sdk
 
 			var result = new StringBuilder();
 
+#if !XUNIT_AOT
 			var groupingTypes = GetGroupingTypes(enumerable);
 			if (groupingTypes != null)
 			{
@@ -360,7 +370,9 @@ namespace Xunit.Sdk
 				var key = groupingInterface.GetRuntimeProperty("Key")?.GetValue(enumerable);
 				result.AppendFormat(CultureInfo.CurrentCulture, "[{0}] = ", key?.ToString() ?? "null");
 			}
-			else if (!SafeToMultiEnumerate(enumerable))
+#endif
+
+			if (result.Length == 0 && !SafeToMultiEnumerate(enumerable))
 				return EllipsisInBrackets;
 
 			// This should only be used on values that are known to be re-enumerable
@@ -523,6 +535,7 @@ namespace Xunit.Sdk
 			object value,
 			Type type)
 		{
+#if !XUNIT_AOT
 			if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
 			{
 				var k = type.GetProperty("Key")?.GetValue(value, null);
@@ -530,6 +543,7 @@ namespace Xunit.Sdk
 
 				return string.Format(CultureInfo.CurrentCulture, "[{0}] = {1}", Format(k), Format(v));
 			}
+#endif
 
 			return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "null";
 		}
@@ -555,6 +569,9 @@ namespace Xunit.Sdk
 		internal static Type[] GetGroupingTypes(object obj)
 #endif
 		{
+#if XUNIT_AOT
+			return null;
+#else
 			if (obj == null)
 				return null;
 
@@ -564,6 +581,7 @@ namespace Xunit.Sdk
 				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
 				 where genericTypeDefinition == typeof(IGrouping<,>)
 				 select @interface).FirstOrDefault()?.GenericTypeArguments;
+#endif
 		}
 
 #if XUNIT_NULLABLE
@@ -572,6 +590,9 @@ namespace Xunit.Sdk
 		internal static Type GetSetElementType(object obj)
 #endif
 		{
+#if XUNIT_AOT
+			return null;
+#else
 			if (obj == null)
 				return null;
 
@@ -581,6 +602,7 @@ namespace Xunit.Sdk
 				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
 				 where genericTypeDefinition == typeof(ISet<>)
 				 select @interface).FirstOrDefault()?.GenericTypeArguments[0];
+#endif
 		}
 
 		static bool IsAnonymousType(this Type type)
@@ -599,6 +621,9 @@ namespace Xunit.Sdk
 
 		static bool IsEnumerableOfGrouping(IEnumerable collection)
 		{
+#if XUNIT_AOT
+			return false;
+#else
 			var genericEnumerableType =
 				(from @interface in collection.GetType().GetInterfaces()
 				 where @interface.IsGenericType
@@ -614,6 +639,7 @@ namespace Xunit.Sdk
 					.GetInterfaces()
 					.Concat(new[] { genericEnumerableType })
 					.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IGrouping<,>));
+#endif
 		}
 
 		static bool IsSZArrayType(this Type type) =>

@@ -1,3 +1,5 @@
+#if !XUNIT_AOT
+
 #pragma warning disable IDE0290 // Use primary constructor
 
 #if XUNIT_NULLABLE
@@ -10,6 +12,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Xunit
 {
@@ -17,12 +20,15 @@ namespace Xunit
 	/// An implementation of <see cref="IEqualityComparer"/> that uses the same logic
 	/// from <see cref="Assert.Equivalent"/>.
 	/// </summary>
+#if XUNIT_AOT
+	[RequiresDynamicCode("This requires reflection, which is not available in Native AOT")]
+#endif
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class AssertEquivalenceComparer : IEqualityComparer
+class AssertEquivalenceComparer : IEqualityComparer
 	{
 		readonly bool strict;
 
@@ -63,12 +69,15 @@ namespace Xunit
 	/// to ensure strict ordering of collections while doing equivalence comparisons for
 	/// the items inside the collection, per <see href="https://github.com/xunit/xunit/discussions/3186"/>.
 	/// </remarks>
+#if XUNIT_AOT
+	[RequiresDynamicCode("This requires reflection, which is not available in Native AOT")]
+#endif
 #if XUNIT_VISIBILITY_INTERNAL
 	internal
 #else
 	public
 #endif
-	class AssertEquivalenceComparer<T> : IEqualityComparer<T>
+class AssertEquivalenceComparer<T> : IEqualityComparer<T>
 	{
 		readonly bool strict;
 
@@ -98,3 +107,5 @@ namespace Xunit
 			obj?.GetHashCode() ?? 0;
 	}
 }
+
+#endif  // !XUNIT_AOT

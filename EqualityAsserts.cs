@@ -258,17 +258,27 @@ namespace Xunit
 
 					var expectedType = expected?.GetType();
 					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
+#if XUNIT_AOT
+					var expectedInterfaceTypeDefinitions = default(IEnumerable<Type>);
+#else
 					var expectedInterfaceTypeDefinitions = expectedType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
+#endif
 
 					var actualType = actual?.GetType();
 					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
+#if XUNIT_AOT
+					var actualInterfaceTypeDefinitions = default(IEnumerable<Type>);
+#else
 					var actualInterfaceTypeDefinitions = actualType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
+#endif
 
 					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
 						collectionDisplay = "Dictionaries";
 					else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
 						collectionDisplay = "HashSets";
+#pragma warning disable CA1508
 					else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
+#pragma warning restore CA1508
 						collectionDisplay = "Sets";
 
 					if (expectedType != actualType)
@@ -733,17 +743,27 @@ namespace Xunit
 
 					var expectedType = expected?.GetType();
 					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
+#if XUNIT_AOT
+					var expectedInterfaceTypeDefinitions = default(IEnumerable<Type>);
+#else
 					var expectedInterfaceTypeDefinitions = expectedType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
+#endif
 
 					var actualType = actual?.GetType();
 					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
+#if XUNIT_AOT
+					var actualInterfaceTypeDefinitions = default(IEnumerable<Type>);
+#else
 					var actualInterfaceTypeDefinitions = actualType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
+#endif
 
 					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
 						collectionDisplay = "Dictionaries";
 					else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
 						collectionDisplay = "HashSets";
+#pragma warning disable CA1508
 					else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
+#pragma warning restore CA1508
 						collectionDisplay = "Sets";
 
 					if (expectedType != actualType)
