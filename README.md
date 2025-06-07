@@ -8,8 +8,8 @@ This code includes assertions for immutable collections as well as the `Span` an
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-    <PackageReference Include="System.Memory" Version="4.6.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
 </ItemGroup>
 ```
 
