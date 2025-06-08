@@ -56,6 +56,21 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Creates a new instance of the <see cref="ThrowsAnyException"/> class to be thrown when
+		/// an inspector rejected the exception.
+		/// </summary>
+		/// <param name="message">The custom message</param>
+		/// <param name="innerException">The optional exception thrown by the inspector</param>
+		public static Exception ForInspectorFailure(
+			string message,
+#if XUNIT_NULLABLE
+			Exception? innerException = null) =>
+#else
+			Exception innerException = null) =>
+#endif
+				new ThrowsAnyException(string.Format(CultureInfo.CurrentCulture, "Assert.ThrowsAny() Failure: {0}", message), innerException);
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="ThrowsAnyException"/> class to be thrown when
 		/// an exception wasn't thrown by Assert.ThrowsAny.
 		/// </summary>
 		/// <param name="expected">The expected exception type</param>
