@@ -712,7 +712,7 @@ namespace Xunit.Internal
 			var excludedAtThisLevel =
 				new HashSet<string>(
 					exclusions
-						.Select(e => e.Count >= depth ? e[depth - 1] : null)
+						.Select(e => e.Count == depth ? e[depth - 1] : null)
 						.Where(e => e != null)
 #if XUNIT_NULLABLE
 						.Select(e => e!)
