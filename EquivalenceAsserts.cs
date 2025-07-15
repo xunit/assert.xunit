@@ -8,7 +8,6 @@
 #endif
 
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using Xunit.Internal;
 
@@ -110,7 +109,7 @@ namespace Xunit
 			params Expression<Func<T, object>>[] exclusionExpressions)
 #endif
 		{
-			var exclusions = AssertHelper.ParseMemberExpressions(exclusionExpressions);
+			var exclusions = AssertHelper.ParseExclusionExpressions(exclusionExpressions);
 
 			var ex = AssertHelper.VerifyEquivalence(expected, actual, strict, exclusions);
 			if (ex != null)
@@ -171,7 +170,7 @@ namespace Xunit
 			bool strict,
 			params string[] exclusionExpressions)
 		{
-			var exclusions = exclusionExpressions.Select(e => e.Split('.')).ToArray();
+			var exclusions = AssertHelper.ParseExclusionExpressions(exclusionExpressions);
 
 			var ex = AssertHelper.VerifyEquivalence(expected, actual, strict, exclusions);
 			if (ex != null)

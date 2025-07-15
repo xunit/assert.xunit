@@ -1,5 +1,6 @@
 #pragma warning disable CA1031 // Do not catch general exception types
 #pragma warning disable IDE0019 // Use pattern matching
+#pragma warning disable IDE0057 // Use range operator
 #pragma warning disable IDE0090 // Use 'new(...)'
 #pragma warning disable IDE0300 // Collection initialization can be simplified
 #pragma warning disable IDE0301 // Simplify collection initialization
@@ -50,7 +51,7 @@ namespace Xunit.Internal
 #endif
 	static class AssertHelper
 	{
-		static readonly IReadOnlyList<IReadOnlyList<string>> emptyExclusions = Array.Empty<IReadOnlyList<string>>();
+		static readonly IReadOnlyList<(string Prefix, string Member)> emptyExclusions = Array.Empty<(string Prefix, string Member)>();
 		static readonly Dictionary<char, string> encodings = new Dictionary<char, string>
 		{
 			{ '\0', @"\0" },  // Null
@@ -177,12 +178,55 @@ namespace Xunit.Internal
 			type.CustomAttributes.Any(a => a.AttributeType.FullName == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
 
 		/// <summary/>
-		public static IReadOnlyList<IReadOnlyList<string>> ParseMemberExpressions(params LambdaExpression[] expressions)
+		public static IReadOnlyList<(string Prefix, string Member)> ParseExclusionExpressions(params string[] exclusionExpressions)
 		{
-			var result = new List<IReadOnlyList<string>>();
+			var result = new List<(string Prefix, string Member)>();
 
-			foreach (var expression in expressions ?? throw new ArgumentNullException(nameof(expressions)))
+			foreach (var expression in exclusionExpressions ?? throw new ArgumentNullException(nameof(exclusionExpressions)))
 			{
+				if (expression is null || expression.Length is 0)
+					throw new ArgumentException("Null/empty expressions are not valid.", nameof(exclusionExpressions));
+
+				var lastDotIdx = expression.LastIndexOf('.');
+				if (lastDotIdx == 0)
+					throw new ArgumentException(
+						string.Format(
+							CultureInfo.CurrentCulture,
+							"Expression '{0}' is not valid. Expressions may not start with a period.",
+							expression
+						),
+						nameof(exclusionExpressions)
+					);
+
+				if (lastDotIdx == expression.Length - 1)
+					throw new ArgumentException(
+						string.Format(
+							CultureInfo.CurrentCulture,
+							"Expression '{0}' is not valid. Expressions may not end with a period.",
+							expression
+						),
+						nameof(exclusionExpressions)
+					);
+
+				if (lastDotIdx < 0)
+					result.Add((string.Empty, expression));
+				else
+					result.Add((expression.Substring(0, lastDotIdx), expression.Substring(lastDotIdx + 1)));
+			}
+
+			return result;
+		}
+
+		/// <summary/>
+		public static IReadOnlyList<(string Prefix, string Member)> ParseExclusionExpressions(params LambdaExpression[] exclusionExpressions)
+		{
+			var result = new List<(string Prefix, string Member)>();
+
+			foreach (var expression in exclusionExpressions ?? throw new ArgumentNullException(nameof(exclusionExpressions)))
+			{
+				if (expression is null)
+					throw new ArgumentException("Null expression is not valid.", nameof(exclusionExpressions));
+
 				var memberExpression = default(MemberExpression);
 
 				// The incoming expressions are T => object?, so any boxed struct starts with a conversion
@@ -198,14 +242,14 @@ namespace Xunit.Internal
 							"Expression '{0}' is not supported. Only property or field expressions from the lambda parameter are supported.",
 							expression
 						),
-						nameof(expressions)
+						nameof(exclusionExpressions)
 					);
 
-				var pieces = new Stack<string>();
+				var pieces = new LinkedList<string>();
 
 				while (true)
 				{
-					pieces.Push(memberExpression.Member.Name);
+					pieces.AddFirst(memberExpression.Member.Name);
 
 					if (memberExpression.Expression?.NodeType == ExpressionType.Parameter)
 						break;
@@ -219,11 +263,18 @@ namespace Xunit.Internal
 								"Expression '{0}' is not supported. Only property or field expressions from the lambda parameter are supported.",
 								expression
 							),
-							nameof(expressions)
+							nameof(exclusionExpressions)
 						);
 				}
 
-				result.Add(pieces.ToArray());
+				if (pieces.Last is null)
+					continue;
+
+				var member = pieces.Last.Value;
+				pieces.RemoveLast();
+
+				var prefix = string.Join(".", pieces.ToArray());
+				result.Add((prefix, member));
 			}
 
 			return result;
@@ -403,9 +454,9 @@ namespace Xunit.Internal
 #endif
 			bool strict,
 #if XUNIT_NULLABLE
-			IReadOnlyList<IReadOnlyList<string>>? exclusions = null) =>
+			IReadOnlyList<(string Prefix, string Member)>? exclusions = null) =>
 #else
-			IReadOnlyList<IReadOnlyList<string>> exclusions = null) =>
+			IReadOnlyList<(string Prefix, string Member)> exclusions = null) =>
 #endif
 				VerifyEquivalence(
 					expected,
@@ -432,7 +483,7 @@ namespace Xunit.Internal
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
 			int depth,
-			IReadOnlyList<IReadOnlyList<string>> exclusions)
+			IReadOnlyList<(string Prefix, string Member)> exclusions)
 		{
 			// Check for exceeded depth
 			if (depth > maxCompareDepth.Value)
@@ -567,7 +618,7 @@ namespace Xunit.Internal
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
 			int depth,
-			IReadOnlyList<IReadOnlyList<string>> exclusions)
+			IReadOnlyList<(string Prefix, string Member)> exclusions)
 		{
 #if XUNIT_NULLABLE
 			var expectedValues = expected.Cast<object?>().ToList();
@@ -611,7 +662,7 @@ namespace Xunit.Internal
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
 			int depth,
-			IReadOnlyList<IReadOnlyList<string>> exclusions)
+			IReadOnlyList<(string Prefix, string Member)> exclusions)
 		{
 			if (fileSystemInfoFullNameProperty.Value == null)
 				throw new InvalidOperationException("Could not find 'FullName' property on type 'System.IO.FileSystemInfo'");
@@ -696,7 +747,7 @@ namespace Xunit.Internal
 			HashSet<object> expectedRefs,
 			HashSet<object> actualRefs,
 			int depth,
-			IReadOnlyList<IReadOnlyList<string>> exclusions)
+			IReadOnlyList<(string Prefix, string Member)> exclusions)
 		{
 			Assert.GuardArgumentNotNull(nameof(prefix), prefix);
 
@@ -712,11 +763,8 @@ namespace Xunit.Internal
 			var excludedAtThisLevel =
 				new HashSet<string>(
 					exclusions
-						.Select(e => e.Count == depth ? e[depth - 1] : null)
-						.Where(e => e != null)
-#if XUNIT_NULLABLE
-						.Select(e => e!)
-#endif
+						.Where(e => e.Prefix == prefix)
+						.Select(e => e.Member)
 				);
 
 			foreach (var kvp in expectedGetters)
