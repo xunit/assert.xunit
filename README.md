@@ -23,7 +23,15 @@ Whether you are using this repository via Git submodule or via the [source-based
 
 ### `XUNIT_NULLABLE` (min: C# 9.0)
 
-Projects that consume this repository as source, which wish to use nullable reference type annotations should define the `XUNIT_NULLABLE` compilation symbol to opt-in to the relevant nullability analysis annotations on method signatures.
+Define this compilation symbol to opt-in to support for nullable reference types and to enable the relevant nullability analysis annotations on method signatures.
+
+_Note: you must add_ `<Nullable>enable</Nullable>` _to the property group of your project file._
+
+### `XUNIT_POINTERS`
+
+Define this compilation symbol to enable support for assertions related to unsafe pointers.
+
+_Note: you must add_ `<AllowUnsafeBlocks>true</AllowUnsafeBlocks>` _to the property group of your project file._
 
 ### `XUNIT_VISIBILITY_INTERNAL`
 

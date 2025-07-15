@@ -5,6 +5,10 @@
 #nullable enable
 #endif
 
+#if XUNIT_POINTERS
+#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
+#endif
+
 using Xunit.Sdk;
 
 #if XUNIT_NULLABLE
@@ -34,6 +38,25 @@ namespace Xunit
 			if (@object == null)
 				throw NotNullException.ForNullValue();
 		}
+
+#if XUNIT_POINTERS
+
+		/// <summary>
+		/// Verifies that an unmanaged pointer is not null.
+		/// </summary>
+		/// <typeparam name="T">The type of the pointer</typeparam>
+		/// <param name="value">The pointer value</param>
+#if XUNIT_NULLABLE
+		public static unsafe void NotNull<T>([NotNull] T* value)
+#else
+		public static unsafe void NotNull<T>(T* value)
+#endif
+		{
+			if (value == null)
+				throw NotNullException.ForNullPointer(typeof(T));
+		}
+
+#endif  // XUNIT_POINTERS
 
 		/// <summary>
 		/// Verifies that a nullable struct value is not null.
@@ -81,5 +104,24 @@ namespace Xunit
 			if (value.HasValue)
 				throw NullException.ForNonNullStruct(typeof(T), value);
 		}
+
+#if XUNIT_POINTERS
+
+		/// <summary>
+		/// Verifies that an unmanaged pointer is null.
+		/// </summary>
+		/// <typeparam name="T">The type of the pointer</typeparam>
+		/// <param name="value">The pointer value</param>
+#if XUNIT_NULLABLE
+		public static unsafe void Null<T>([NotNull] T* value)
+#else
+		public static unsafe void Null<T>(T* value)
+#endif
+		{
+			if (value != null)
+				throw NullException.ForNonNullPointer(typeof(T));
+		}
+
+#endif  // XUNIT_POINTERS
 	}
 }

@@ -26,6 +26,20 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Creates a new instance of the <see cref="NotNullException"/> class to be
+		/// throw when a pointer is <c>null</c>.
+		/// </summary>
+		/// <param name="type">The inner type of the value</param>
+		public static Exception ForNullPointer(Type type) =>
+			new NotNullException(
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"Assert.NotNull() Failure: Value of type '{0}*' is null",
+					ArgumentFormatter.FormatTypeName(Assert.GuardArgumentNotNull(nameof(type), type))
+				)
+			);
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="NotNullException"/> class to be
 		/// throw when a nullable struct is <c>null</c>.
 		/// </summary>
 		/// <param name="type">The inner type of the value</param>
