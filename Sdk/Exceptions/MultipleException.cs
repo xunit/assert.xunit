@@ -1,5 +1,6 @@
 #pragma warning disable CA1032 // Implement standard exception constructors
 #pragma warning disable IDE0090 // Use 'new(...)'
+#pragma warning disable IDE0305 // Simplify collection initialization
 
 #if XUNIT_NULLABLE
 #nullable enable

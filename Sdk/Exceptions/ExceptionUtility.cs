@@ -1,6 +1,7 @@
 #pragma warning disable IDE0090 // Use 'new(...)'
 #pragma warning disable IDE0300 // Simplify collection initialization
 #pragma warning disable IDE0305 // Simplify collection initialization
+#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
 
 #if XUNIT_NULLABLE
 #nullable enable
