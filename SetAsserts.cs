@@ -42,6 +42,7 @@ namespace Xunit
 		}
 
 #if NET8_0_OR_GREATER
+
 		/// <summary>
 		/// Verifies that the read-only set contains the given object.
 		/// </summary>
@@ -62,7 +63,8 @@ namespace Xunit
 					CollectionTracker<T>.FormatStart(set)
 				);
 		}
-#endif
+
+#endif  // NET8_0_OR_GREATER
 
 		/// <summary>
 		/// Verifies that the hashset contains the given object.
@@ -133,6 +135,7 @@ namespace Xunit
 		}
 
 #if NET8_0_OR_GREATER
+
 		/// <summary>
 		/// Verifies that the read-only set does not contain the given item.
 		/// </summary>
@@ -152,7 +155,8 @@ namespace Xunit
 					CollectionTracker<T>.FormatStart(set)
 				);
 		}
-#endif
+
+#endif  // NET8_0_OR_GREATER
 
 		/// <summary>
 		/// Verifies that the hashset does not contain the given item.

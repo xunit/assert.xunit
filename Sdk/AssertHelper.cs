@@ -823,7 +823,7 @@ namespace Xunit.Internal
 			return Task.Run(valueTask.AsTask).GetAwaiter().GetResult();
 		}
 
-#endif
+#endif  // NET8_0_OR_GREATER
 	}
 
 	sealed class ReferenceEqualityComparer : IEqualityComparer<object>
