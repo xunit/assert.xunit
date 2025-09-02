@@ -628,6 +628,7 @@ namespace Xunit.Internal
 			var actualValues = actual.Cast<object>().ToList();
 #endif
 			var actualOriginalValues = actualValues.ToList();
+			var collectionPrefix = prefix.Length == 0 ? string.Empty : prefix + "[]";
 
 			// Walk the list of expected values, and look for actual values that are equivalent
 			foreach (var expectedValue in expectedValues)
@@ -635,17 +636,17 @@ namespace Xunit.Internal
 				var actualIdx = 0;
 
 				for (; actualIdx < actualValues.Count; ++actualIdx)
-					if (VerifyEquivalence(expectedValue, actualValues[actualIdx], strict, "", expectedRefs, actualRefs, depth, exclusions) == null)
+					if (VerifyEquivalence(expectedValue, actualValues[actualIdx], strict, collectionPrefix, expectedRefs, actualRefs, depth, exclusions) == null)
 						break;
 
 				if (actualIdx == actualValues.Count)
-					return EquivalentException.ForMissingCollectionValue(expectedValue, actualOriginalValues, prefix);
+					return EquivalentException.ForMissingCollectionValue(expectedValue, actualOriginalValues, collectionPrefix);
 
 				actualValues.RemoveAt(actualIdx);
 			}
 
 			if (strict && actualValues.Count != 0)
-				return EquivalentException.ForExtraCollectionValue(expectedValues, actualOriginalValues, actualValues, prefix);
+				return EquivalentException.ForExtraCollectionValue(expectedValues, actualOriginalValues, actualValues, collectionPrefix);
 
 			return null;
 		}
