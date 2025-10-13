@@ -25,10 +25,23 @@ namespace Xunit
 	partial class Assert
 	{
 		/// <summary>
+		/// The contract for exceptions which indicate that something should be skipped rather than
+		/// failed is that exception message should start with this, and that any text following this
+		/// will be treated as the skip reason (for example, <c>"$XunitDynamicSkip$This code can only run
+		/// on Linux"</c>) will result in a skipped test with the reason of <c>"This code can only run
+		/// on Linux"</c>.
+		/// </summary>
+		const string DynamicSkipToken = "$XunitDynamicSkip$";
+
+		/// <summary>
 		/// Records any exception which is thrown by the given code.
 		/// </summary>
 		/// <param name="testCode">The code which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		/// <remarks>
+		/// If the thrown exception is determined to be a "skip exception", it's not recorded, but
+		/// instead is allowed to escape this function uncaught.
+		/// </remarks>
 #if XUNIT_NULLABLE
 		protected static Exception? RecordException(Action testCode)
 #else
@@ -44,6 +57,9 @@ namespace Xunit
 			}
 			catch (Exception ex)
 			{
+				if (ex.Message.StartsWith(DynamicSkipToken, StringComparison.Ordinal))
+					throw;
+
 				return ex;
 			}
 		}
@@ -56,6 +72,10 @@ namespace Xunit
 		/// <param name="asyncMethodName">The name of the async method the user should've called if they accidentally
 		/// passed in an async function</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		/// <remarks>
+		/// If the thrown exception is determined to be a "skip exception", it's not recorded, but
+		/// instead is allowed to escape this function uncaught.
+		/// </remarks>
 #if XUNIT_NULLABLE
 		protected static Exception? RecordException(
 			Func<object?> testCode,
@@ -75,6 +95,9 @@ namespace Xunit
 			}
 			catch (Exception ex)
 			{
+				if (ex.Message.StartsWith(DynamicSkipToken, StringComparison.Ordinal))
+					throw;
+
 				return ex;
 			}
 
@@ -97,6 +120,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="testCode">The task which may thrown an exception.</param>
 		/// <returns>Returns the exception that was thrown by the code; null, otherwise.</returns>
+		/// <remarks>
+		/// If the thrown exception is determined to be a "skip exception", it's not recorded, but
+		/// instead is allowed to escape this function uncaught.
+		/// </remarks>
 #if XUNIT_NULLABLE
 		protected static async Task<Exception?> RecordExceptionAsync(Func<Task> testCode)
 #else
@@ -112,6 +139,9 @@ namespace Xunit
 			}
 			catch (Exception ex)
 			{
+				if (ex.Message.StartsWith(DynamicSkipToken, StringComparison.Ordinal))
+					throw;
+
 				return ex;
 			}
 		}
