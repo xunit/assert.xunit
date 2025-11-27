@@ -68,9 +68,9 @@ namespace Xunit.Sdk
 								Environment.NewLine,
 								indexSpaces,
 #if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-								error.Item3.Message.Replace(Environment.NewLine, wrapSpaces, StringComparison.Ordinal)
+								error.Item3.Message?.Replace(Environment.NewLine, wrapSpaces, StringComparison.Ordinal)
 #else
-								error.Item3.Message.Replace(Environment.NewLine, wrapSpaces)
+								error.Item3.Message?.Replace(Environment.NewLine, wrapSpaces)
 #endif
 							)
 						)

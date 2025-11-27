@@ -57,7 +57,7 @@ namespace Xunit
 			}
 			catch (Exception ex)
 			{
-				if (ex.Message.StartsWith(DynamicSkipToken, StringComparison.Ordinal))
+				if (ex.Message?.StartsWith(DynamicSkipToken, StringComparison.Ordinal) == true)
 					throw;
 
 				return ex;
@@ -95,14 +95,20 @@ namespace Xunit
 			}
 			catch (Exception ex)
 			{
-				if (ex.Message.StartsWith(DynamicSkipToken, StringComparison.Ordinal))
+				if (ex.Message?.StartsWith(DynamicSkipToken, StringComparison.Ordinal) == true)
 					throw;
 
 				return ex;
 			}
 
 			if (result is Task)
-				throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "You must call Assert.{0} when testing async code", asyncMethodName));
+				throw new InvalidOperationException(
+					string.Format(
+						CultureInfo.CurrentCulture,
+						"You must call Assert.{0} when testing async code",
+						asyncMethodName
+					)
+				);
 
 			return null;
 		}
@@ -139,7 +145,7 @@ namespace Xunit
 			}
 			catch (Exception ex)
 			{
-				if (ex.Message.StartsWith(DynamicSkipToken, StringComparison.Ordinal))
+				if (ex.Message?.StartsWith(DynamicSkipToken, StringComparison.Ordinal) == true)
 					throw;
 
 				return ex;

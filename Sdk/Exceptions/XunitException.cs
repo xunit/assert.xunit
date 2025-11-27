@@ -60,7 +60,7 @@ namespace Xunit.Sdk
 			var className = GetType().ToString();
 			var message = Message;
 			var result =
-				message == null || message.Length <= 0
+				message is null || message.Length == 0
 					? className
 					: string.Format(CultureInfo.CurrentCulture, "{0}: {1}", className, message);
 

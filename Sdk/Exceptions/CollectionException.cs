@@ -38,7 +38,7 @@ namespace Xunit.Sdk
 
 		static string FormatInnerException(Exception innerException)
 		{
-			var text = innerException.Message;
+			var text = innerException.Message ?? string.Empty;
 			var filteredStack = ExceptionUtilityInternal.TransformStackTrace(ExceptionUtilityInternal.FilterStackTrace(innerException.StackTrace), "  ");
 			if (!string.IsNullOrWhiteSpace(filteredStack))
 			{
