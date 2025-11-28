@@ -170,8 +170,16 @@ namespace Xunit.Sdk
 			string header)
 		{
 			var message = "Assert.Equal() Failure: " + header;
-			var formattedExpected = AssertHelper.ShortenAndEncodeString(expected, expectedIndex, out var expectedPointer);
-			var formattedActual = AssertHelper.ShortenAndEncodeString(actual, actualIndex, out var actualPointer);
+			var (expectedStart, expectedEnd) = AssertHelper.GetStartEndForString(expected, expectedIndex);
+			var (actualStart, actualEnd) = AssertHelper.GetStartEndForString(actual, actualIndex);
+
+			// When the strings diverage at the same index, make sure they line up visually by using the
+			// larger of the two start positions
+			if (expectedIndex == actualIndex)
+				expectedStart = actualStart = Math.Max(expectedStart, actualStart);
+
+			var formattedExpected = AssertHelper.ShortenString(expected, expectedStart, expectedEnd, expectedIndex, out var expectedPointer);
+			var formattedActual = AssertHelper.ShortenString(actual, actualStart, actualEnd, actualIndex, out var actualPointer);
 
 			if (expected != null && expectedIndex > -1 && expectedIndex < expected.Length)
 				message += string.Format(CultureInfo.CurrentCulture, "{0}{1}\u2193 (pos {2})", newLineAndIndent, new string(' ', expectedPointer), expectedIndex);

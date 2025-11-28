@@ -151,6 +151,28 @@ namespace Xunit.Internal
 						.ToDictionary(g => g.name, g => g.getter);
 			});
 
+		internal static (int start, int end) GetStartEndForString(
+#if XUNIT_NULLABLE
+			string? value,
+#else
+			string value,
+#endif
+			int index)
+		{
+			if (value is null)
+				return (0, 0);
+
+			if (ArgumentFormatter.MaxStringLength == int.MaxValue)
+				return (0, value.Length);
+
+			var halfMaxLength = ArgumentFormatter.MaxStringLength / 2;
+			var start = Math.Max(index - halfMaxLength, 0);
+			var end = Math.Min(start + ArgumentFormatter.MaxStringLength, value.Length);
+			start = Math.Max(end - ArgumentFormatter.MaxStringLength, 0);
+
+			return (start, end);
+		}
+
 #if XUNIT_NULLABLE
 		static Type? GetTypeByName(string typeName)
 #else
@@ -289,25 +311,40 @@ namespace Xunit.Internal
 			int index,
 			out int pointerIndent)
 		{
+			var (start, end) = GetStartEndForString(value, index);
+
+			return ShortenString(value, start, end, index, out pointerIndent);
+		}
+
+#if XUNIT_NULLABLE
+		internal static string ShortenAndEncodeString(string? value) =>
+#else
+		internal static string ShortenAndEncodeString(string value) =>
+#endif
+			ShortenAndEncodeString(value, 0, out var _);
+
+#if XUNIT_NULLABLE
+		internal static string ShortenAndEncodeStringEnd(string? value) =>
+#else
+		internal static string ShortenAndEncodeStringEnd(string value) =>
+#endif
+			ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out var _);
+
+		internal static string ShortenString(
+#if XUNIT_NULLABLE
+			string? value,
+#else
+			string value,
+#endif
+			int start,
+			int end,
+			int index,
+			out int pointerIndent)
+		{
 			if (value == null)
 			{
 				pointerIndent = -1;
 				return "null";
-			}
-
-			int start, end;
-
-			if (ArgumentFormatter.MaxStringLength == int.MaxValue)
-			{
-				start = 0;
-				end = value.Length;
-			}
-			else
-			{
-				var halfMaxLength = ArgumentFormatter.MaxStringLength / 2;
-				start = Math.Max(index - halfMaxLength, 0);
-				end = Math.Min(start + ArgumentFormatter.MaxStringLength, value.Length);
-				start = Math.Max(end - ArgumentFormatter.MaxStringLength, 0);
 			}
 
 			// Set the initial buffer to include the possibility of quotes and ellipses, plus a few extra
@@ -348,20 +385,6 @@ namespace Xunit.Internal
 
 			return printedValue.ToString();
 		}
-
-#if XUNIT_NULLABLE
-		internal static string ShortenAndEncodeString(string? value) =>
-#else
-		internal static string ShortenAndEncodeString(string value) =>
-#endif
-			ShortenAndEncodeString(value, 0, out var _);
-
-#if XUNIT_NULLABLE
-		internal static string ShortenAndEncodeStringEnd(string? value) =>
-#else
-		internal static string ShortenAndEncodeStringEnd(string value) =>
-#endif
-			ShortenAndEncodeString(value, (value?.Length - 1) ?? 0, out var _);
 
 #if NET8_0_OR_GREATER
 
