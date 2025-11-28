@@ -173,10 +173,14 @@ namespace Xunit.Sdk
 			var (expectedStart, expectedEnd) = AssertHelper.GetStartEndForString(expected, expectedIndex);
 			var (actualStart, actualEnd) = AssertHelper.GetStartEndForString(actual, actualIndex);
 
-			// When the strings diverage at the same index, make sure they line up visually by using the
-			// larger of the two start positions
-			if (expectedIndex == actualIndex)
-				expectedStart = actualStart = Math.Max(expectedStart, actualStart);
+			if ((expectedStart != 0 || actualStart != 0) && expectedIndex != -1 && actualIndex != -1)
+			{
+				// Try to find the correct start point so the positions will come into alignment
+				var positionDifference = expectedIndex - actualIndex;
+				var startingPosition = Math.Max(expectedStart, actualStart);
+				expectedStart = startingPosition;
+				actualStart = startingPosition - positionDifference;
+			}
 
 			var formattedExpected = AssertHelper.ShortenString(expected, expectedStart, expectedEnd, expectedIndex, out var expectedPointer);
 			var formattedActual = AssertHelper.ShortenString(actual, actualStart, actualEnd, actualIndex, out var actualPointer);
