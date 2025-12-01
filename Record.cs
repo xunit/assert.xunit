@@ -17,11 +17,6 @@ using System.Threading.Tasks;
 
 namespace Xunit
 {
-#if XUNIT_VISIBILITY_INTERNAL
-	internal
-#else
-	public
-#endif
 	partial class Assert
 	{
 		/// <summary>

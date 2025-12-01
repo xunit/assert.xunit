@@ -9,11 +9,6 @@ using Xunit.Sdk;
 
 namespace Xunit
 {
-#if XUNIT_VISIBILITY_INTERNAL
-	internal
-#else
-	public
-#endif
 	partial class Assert
 	{
 		// While there is an implicit conversion operator from Memory<T> to ReadOnlyMemory<T>, the
