@@ -113,7 +113,7 @@ namespace Xunit
 		[Obsolete("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.", true)]
 		protected static Exception RecordException(Func<Task> testCode)
 		{
-			throw new NotImplementedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.RecordExceptionAsync (and await the result) when testing async code.");
 		}
 
 		/// <summary>

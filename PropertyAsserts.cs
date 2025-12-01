@@ -66,7 +66,7 @@ namespace Xunit
 			string propertyName,
 			Func<Task> testCode)
 		{
-			throw new NotImplementedException("You must call Assert.PropertyChangedAsync (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.PropertyChangedAsync (and await the result) when testing async code.");
 		}
 
 		/// <summary>

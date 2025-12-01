@@ -91,7 +91,7 @@ namespace Xunit
 			Type exceptionType,
 			Func<Task> testCode)
 		{
-			throw new NotImplementedException("You must call Assert.ThrowsAsync (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.ThrowsAsync (and await the result) when testing async code.");
 		}
 
 		/// <summary/>
@@ -106,7 +106,7 @@ namespace Xunit
 			Func<Exception, string> inspector)
 #endif
 		{
-			throw new NotImplementedException("You must call Assert.ThrowsAsync (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.ThrowsAsync (and await the result) when testing async code.");
 		}
 
 		/// <summary>
@@ -178,7 +178,7 @@ namespace Xunit
 		public static T Throws<T>(Func<Task> testCode)
 			where T : Exception
 		{
-			throw new NotImplementedException("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.");
 		}
 
 		/// <summary/>
@@ -193,7 +193,7 @@ namespace Xunit
 #endif
 				where T : Exception
 		{
-			throw new NotImplementedException("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.");
 		}
 
 		/// <summary>
@@ -257,7 +257,7 @@ namespace Xunit
 			Func<Task> testCode)
 				where T : ArgumentException
 		{
-			throw new NotImplementedException("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.ThrowsAsync<T> (and await the result) when testing async code.");
 		}
 
 		/// <summary>
@@ -329,7 +329,7 @@ namespace Xunit
 		public static T ThrowsAny<T>(Func<Task> testCode)
 			where T : Exception
 		{
-			throw new NotImplementedException("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.");
 		}
 
 		/// <summary/>
@@ -344,7 +344,7 @@ namespace Xunit
 #endif
 				where T : Exception
 		{
-			throw new NotImplementedException("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.");
+			throw new NotSupportedException("You must call Assert.ThrowsAnyAsync<T> (and await the result) when testing async code.");
 		}
 
 		/// <summary>
