@@ -23,7 +23,10 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	partial class XunitException : Exception, IAssertionException
+	partial class XunitException : Exception
+#if !XUNIT_AOT
+		, IAssertionException
+#endif
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="XunitException"/> class.

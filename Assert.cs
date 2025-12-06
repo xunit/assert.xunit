@@ -8,6 +8,7 @@
 #endif
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Xunit
@@ -23,6 +24,9 @@ namespace Xunit
 #endif
 	partial class Assert
 	{
+		static readonly Type typeofDictionary = typeof(Dictionary<,>);
+		static readonly Type typeofHashSet = typeof(HashSet<>);
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Assert"/> class.
 		/// </summary>
@@ -66,16 +70,7 @@ namespace Xunit
 			if (!type.IsGenericType)
 				return null;
 
-			// We need try/catch for target frameworks that don't support IsGenericType; notably, this
-			// would include .NET Core 1.x and .NET Standard 1.x, which are still supported for v2.
-			try
-			{
-				return type.GetGenericTypeDefinition();
-			}
-			catch (InvalidOperationException)
-			{
-				return null;
-			}
+			return type.GetGenericTypeDefinition();
 		}
 	}
 }

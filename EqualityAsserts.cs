@@ -1,5 +1,4 @@
 #pragma warning disable CA1031 // Do not catch general exception types
-#pragma warning disable CA1052 // Static holder types should be static
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -7,61 +6,19 @@
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8600
 #pragma warning disable CS8604
-#pragma warning disable CS8625
 #endif
 
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using Xunit.Internal;
 using Xunit.Sdk;
-
-#if XUNIT_NULLABLE
-using System.Diagnostics.CodeAnalysis;
-#endif
 
 namespace Xunit
 {
 	partial class Assert
 	{
-		static readonly Type typeofDictionary = typeof(Dictionary<,>);
-		static readonly Type typeofHashSet = typeof(HashSet<>);
-		static readonly Type typeofSet = typeof(ISet<>);
-
-		/// <summary>
-		/// Verifies that two arrays of un-managed type T are equal, using Span&lt;T&gt;.SequenceEqual.
-		/// This can be significantly faster than generic enumerables, when the collections are actually
-		/// equal, because the system can optimize packed-memory comparisons for value type arrays.
-		/// </summary>
-		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
-		/// <param name="expected">The expected value</param>
-		/// <param name="actual">The value to be compared against</param>
-		/// <remarks>
-		/// If <see cref="MemoryExtensions.SequenceEqual{T}(Span{T}, ReadOnlySpan{T})"/> fails, a call
-		/// to <see cref="Assert.Equal{T}(T, T)"/> is made, to provide a more meaningful error message.
-		/// </remarks>
-		public static void Equal<T>(
-#if XUNIT_NULLABLE
-			[AllowNull] T[] expected,
-			[AllowNull] T[] actual)
-				where T : unmanaged, IEquatable<T>
-#else
-			T[] expected,
-			T[] actual)
-				where T : IEquatable<T>
-#endif
-		{
-			if (expected == null && actual == null)
-				return;
-
-			if (expected == null || actual == null || !expected.AsSpan().SequenceEqual(actual))
-				// Call into Equal<object> (even though we'll re-enumerate) so we get proper formatting
-				// of the sequence, including the "first mismatch" pointer
-				Equal<object>(expected, actual);
-		}
-
 		/// <summary>
 		/// Verifies that two objects are equal, using a default comparer.
 		/// </summary>
@@ -70,8 +27,8 @@ namespace Xunit
 		/// <param name="actual">The value to be compared against</param>
 		public static void Equal<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual) =>
+			T? expected,
+			T? actual) =>
 #else
 			T expected,
 			T actual) =>
@@ -87,8 +44,8 @@ namespace Xunit
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		public static void Equal<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual,
+			T? expected,
+			T? actual,
 #else
 			T expected,
 			T actual,
@@ -97,7 +54,7 @@ namespace Xunit
 				Equal(expected, actual, AssertEqualityComparer<T>.FromComparer(comparer));
 
 		/// <summary>
-		/// Verifies that two objects are equal, using a custom equatable comparer.
+		/// Verifies that two objects are equal, using a custom equality comparer.
 		/// </summary>
 		/// <typeparam name="T">The type of the objects to be compared</typeparam>
 		/// <param name="expected">The expected value</param>
@@ -105,8 +62,8 @@ namespace Xunit
 		/// <param name="comparer">The comparer used to compare the two objects</param>
 		public static void Equal<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual,
+			T? expected,
+			T? actual,
 #else
 			T expected,
 			T actual,
@@ -142,7 +99,11 @@ namespace Xunit
 						exception = ex;
 					}
 
-					throw EqualException.ForMismatchedValuesWithError(expected, actual, exception);
+					throw EqualException.ForMismatchedValuesWithError(
+						expected as string ?? ArgumentFormatter.Format(expected),
+						actual as string ?? ArgumentFormatter.Format(actual),
+						exception
+					);
 				}
 				else
 				{
@@ -245,26 +206,13 @@ namespace Xunit
 						formattedActual = ArgumentFormatter.Format(actual);
 					}
 
-#if XUNIT_NULLABLE
-					string? collectionDisplay = null;
-#else
-					string collectionDisplay = null;
-#endif
-
 					var expectedType = expected?.GetType();
 					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
-					var expectedInterfaceTypeDefinitions = expectedType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
 					var actualType = actual?.GetType();
 					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
-					var actualInterfaceTypeDefinitions = actualType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
-					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
-						collectionDisplay = "Dictionaries";
-					else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
-						collectionDisplay = "HashSets";
-					else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
-						collectionDisplay = "Sets";
+					var collectionDisplay = GetCollectionDisplay(expectedType, expectedTypeDefinition, actualType, actualTypeDefinition);
 
 					if (expectedType != actualType)
 					{
@@ -488,7 +436,7 @@ namespace Xunit
 					ArgumentFormatter.Format(actual) +
 					(precision == TimeSpan.Zero ? "" : string.Format(CultureInfo.CurrentCulture, " (difference {0} is larger than {1})", difference, precision));
 
-				throw EqualException.ForMismatchedValues(expected, actualValue);
+				throw EqualException.ForMismatchedValues(ArgumentFormatter.Format(expected), actualValue);
 			}
 		}
 
@@ -522,34 +470,8 @@ namespace Xunit
 					ArgumentFormatter.Format(actual) +
 					(precision == TimeSpan.Zero ? "" : string.Format(CultureInfo.CurrentCulture, " (difference {0} is larger than {1})", difference, precision));
 
-				throw EqualException.ForMismatchedValues(expected, actualValue);
+				throw EqualException.ForMismatchedValues(ArgumentFormatter.Format(expected), actualValue);
 			}
-		}
-
-		/// <summary>
-		/// Verifies that two arrays of un-managed type T are not equal, using Span&lt;T&gt;.SequenceEqual.
-		/// </summary>
-		/// <typeparam name="T">The type of items whose arrays are to be compared</typeparam>
-		/// <param name="expected">The expected value</param>
-		/// <param name="actual">The value to be compared against</param>
-		public static void NotEqual<T>(
-#if XUNIT_NULLABLE
-			[AllowNull] T[] expected,
-			[AllowNull] T[] actual)
-				where T : unmanaged, IEquatable<T>
-#else
-			T[] expected,
-			T[] actual)
-				where T : IEquatable<T>
-#endif
-		{
-			// Call into NotEqual<object> so we get proper formatting of the sequence
-			if (expected == null && actual == null)
-				NotEqual<object>(expected, actual);
-			if (expected == null || actual == null)
-				return;
-			if (expected.AsSpan().SequenceEqual(actual))
-				NotEqual<object>(expected, actual);
 		}
 
 		/// <summary>
@@ -560,8 +482,8 @@ namespace Xunit
 		/// <param name="actual">The actual object</param>
 		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual) =>
+			T? expected,
+			T? actual) =>
 #else
 			T expected,
 			T actual) =>
@@ -577,8 +499,8 @@ namespace Xunit
 		/// <param name="comparer">The comparer used to examine the objects</param>
 		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual,
+			T? expected,
+			T? actual,
 #else
 			T expected,
 			T actual,
@@ -595,8 +517,8 @@ namespace Xunit
 		/// <param name="comparer">The comparer used to examine the objects</param>
 		public static void NotEqual<T>(
 #if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual,
+			T? expected,
+			T? actual,
 #else
 			T expected,
 			T actual,
@@ -720,26 +642,13 @@ namespace Xunit
 						formattedActual = ArgumentFormatter.Format(actual);
 					}
 
-#if XUNIT_NULLABLE
-					string? collectionDisplay = null;
-#else
-					string collectionDisplay = null;
-#endif
-
 					var expectedType = expected?.GetType();
 					var expectedTypeDefinition = SafeGetGenericTypeDefinition(expectedType);
-					var expectedInterfaceTypeDefinitions = expectedType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
 					var actualType = actual?.GetType();
 					var actualTypeDefinition = SafeGetGenericTypeDefinition(actualType);
-					var actualInterfaceTypeDefinitions = actualType?.GetInterfaces().Where(i => i.IsGenericType).Select(i => i.GetGenericTypeDefinition());
 
-					if (expectedTypeDefinition == typeofDictionary && actualTypeDefinition == typeofDictionary)
-						collectionDisplay = "Dictionaries";
-					else if (expectedTypeDefinition == typeofHashSet && actualTypeDefinition == typeofHashSet)
-						collectionDisplay = "HashSets";
-					else if (expectedInterfaceTypeDefinitions != null && actualInterfaceTypeDefinitions != null && expectedInterfaceTypeDefinitions.Contains(typeofSet) && actualInterfaceTypeDefinitions.Contains(typeofSet))
-						collectionDisplay = "Sets";
+					var collectionDisplay = GetCollectionDisplay(expectedType, expectedTypeDefinition, actualType, actualTypeDefinition);
 
 					if (expectedType != actualType)
 					{
@@ -931,54 +840,6 @@ namespace Xunit
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", expectedRounded, expected),
 					string.Format(CultureInfo.CurrentCulture, "{0} (rounded from {1})", actualRounded, actual)
 				);
-		}
-
-		/// <summary>
-		/// Verifies that two objects are strictly not equal, using the type's default comparer.
-		/// </summary>
-		/// <typeparam name="T">The type of the objects to be compared</typeparam>
-		/// <param name="expected">The expected object</param>
-		/// <param name="actual">The actual object</param>
-		public static void NotStrictEqual<T>(
-#if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual)
-#else
-			T expected,
-			T actual)
-#endif
-		{
-			if (!EqualityComparer<T>.Default.Equals(expected, actual))
-				return;
-
-			throw NotStrictEqualException.ForEqualValues(
-				ArgumentFormatter.Format(expected),
-				ArgumentFormatter.Format(actual)
-			);
-		}
-
-		/// <summary>
-		/// Verifies that two objects are strictly equal, using the type's default comparer.
-		/// </summary>
-		/// <typeparam name="T">The type of the objects to be compared</typeparam>
-		/// <param name="expected">The expected value</param>
-		/// <param name="actual">The value to be compared against</param>
-		public static void StrictEqual<T>(
-#if XUNIT_NULLABLE
-			[AllowNull] T expected,
-			[AllowNull] T actual)
-#else
-			T expected,
-			T actual)
-#endif
-		{
-			if (EqualityComparer<T>.Default.Equals(expected, actual))
-				return;
-
-			throw StrictEqualException.ForEqualValues(
-				ArgumentFormatter.Format(expected),
-				ArgumentFormatter.Format(actual)
-			);
 		}
 	}
 }

@@ -1,3 +1,5 @@
+#if !XUNIT_AOT
+
 #pragma warning disable CA1052 // Static holder types should be static
 
 #if XUNIT_NULLABLE
@@ -173,3 +175,5 @@ namespace Xunit
 		}
 	}
 }
+
+#endif  // !XUNIT_AOT

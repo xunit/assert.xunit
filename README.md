@@ -21,11 +21,21 @@ To open an issue for this project, please visit the [core xUnit.net project issu
 
 Whether you are using this repository via Git submodule or via the [source-based NuGet package](https://www.nuget.org/packages/xunit.assert.source), the following pre-processor directives can be used to influence the code contained in this repository:
 
+### `XUNIT_AOT` (min: C# 13, .NET 9)
+
+Define this compilation symbol to use assertions that are compatible with Native AOT.
+
+_Note: you must add_ `<PublishAot>true</PublishAot>` _to the property group of your project file._
+
 ### `XUNIT_NULLABLE` (min: C# 9.0)
 
 Define this compilation symbol to opt-in to support for nullable reference types and to enable the relevant nullability analysis annotations on method signatures.
 
 _Note: you must add_ `<Nullable>enable</Nullable>` _to the property group of your project file._
+
+### `XUNIT_OVERLOAD_RESOLUTION_PRIORITY` (min: C# 13.0)
+
+Define this compilation symbol to opt-in to decorating assertion functions with [`[OverloadResolutionPriority]`](https://learn.microsoft.com/dotnet/api/system.runtime.compilerservices.overloadresolutionpriorityattribute) to help the compiler resolve competing ambiguous overloads.
 
 ### `XUNIT_POINTERS`
 

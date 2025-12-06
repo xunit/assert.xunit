@@ -1,5 +1,4 @@
 #pragma warning disable CA1032 // Implement standard exception constructors
-#pragma warning disable IDE0090 // Use 'new(...)'
 
 #if XUNIT_NULLABLE
 #nullable enable
@@ -10,6 +9,7 @@
 #endif
 
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using Xunit.Internal;
 
@@ -129,6 +129,58 @@ namespace Xunit.Sdk
 		}
 
 		/// <summary>
+		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two sets
+		/// are not equal.
+		/// </summary>
+		/// <param name="expected">The expected collection</param>
+		/// <param name="expectedType">The type of the expected set, when they differ in type</param>
+		/// <param name="actual">The actual collection</param>
+		/// <param name="actualType">The type of the actual set, when they differ in type</param>
+		/// <param name="collectionDisplay">The display name for the collection type</param>
+		public static EqualException ForMismatchedSets(
+			string expected,
+#if XUNIT_NULLABLE
+			string? expectedType,
+#else
+			string expectedType,
+#endif
+			string actual,
+#if XUNIT_NULLABLE
+			string? actualType,
+#else
+			string actualType,
+#endif
+			string collectionDisplay)
+		{
+			Assert.GuardArgumentNotNull(nameof(expected), expected);
+			Assert.GuardArgumentNotNull(nameof(actual), actual);
+
+			var message = string.Format(CultureInfo.CurrentCulture, "Assert.Equal() Failure: {0} differ", collectionDisplay);
+			var expectedTypeText = "";
+			var actualTypeText = "";
+			if (expectedType != null && actualType != null && expectedType != actualType)
+			{
+				var length = Math.Max(expectedType.Length, actualType.Length) + 1;
+
+				expectedTypeText = expectedType.PadRight(length);
+				actualTypeText = actualType.PadRight(length);
+			}
+
+			message += string.Format(
+				CultureInfo.CurrentCulture,
+				"{0}Expected: {1}{2}{3}Actual:   {4}{5}",
+				Environment.NewLine,
+				expectedTypeText,
+				expected,
+				Environment.NewLine,
+				actualTypeText,
+				actual
+			);
+
+			return new EqualException(message);
+		}
+
+		/// <summary>
 		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two string
 		/// values are not equal.
 		/// </summary>
@@ -197,14 +249,10 @@ namespace Xunit.Sdk
 		}
 
 		/// <summary>
-		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two values
-		/// are not equal. This may be simple values (like intrinsics) or complex values (like
-		/// classes or structs).
+		/// Please use <see cref="ForMismatchedValues(string, string, string)"/>.
 		/// </summary>
-		/// <param name="expected">The expected value</param>
-		/// <param name="actual">The actual value</param>
-		/// <param name="banner">The banner to show; if <c>null</c>, then the standard
-		/// banner of "Values differ" will be used</param>
+		[Obsolete("Please use the overload that accepts pre-formatted values as strings")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		public static EqualException ForMismatchedValues(
 #if XUNIT_NULLABLE
 			object? expected,
@@ -215,7 +263,53 @@ namespace Xunit.Sdk
 			object actual,
 			string banner = null) =>
 #endif
+				ForMismatchedValues(ArgumentFormatter.Format(expected), ArgumentFormatter.Format(actual), banner);
+
+		/// <summary>
+		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two values
+		/// are not equal. This may be simple values (like intrinsics) or complex values (like
+		/// classes or structs).
+		/// </summary>
+		/// <param name="expected">The expected value</param>
+		/// <param name="actual">The actual value</param>
+		/// <param name="banner">The banner to show; if <c>null</c>, then the standard
+		/// banner of "Values differ" will be used</param>
+		public static EqualException ForMismatchedValues(
+			string expected,
+			string actual,
+#if XUNIT_NULLABLE
+			string? banner = null) =>
+#else
+			string banner = null) =>
+#endif
 				ForMismatchedValuesWithError(expected, actual, null, banner);
+
+		/// <summary>
+		/// Please use <see cref="ForMismatchedValuesWithError(string, string, Exception, string)"/>.
+		/// </summary>
+		[Obsolete("Please use the overload that accepts pre-formatted values as strings")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		public static EqualException ForMismatchedValuesWithError(
+#if XUNIT_NULLABLE
+			object? expected,
+			object? actual,
+			Exception? error = null,
+			string? banner = null) =>
+#else
+			object expected,
+			object actual,
+			Exception error = null,
+			string banner = null) =>
+#endif
+				// Strings normally come through ForMismatchedStrings, so we want to make sure any
+				// string value that comes through here isn't re-formatted/truncated. This allows
+				// any assertion functions which pre-format string values to preserve those.
+				ForMismatchedValuesWithError(
+					expected as string ?? ArgumentFormatter.Format(expected),
+					actual as string ?? ArgumentFormatter.Format(actual),
+					error,
+					banner
+				);
 
 		/// <summary>
 		/// Creates a new instance of <see cref="EqualException"/> to be thrown when two values
@@ -230,27 +324,18 @@ namespace Xunit.Sdk
 		/// then the banner used will always be "Exception thrown during comparison", regardless
 		/// of the value passed here.</param>
 		public static EqualException ForMismatchedValuesWithError(
+			string expected,
+			string actual,
 #if XUNIT_NULLABLE
-			object? expected,
-			object? actual,
 			Exception? error = null,
 			string? banner = null)
 #else
-			object expected,
-			object actual,
 			Exception error = null,
 			string banner = null)
 #endif
 		{
-			// Strings normally come through ForMismatchedStrings, so we want to make sure any
-			// string value that comes through here isn't re-formatted/truncated. This is for
-			// two reasons: (a) to support Assert.Equal<object>(string1, string2) to get a full
-			// printout of the raw string values, which is useful when debugging; and (b) to
-			// allow the assertion functions to pre-format the value themselves, perhaps with
-			// additional information (like DateTime/DateTimeOffset when providing the precision
-			// of the comparison).
-			var expectedText = expected as string ?? ArgumentFormatter.Format(expected);
-			var actualText = actual as string ?? ArgumentFormatter.Format(actual);
+			Assert.GuardArgumentNotNull(nameof(expected), expected);
+			Assert.GuardArgumentNotNull(nameof(actual), actual);
 
 			var message =
 				error == null
@@ -264,15 +349,15 @@ namespace Xunit.Sdk
 					message,
 					Environment.NewLine,
 #if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-					expectedText.Replace(Environment.NewLine, newLineAndIndent, StringComparison.Ordinal),
+					expected.Replace(Environment.NewLine, newLineAndIndent, StringComparison.Ordinal),
 #else
-					expectedText.Replace(Environment.NewLine, newLineAndIndent),
+					expected.Replace(Environment.NewLine, newLineAndIndent),
 #endif
 					Environment.NewLine,
 #if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-					actualText.Replace(Environment.NewLine, newLineAndIndent, StringComparison.Ordinal)
+					actual.Replace(Environment.NewLine, newLineAndIndent, StringComparison.Ordinal)
 #else
-					actualText.Replace(Environment.NewLine, newLineAndIndent)
+					actual.Replace(Environment.NewLine, newLineAndIndent)
 #endif
 				),
 				error

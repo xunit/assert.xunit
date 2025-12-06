@@ -186,7 +186,7 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(expectedMemory), expectedMemory);
 
 			if (!expectedMemory.Span.SequenceEqual(actualMemory.Span))
-				Equal<object>(expectedMemory.Span.ToArray(), actualMemory.Span.ToArray());
+				Equal(expectedMemory.Span.ToArray(), actualMemory.Span.ToArray(), new AssertEqualityComparer<T>());
 		}
 	}
 }

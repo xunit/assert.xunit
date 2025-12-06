@@ -1,3 +1,5 @@
+#if !XUNIT_AOT
+
 #pragma warning disable IDE0290 // Use primary constructor
 
 #if XUNIT_NULLABLE
@@ -98,3 +100,5 @@ namespace Xunit
 			obj?.GetHashCode() ?? 0;
 	}
 }
+
+#endif  // !XUNIT_AOT

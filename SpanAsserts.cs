@@ -195,7 +195,7 @@ namespace Xunit
 				where T : IEquatable<T>
 		{
 			if (!expectedSpan.SequenceEqual(actualSpan))
-				Equal<object>(expectedSpan.ToArray(), actualSpan.ToArray());
+				Equal(expectedSpan.ToArray(), actualSpan.ToArray(), new AssertEqualityComparer<T>());
 		}
 	}
 }

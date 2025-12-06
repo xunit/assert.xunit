@@ -1,24 +1,18 @@
 #pragma warning disable CA1031 // Do not catch general exception types
-#pragma warning disable CA1707 // Identifiers should not contain underscores
-#pragma warning disable CA1810 // Initialize reference type static fields inline
 #pragma warning disable IDE0019 // Use pattern matching
 #pragma warning disable IDE0057 // Use range operator
 #pragma warning disable IDE0090 // Use 'new(...)'
 #pragma warning disable IDE0300 // Simplify collection initialization
-#pragma warning disable IDE0301 // Simplify collection initialization
-#pragma warning disable IDE0305 // Simplify collection initialization
 
 #if XUNIT_NULLABLE
 #nullable enable
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8600
-#pragma warning disable CS8601
 #pragma warning disable CS8602
 #pragma warning disable CS8603
 #pragma warning disable CS8604
 #pragma warning disable CS8605
-#pragma warning disable CS8618
 #pragma warning disable CS8625
 #endif
 
@@ -47,7 +41,7 @@ namespace Xunit.Sdk
 #else
 	public
 #endif
-	static class ArgumentFormatter
+	static partial class ArgumentFormatter
 	{
 		static readonly Lazy<int> maxEnumerableLength = new Lazy<int>(
 			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxEnumerableLength, EnvironmentVariables.Defaults.PrintMaxEnumerableLength));
@@ -60,8 +54,6 @@ namespace Xunit.Sdk
 
 		internal static readonly string EllipsisInBrackets = "[" + new string((char)0x00B7, 3) + "]";
 
-		static readonly object[] EmptyObjects = Array.Empty<object>();
-		static readonly Type[] EmptyTypes = Array.Empty<Type>();
 		// List of intrinsic types => C# type names
 		static readonly Dictionary<Type, string> TypeMappings = new Dictionary<Type, string>
 		{
@@ -83,34 +75,6 @@ namespace Xunit.Sdk
 			{ typeof(IntPtr), "nint" },
 			{ typeof(UIntPtr), "nuint" },
 		};
-
-#if !NET8_0_OR_GREATER
-
-#if XUNIT_NULLABLE
-		static readonly PropertyInfo? tupleIndexer;
-		static readonly Type? tupleInterfaceType;
-		static readonly PropertyInfo? tupleLength;
-#else
-		static readonly PropertyInfo tupleIndexer;
-		static readonly Type tupleInterfaceType;
-		static readonly PropertyInfo tupleLength;
-#endif
-
-		static ArgumentFormatter()
-		{
-			tupleInterfaceType = Type.GetType("System.Runtime.CompilerServices.ITuple");
-
-			if (tupleInterfaceType != null)
-			{
-				tupleIndexer = tupleInterfaceType.GetRuntimeProperty("Item");
-				tupleLength = tupleInterfaceType.GetRuntimeProperty("Length");
-			}
-
-			if (tupleIndexer == null || tupleLength == null)
-				tupleInterfaceType = null;
-		}
-
-#endif
 
 		/// <summary>
 		/// Gets the ellipsis value (three middle dots, aka U+00B7).
@@ -254,18 +218,6 @@ namespace Xunit.Sdk
 				// TODO: ValueTask?
 
 				var isAnonymousType = type.IsAnonymousType();
-				if (!isAnonymousType)
-				{
-					var toString = type.GetRuntimeMethod("ToString", EmptyTypes);
-
-					if (toString != null && toString.DeclaringType != typeof(object))
-#if XUNIT_NULLABLE
-						return ((string?)toString.Invoke(value, EmptyObjects)) ?? "null";
-#else
-						return ((string)toString.Invoke(value, EmptyObjects)) ?? "null";
-#endif
-				}
-
 				return FormatComplexValue(value, depth, type, isAnonymousType);
 			}
 			catch (Exception ex)
@@ -292,45 +244,6 @@ namespace Xunit.Sdk
 			return string.Format(CultureInfo.CurrentCulture, "0x{0:x4}", (int)value);
 		}
 
-		static string FormatComplexValue(
-			object value,
-			int depth,
-			Type type,
-			bool isAnonymousType)
-		{
-			var typeName = isAnonymousType ? "" : type.Name + " ";
-
-			if (depth > MaxObjectDepth)
-				return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, Ellipsis);
-
-			var fields =
-				type
-					.GetRuntimeFields()
-					.Where(f => f.IsPublic && !f.IsStatic)
-					.Select(f => new { name = f.Name, value = WrapAndGetFormattedValue(() => f.GetValue(value), depth + 1) });
-
-			var properties =
-				type
-					.GetRuntimeProperties()
-					.Where(p => p.GetMethod != null && p.GetMethod.IsPublic && !p.GetMethod.IsStatic)
-					.Select(p => new { name = p.Name, value = WrapAndGetFormattedValue(() => p.GetValue(value), depth + 1) });
-
-			var parameters =
-				MaxObjectMemberCount == int.MaxValue
-					? fields.Concat(properties).OrderBy(p => p.name).ToList()
-					: fields.Concat(properties).OrderBy(p => p.name).Take(MaxObjectMemberCount + 1).ToList();
-
-			if (parameters.Count == 0)
-				return string.Format(CultureInfo.CurrentCulture, "{0}{{ }}", typeName);
-
-			var formattedParameters = string.Join(", ", parameters.Take(MaxObjectMemberCount).Select(p => string.Format(CultureInfo.CurrentCulture, "{0} = {1}", p.name, p.value)));
-
-			if (parameters.Count > MaxObjectMemberCount)
-				formattedParameters += ", " + Ellipsis;
-
-			return string.Format(CultureInfo.CurrentCulture, "{0}{{ {1} }}", typeName, formattedParameters);
-		}
-
 		static string FormatDateTimeValue(object value) =>
 			string.Format(CultureInfo.CurrentCulture, "{0:o}", value);
 
@@ -351,16 +264,8 @@ namespace Xunit.Sdk
 			if (depth > MaxObjectDepth)
 				return EllipsisInBrackets;
 
-			var result = new StringBuilder();
-
-			var groupingTypes = GetGroupingTypes(enumerable);
-			if (groupingTypes != null)
-			{
-				var groupingInterface = typeof(IGrouping<,>).MakeGenericType(groupingTypes);
-				var key = groupingInterface.GetRuntimeProperty("Key")?.GetValue(enumerable);
-				result.AppendFormat(CultureInfo.CurrentCulture, "[{0}] = ", key?.ToString() ?? "null");
-			}
-			else if (!SafeToMultiEnumerate(enumerable))
+			var result = new StringBuilder(GetGroupingKeyPrefix(enumerable));
+			if (result.Length == 0 && !SafeToMultiEnumerate(enumerable))
 				return EllipsisInBrackets;
 
 			// This should only be used on values that are known to be re-enumerable
@@ -519,21 +424,6 @@ namespace Xunit.Sdk
 			return result + arraySuffix;
 		}
 
-		static string FormatValueTypeValue(
-			object value,
-			Type type)
-		{
-			if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
-			{
-				var k = type.GetProperty("Key")?.GetValue(value, null);
-				var v = type.GetProperty("Value")?.GetValue(value, null);
-
-				return string.Format(CultureInfo.CurrentCulture, "[{0}] = {1}", Format(k), Format(v));
-			}
-
-			return Convert.ToString(value, CultureInfo.CurrentCulture) ?? "null";
-		}
-
 		static int GetEnvironmentValue(
 			string environmentVariableName,
 			int defaultValue,
@@ -549,40 +439,6 @@ namespace Xunit.Sdk
 			return intValue;
 		}
 
-#if XUNIT_NULLABLE
-		internal static Type[]? GetGroupingTypes(object? obj)
-#else
-		internal static Type[] GetGroupingTypes(object obj)
-#endif
-		{
-			if (obj == null)
-				return null;
-
-			return
-				(from @interface in obj.GetType().GetInterfaces()
-				 where @interface.IsGenericType
-				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
-				 where genericTypeDefinition == typeof(IGrouping<,>)
-				 select @interface).FirstOrDefault()?.GenericTypeArguments;
-		}
-
-#if XUNIT_NULLABLE
-		internal static Type? GetSetElementType(object? obj)
-#else
-		internal static Type GetSetElementType(object obj)
-#endif
-		{
-			if (obj == null)
-				return null;
-
-			return
-				(from @interface in obj.GetType().GetInterfaces()
-				 where @interface.IsGenericType
-				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
-				 where genericTypeDefinition == typeof(ISet<>)
-				 select @interface).FirstOrDefault()?.GenericTypeArguments[0];
-		}
-
 		static bool IsAnonymousType(this Type type)
 		{
 			// There isn't a sanctioned way to do this, so we look for compiler-generated types that
@@ -595,25 +451,6 @@ namespace Xunit.Sdk
 #else
 			return type.Name.Contains("AnonymousType");
 #endif
-		}
-
-		static bool IsEnumerableOfGrouping(IEnumerable collection)
-		{
-			var genericEnumerableType =
-				(from @interface in collection.GetType().GetInterfaces()
-				 where @interface.IsGenericType
-				 let genericTypeDefinition = @interface.GetGenericTypeDefinition()
-				 where genericTypeDefinition == typeof(IEnumerable<>)
-				 select @interface).FirstOrDefault()?.GenericTypeArguments[0];
-
-			if (genericEnumerableType == null)
-				return false;
-
-			return
-				genericEnumerableType
-					.GetInterfaces()
-					.Concat(new[] { genericEnumerableType })
-					.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IGrouping<,>));
 		}
 
 		static bool IsSZArrayType(this Type type) =>
