@@ -53,11 +53,11 @@ namespace Xunit
 		}
 
 		/// <summary>
-		/// Safely perform <see cref="Type.GetGenericTypeDefinition"/>, returning <c>null</c> when the
+		/// Safely perform <see cref="Type.GetGenericTypeDefinition"/>, returning <see langword="null"/> when the
 		/// type is not generic.
 		/// </summary>
 		/// <param name="type">The potentially generic type</param>
-		/// <returns>The generic type definition, when <paramref name="type"/> is generic; <c>null</c>, otherwise.</returns>
+		/// <returns>The generic type definition, when <paramref name="type"/> is generic; <see langword="null"/>, otherwise.</returns>
 #if XUNIT_NULLABLE
 		static Type? SafeGetGenericTypeDefinition(Type? type)
 #else

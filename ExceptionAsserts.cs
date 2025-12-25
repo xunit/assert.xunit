@@ -36,7 +36,7 @@ namespace Xunit
 		/// <param name="exceptionType">The type of the exception expected to be thrown</param>
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static Exception Throws(
 			Type exceptionType,
@@ -71,7 +71,7 @@ namespace Xunit
 		/// <param name="exceptionType">The type of the exception expected to be thrown</param>
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static Exception Throws(
 			Type exceptionType,
@@ -125,7 +125,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static T Throws<T>(
 			Action testCode,
@@ -159,7 +159,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static T Throws<T>(
 #if XUNIT_NULLABLE
@@ -276,7 +276,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static T ThrowsAny<T>(
 			Action testCode,
@@ -310,7 +310,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
 		/// <param name="testCode">A delegate to the code to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static T ThrowsAny<T>(
 #if XUNIT_NULLABLE
@@ -363,7 +363,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
 		/// <param name="testCode">A delegate to the task to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static async Task<T> ThrowsAnyAsync<T>(
 			Func<Task> testCode,
@@ -392,7 +392,7 @@ namespace Xunit
 		/// <param name="exceptionType">The type of the exception expected to be thrown</param>
 		/// <param name="testCode">A delegate to the task to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static async Task<Exception> ThrowsAsync(
 			Type exceptionType,
@@ -420,7 +420,7 @@ namespace Xunit
 		/// <typeparam name="T">The type of the exception expected to be thrown</typeparam>
 		/// <param name="testCode">A delegate to the task to be tested</param>
 		/// <param name="inspector">A function which inspects the exception to determine if it's
-		/// valid or not. Returns <c>null</c> if the exception is valid, or a message if it's not.</param>
+		/// valid or not. Returns <see langword="null"/> if the exception is valid, or a message if it's not.</param>
 		/// <returns>The exception that was thrown, when successful</returns>
 		public static async Task<T> ThrowsAsync<T>(
 			Func<Task> testCode,

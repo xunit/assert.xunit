@@ -360,7 +360,7 @@ namespace Xunit.Sdk
 		/// of "Int32" or "System.Int32").
 		/// </summary>
 		/// <param name="type">The type to get the formatted name of</param>
-		/// <param name="fullTypeName">Set to <c>true</c> to include the namespace; set to <c>false</c> for just the simple type name</param>
+		/// <param name="fullTypeName">Set to <see langword="true"/> to include the namespace; set to <see langword="false"/> for just the simple type name</param>
 		public static string FormatTypeName(
 			Type type,
 			bool fullTypeName = false)

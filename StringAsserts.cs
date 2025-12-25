@@ -829,10 +829,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -924,10 +924,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -970,10 +970,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -1016,10 +1016,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -1062,10 +1062,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -1163,10 +1163,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -1209,10 +1209,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, ignores all white space differences during comparison.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, ignores all white space differences during comparison.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -1255,10 +1255,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, removes all whitespaces and tabs before comparing.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats spaces and tabs (in any non-zero quantity) as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, removes all whitespaces and tabs before comparing.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider
@@ -1301,10 +1301,10 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expected">The expected string value.</param>
 		/// <param name="actual">The actual string value.</param>
-		/// <param name="ignoreCase">If set to <c>true</c>, ignores cases differences. The invariant culture is used.</param>
-		/// <param name="ignoreLineEndingDifferences">If set to <c>true</c>, treats \r\n, \r, and \n as equivalent.</param>
-		/// <param name="ignoreWhiteSpaceDifferences">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
-		/// <param name="ignoreAllWhiteSpace">If set to <c>true</c>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
+		/// <param name="ignoreCase">If set to <see langword="true"/>, ignores cases differences. The invariant culture is used.</param>
+		/// <param name="ignoreLineEndingDifferences">If set to <see langword="true"/>, treats \r\n, \r, and \n as equivalent.</param>
+		/// <param name="ignoreWhiteSpaceDifferences">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks) in any non-zero quantity as equivalent.</param>
+		/// <param name="ignoreAllWhiteSpace">If set to <see langword="true"/>, treats horizontal white-space (i.e. spaces, tabs, and others; see remarks), including zero quantities, as equivalent.</param>
 		/// <exception cref="EqualException">Thrown when the strings are not equivalent.</exception>
 		/// <remarks>
 		/// The <paramref name="ignoreWhiteSpaceDifferences"/> and <paramref name="ignoreAllWhiteSpace"/> flags consider

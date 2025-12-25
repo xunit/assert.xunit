@@ -114,8 +114,8 @@ namespace Xunit
 		/// </summary>
 		/// <typeparam name="T">The type the object should not be</typeparam>
 		/// <param name="object">The object to be evaluated</param>
-		/// <param name="exactMatch">Will only fail with an exact type match when <c>true</c> is
-		/// passed; will fail with a compatible type match when <c>false</c> is passed.</param>
+		/// <param name="exactMatch">Will only fail with an exact type match when <see langword="true"/> is
+		/// passed; will fail with a compatible type match when <see langword="false"/> is passed.</param>
 		/// <exception cref="IsNotTypeException">Thrown when the object is the given type</exception>
 #if XUNIT_NULLABLE
 		public static void IsNotType<T>(
@@ -149,8 +149,8 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedType">The type the object should not be</param>
 		/// <param name="object">The object to be evaluated</param>
-		/// <param name="exactMatch">Will only fail with an exact type match when <c>true</c> is
-		/// passed; will fail with a compatible type match when <c>false</c> is passed.</param>
+		/// <param name="exactMatch">Will only fail with an exact type match when <see langword="true"/> is
+		/// passed; will fail with a compatible type match when <see langword="false"/> is passed.</param>
 		/// <exception cref="IsNotTypeException">Thrown when the object is the given type</exception>
 		public static void IsNotType(
 			Type expectedType,
@@ -203,8 +203,8 @@ namespace Xunit
 		/// </summary>
 		/// <typeparam name="T">The type the object should be</typeparam>
 		/// <param name="object">The object to be evaluated</param>
-		/// <param name="exactMatch">Will only pass with an exact type match when <c>true</c> is
-		/// passed; will pass with a compatible type match when <c>false</c> is passed.</param>
+		/// <param name="exactMatch">Will only pass with an exact type match when <see langword="true"/> is
+		/// passed; will pass with a compatible type match when <see langword="false"/> is passed.</param>
 		/// <returns>The object, casted to type T when successful</returns>
 		/// <exception cref="IsTypeException">Thrown when the object is not the given type</exception>
 #if XUNIT_NULLABLE
@@ -242,8 +242,8 @@ namespace Xunit
 		/// </summary>
 		/// <param name="expectedType">The type the object should be</param>
 		/// <param name="object">The object to be evaluated</param>
-		/// <param name="exactMatch">Will only pass with an exact type match when <c>true</c> is
-		/// passed; will pass with a compatible type match when <c>false</c> is passed.</param>
+		/// <param name="exactMatch">Will only pass with an exact type match when <see langword="true"/> is
+		/// passed; will pass with a compatible type match when <see langword="false"/> is passed.</param>
 		/// <exception cref="IsTypeException">Thrown when the object is not the given type</exception>
 		public static void IsType(
 			Type expectedType,

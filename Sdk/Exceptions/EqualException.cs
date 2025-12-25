@@ -272,7 +272,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The actual value</param>
-		/// <param name="banner">The banner to show; if <c>null</c>, then the standard
+		/// <param name="banner">The banner to show; if <see langword="null"/>, then the standard
 		/// banner of "Values differ" will be used</param>
 		public static EqualException ForMismatchedValues(
 			string expected,
@@ -319,8 +319,8 @@ namespace Xunit.Sdk
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The actual value</param>
 		/// <param name="error">The optional exception that was thrown during comparison</param>
-		/// <param name="banner">The banner to show; if <c>null</c>, then the standard
-		/// banner of "Values differ" will be used. If <paramref name="error"/> is not <c>null</c>,
+		/// <param name="banner">The banner to show; if <see langword="null"/>, then the standard
+		/// banner of "Values differ" will be used. If <paramref name="error"/> is not <see langword="null"/>,
 		/// then the banner used will always be "Exception thrown during comparison", regardless
 		/// of the value passed here.</param>
 		public static EqualException ForMismatchedValuesWithError(

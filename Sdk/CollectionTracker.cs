@@ -66,9 +66,9 @@ namespace Xunit.Sdk
 		/// <param name="x">First value to compare</param>
 		/// <param name="y">Second value to comare</param>
 		/// <param name="itemComparer">The comparer used for individual item comparisons</param>
-		/// <param name="isDefaultItemComparer">Pass <c>true</c> if the <paramref name="itemComparer"/> is the default item
-		/// comparer from <see cref="AssertEqualityComparer{T}"/>; pass <c>false</c>, otherwise.</param>
-		/// <returns>Returns <c>true</c> if the collections are equal; <c>false</c>, otherwise.</returns>
+		/// <param name="isDefaultItemComparer">Pass <see langword="true"/> if the <paramref name="itemComparer"/> is the default item
+		/// comparer from <see cref="AssertEqualityComparer{T}"/>; pass <see langword="false"/>, otherwise.</param>
+		/// <returns>Returns <see langword="true"/> if the collections are equal; <see langword="false"/>, otherwise.</returns>
 		public static AssertEqualityResult AreCollectionsEqual(
 #if XUNIT_NULLABLE
 			CollectionTracker? x,
@@ -353,7 +353,7 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Gets the extents to print when you find a mismatched index, in the form of
 		/// a <paramref name="startIndex"/> and <paramref name="endIndex"/>. If the mismatched
-		/// index is <c>null</c>, the extents will start at index 0.
+		/// index is <see langword="null"/>, the extents will start at index 0.
 		/// </summary>
 		/// <param name="mismatchedIndex">The mismatched item index</param>
 		/// <param name="startIndex">The start index that should be used for printing</param>
@@ -372,11 +372,11 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Gets the full name of the type of the element at the given index, if known.
-		/// Since this uses the item cache produced by enumeration, it may return <c>null</c>
+		/// Since this uses the item cache produced by enumeration, it may return <see langword="null"/>
 		/// when we haven't enumerated enough to see the given element, or if we enumerated
 		/// so much that the item has left the cache, or if the item at the given index
-		/// is <c>null</c>. It will also return <c>null</c> when the <paramref name="index"/>
-		/// is <c>null</c>.
+		/// is <see langword="null"/>. It will also return <see langword="null"/> when the <paramref name="index"/>
+		/// is <see langword="null"/>.
 		/// </summary>
 		/// <param name="index">The item index</param>
 #if XUNIT_NULLABLE

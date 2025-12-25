@@ -55,14 +55,14 @@ namespace Xunit.Sdk
 		/// Creates a new instance of <see cref="NotEqualException"/> to be thrown when two collections
 		/// are equal, and an error has occurred during comparison.
 		/// </summary>
-		/// <param name="mismatchedIndex">The index at which the collections error occurred (should be <c>null</c>
-		/// when <paramref name="error"/> is <c>null</c>)</param>
+		/// <param name="mismatchedIndex">The index at which the collections error occurred (should be <see langword="null"/>
+		/// when <paramref name="error"/> is <see langword="null"/>)</param>
 		/// <param name="expected">The expected collection</param>
 		/// <param name="expectedPointer">The spacing into the expected collection where the difference occurs
-		/// (should be <c>null</c> when <paramref name="error"/> is null)</param>
+		/// (should be <see langword="null"/> when <paramref name="error"/> is null)</param>
 		/// <param name="actual">The actual collection</param>
 		/// <param name="actualPointer">The spacing into the actual collection where the difference occurs
-		/// (should be <c>null</c> when <paramref name="error"/> is null)</param>
+		/// (should be <see langword="null"/> when <paramref name="error"/> is null)</param>
 		/// <param name="error">The optional exception that was thrown during comparison</param>
 		/// <param name="collectionDisplay">The display name for the collection type (defaults to "Collections")</param>
 		public static NotEqualException ForEqualCollectionsWithError(
@@ -162,7 +162,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The actual value</param>
-		/// <param name="banner">The banner to show; if <c>null</c>, then the standard
+		/// <param name="banner">The banner to show; if <see langword="null"/>, then the standard
 		/// banner of "Values are equal" will be used</param>
 		public static NotEqualException ForEqualValues(
 			string expected,
@@ -182,8 +182,8 @@ namespace Xunit.Sdk
 		/// <param name="expected">The expected value</param>
 		/// <param name="actual">The actual value</param>
 		/// <param name="error">The optional exception that was thrown during comparison</param>
-		/// <param name="banner">The banner to show; if <c>null</c>, then the standard
-		/// banner of "Values are equal" will be used. If <paramref name="error"/> is not <c>null</c>,
+		/// <param name="banner">The banner to show; if <see langword="null"/>, then the standard
+		/// banner of "Values are equal" will be used. If <paramref name="error"/> is not <see langword="null"/>,
 		/// then the banner used will always be "Exception thrown during comparison", regardless
 		/// of the value passed here.</param>
 		public static NotEqualException ForEqualValuesWithError(

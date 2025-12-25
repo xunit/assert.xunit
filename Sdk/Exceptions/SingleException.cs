@@ -29,7 +29,7 @@ namespace Xunit.Sdk
 		/// Creates an new instance of the <see cref="SingleException"/> class to be thrown when
 		/// the collection didn't contain any values (or didn't contain the expected value).
 		/// </summary>
-		/// <param name="expected">The expected value (set to <c>null</c> for no expected value)</param>
+		/// <param name="expected">The expected value (set to <see langword="null"/> for no expected value)</param>
 		/// <param name="collection">The collection</param>
 		public static SingleException Empty(
 #if XUNIT_NULLABLE
@@ -61,7 +61,7 @@ namespace Xunit.Sdk
 		/// the collection more than one value (or contained more than one of the expected value).
 		/// </summary>
 		/// <param name="count">The number of items, or the number of matching items</param>
-		/// <param name="expected">The expected value (set to <c>null</c> for no expected value)</param>
+		/// <param name="expected">The expected value (set to <see langword="null"/> for no expected value)</param>
 		/// <param name="collection">The collection</param>
 		/// <param name="matchIndices">The list of indices where matches occurred</param>
 		public static SingleException MoreThanOne(

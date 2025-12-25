@@ -30,9 +30,9 @@ namespace Xunit
 		}
 
 		/// <summary>
-		/// Will skip the current test unless <paramref name="condition"/> evaluates to <c>true</c>.
+		/// Will skip the current test unless <paramref name="condition"/> evaluates to <see langword="true"/>.
 		/// </summary>
-		/// <param name="condition">When <c>true</c>, the test will continue to run; when <c>false</c>,
+		/// <param name="condition">When <see langword="true"/>, the test will continue to run; when <see langword="false"/>,
 		/// the test will be skipped</param>
 		/// <param name="reason">The message to indicate why the test was skipped</param>
 		public static void SkipUnless(
@@ -50,9 +50,9 @@ namespace Xunit
 		}
 
 		/// <summary>
-		/// Will skip the current test when <paramref name="condition"/> evaluates to <c>true</c>.
+		/// Will skip the current test when <paramref name="condition"/> evaluates to <see langword="true"/>.
 		/// </summary>
-		/// <param name="condition">When <c>true</c>, the test will be skipped; when <c>false</c>,
+		/// <param name="condition">When <see langword="true"/>, the test will be skipped; when <see langword="false"/>,
 		/// the test will continue to run</param>
 		/// <param name="reason">The message to indicate why the test was skipped</param>
 		public static void SkipWhen(

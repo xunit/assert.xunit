@@ -46,7 +46,7 @@ namespace Xunit.Sdk
 		/// when the given nullable struct was unexpectedly not null.
 		/// </summary>
 		/// <param name="type">The inner type of the value</param>
-		/// <param name="actual">The actual non-<c>null</c> value</param>
+		/// <param name="actual">The actual non-<see langword="null"/> value</param>
 		public static Exception ForNonNullStruct<T>(
 			Type type,
 			T? actual)
@@ -66,7 +66,7 @@ namespace Xunit.Sdk
 		/// Creates a new instance of the <see cref="NullException"/> class to be thrown
 		/// when the given value was unexpectedly not null.
 		/// </summary>
-		/// <param name="actual">The actual non-<c>null</c> value</param>
+		/// <param name="actual">The actual non-<see langword="null"/> value</param>
 		public static NullException ForNonNullValue(object actual) =>
 			new NullException(
 				string.Format(

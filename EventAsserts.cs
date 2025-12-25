@@ -600,7 +600,7 @@ namespace Xunit
 		{
 			/// <summary>
 			/// The sender of the event. When the event is recorded via <see cref="Action{T}"/> rather
-			/// than <see cref="EventHandler{TEventArgs}"/>, this value will always be <c>null</c>,
+			/// than <see cref="EventHandler{TEventArgs}"/>, this value will always be <see langword="null"/>,
 			/// since there is no sender value when using actions.
 			/// </summary>
 #if XUNIT_NULLABLE

@@ -56,7 +56,7 @@ namespace Xunit.Sdk
 		}
 
 		/// <summary>
-		/// Returns <c>true</c> if the values were equal; <c>false</c>, otherwise.
+		/// Returns <see langword="true"/> if the values were equal; <see langword="false"/>, otherwise.
 		/// </summary>
 		public bool Equal { get; }
 
@@ -71,7 +71,7 @@ namespace Xunit.Sdk
 
 		/// <summary>
 		/// Returns the comparer result for any inner comparison that caused this result
-		/// to fail; returns <c>null</c> if there was no inner comparison.
+		/// to fail; returns <see langword="null"/> if there was no inner comparison.
 		/// </summary>
 		/// <remarks>
 		/// If this value is set, then it generally indicates that this comparison was a
@@ -118,7 +118,7 @@ namespace Xunit.Sdk
 		/// Determines whether the specified object is equal to the current object.
 		/// </summary>
 		/// <param name="obj">The object to compare with the current object.</param>
-		/// <returns>Returns <c>true</c> if the values are equal; <c>false</c>, otherwise.</returns>
+		/// <returns>Returns <see langword="true"/> if the values are equal; <see langword="false"/>, otherwise.</returns>
 #if XUNIT_NULLABLE
 		public override bool Equals(object? obj) =>
 #else
@@ -130,7 +130,7 @@ namespace Xunit.Sdk
 		/// Determines whether the specified object is equal to the current object.
 		/// </summary>
 		/// <param name="other">The object to compare with the current object.</param>
-		/// <returns>Returns <c>true</c> if the values are equal; <c>false</c>, otherwise.</returns>
+		/// <returns>Returns <see langword="true"/> if the values are equal; <see langword="false"/>, otherwise.</returns>
 #if XUNIT_NULLABLE
 		public bool Equals(AssertEqualityResult? other)
 #else
@@ -241,7 +241,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="left">The first value</param>
 		/// <param name="right">The second value</param>
-		/// <returns>Returns <c>true</c> if the values are equal; <c>false</c>, otherwise.</returns>
+		/// <returns>Returns <see langword="true"/> if the values are equal; <see langword="false"/>, otherwise.</returns>
 		public static bool operator ==(
 #if XUNIT_NULLABLE
 			AssertEqualityResult? left,
@@ -257,7 +257,7 @@ namespace Xunit.Sdk
 		/// </summary>
 		/// <param name="left">The first value</param>
 		/// <param name="right">The second value</param>
-		/// <returns>Returns <c>true</c> if the values are not equal; <c>false</c>, otherwise.</returns>
+		/// <returns>Returns <see langword="true"/> if the values are not equal; <see langword="false"/>, otherwise.</returns>
 		public static bool operator !=(
 #if XUNIT_NULLABLE
 			AssertEqualityResult? left,
