@@ -79,5 +79,20 @@ namespace Xunit.Sdk
 
 			return new AllException(message);
 		}
+
+		/// <summary>
+		/// Creates a new instance of the <see cref="AllException"/> class to be thrown when
+		/// collection is not supposed to be empty
+		/// during <see cref="Assert.All{T}(IEnumerable{T}, Action{T}, bool)"/>
+		/// or <see cref="Assert.AllAsync{T}(IEnumerable{T}, Func{T, Task}, bool)"/>.
+		/// </summary>
+		public static AllException ForEmptyCollection() =>
+			new AllException(
+				string.Format(
+					CultureInfo.CurrentCulture,
+					"Assert.All() Failure: The collection was empty.{0}At least one item was expected.",
+					Environment.NewLine
+				)
+			);
 	}
 }

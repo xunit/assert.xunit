@@ -41,7 +41,28 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
 
-			All(collection, (item, index) => action(item));
+			All(collection, (item, index) => action(item), throwIfEmpty: false);
+		}
+
+		/// <summary>
+		/// Verifies that all items in the collection pass when executed against
+		/// action.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <param name="throwIfEmpty">Indicates whether to throw an exception if the collection is empty</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		/// <exception cref="AllException">Also thrown when collection is empty and <paramref name="throwIfEmpty"/> is set to true</exception>
+		public static void All<T>(
+			IEnumerable<T> collection,
+			Action<T> action,
+			bool throwIfEmpty)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(action), action);
+
+			All(collection, (item, index) => action(item), throwIfEmpty);
 		}
 
 		/// <summary>
@@ -55,6 +76,27 @@ namespace Xunit
 		public static void All<T>(
 			IEnumerable<T> collection,
 			Action<T, int> action)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(action), action);
+
+			All(collection, action, throwIfEmpty: false);
+		}
+
+		/// <summary>
+		/// Verifies that all items in the collection pass when executed against
+		/// action. The item index is provided to the action, in addition to the item.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <param name="throwIfEmpty">Indicates whether to throw an exception if the collection is empty</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		/// <exception cref="AllException">Also thrown when collection is empty and <paramref name="throwIfEmpty"/> is set to true</exception>
+		public static void All<T>(
+			IEnumerable<T> collection,
+			Action<T, int> action,
+			bool throwIfEmpty)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
@@ -76,6 +118,9 @@ namespace Xunit
 				++idx;
 			}
 
+			if (throwIfEmpty && idx == 0)
+				throw AllException.ForEmptyCollection();
+
 			if (errors.Count > 0)
 				throw AllException.ForFailures(idx, errors);
 		}
@@ -95,7 +140,28 @@ namespace Xunit
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
 
-			await AllAsync(collection, async (item, index) => await action(item));
+			await AllAsync(collection, async (item, index) => await action(item), throwIfEmpty: false);
+		}
+
+		/// <summary>
+		/// Verifies that all items in the collection pass when executed against
+		/// action.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <param name="throwIfEmpty">Indicates whether to throw an exception if the collection is empty</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		/// <exception cref="AllException">Also thrown when collection is empty and <paramref name="throwIfEmpty"/> is set to true</exception>
+		public static async Task AllAsync<T>(
+			IEnumerable<T> collection,
+			Func<T, Task> action,
+			bool throwIfEmpty)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(action), action);
+
+			await AllAsync(collection, (item, index) => action(item), throwIfEmpty);
 		}
 
 		/// <summary>
@@ -109,6 +175,27 @@ namespace Xunit
 		public static async Task AllAsync<T>(
 			IEnumerable<T> collection,
 			Func<T, int, Task> action)
+		{
+			GuardArgumentNotNull(nameof(collection), collection);
+			GuardArgumentNotNull(nameof(action), action);
+
+			await AllAsync(collection, action, throwIfEmpty: false);
+		}
+
+		/// <summary>
+		/// Verifies that all items in the collection pass when executed against
+		/// action. The item index is provided to the action, in addition to the item.
+		/// </summary>
+		/// <typeparam name="T">The type of the object to be verified</typeparam>
+		/// <param name="collection">The collection</param>
+		/// <param name="action">The action to test each item against</param>
+		/// <param name="throwIfEmpty">Indicates whether to throw an exception if the collection is empty</param>
+		/// <exception cref="AllException">Thrown when the collection contains at least one non-matching element</exception>
+		/// <exception cref="AllException">Also thrown when collection is empty and <paramref name="throwIfEmpty"/> is set to true</exception>
+		public static async Task AllAsync<T>(
+			IEnumerable<T> collection,
+			Func<T, int, Task> action,
+			bool throwIfEmpty)
 		{
 			GuardArgumentNotNull(nameof(collection), collection);
 			GuardArgumentNotNull(nameof(action), action);
@@ -129,6 +216,9 @@ namespace Xunit
 
 				++idx;
 			}
+
+			if (throwIfEmpty && idx == 0)
+				throw AllException.ForEmptyCollection();
 
 			if (errors.Count > 0)
 				throw AllException.ForFailures(idx, errors.ToArray());
