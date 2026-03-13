@@ -1,4 +1,7 @@
 #if XUNIT_AOT
+
+#pragma warning disable IDE0060 // Parameters here are matched between reflection and AOT
+
 #if XUNIT_NULLABLE
 #nullable enable
 #else
@@ -9,7 +12,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
 
 namespace Xunit.Sdk
@@ -20,39 +22,15 @@ namespace Xunit.Sdk
 		static AssertEqualityResult? CheckIfSetsAreEqual(
 			CollectionTracker? x,
 			CollectionTracker? y,
-			IEqualityComparer? itemComparer)
+			IEqualityComparer? itemComparer) =>
+				null;
 #else
 		static AssertEqualityResult CheckIfSetsAreEqual(
 			CollectionTracker x,
 			CollectionTracker y,
-			IEqualityComparer itemComparer)
+			IEqualityComparer itemComparer) =>
+				null;
 #endif
-		{
-			if (x == null || y == null)
-				return null;
-
-			var elementTypeX = ArgumentFormatter.GetSetElementType(x.InnerEnumerable);
-			var elementTypeY = ArgumentFormatter.GetSetElementType(y.InnerEnumerable);
-
-			if (elementTypeX == null || elementTypeY == null)
-				return null;
-
-			if (elementTypeX != elementTypeY)
-				return AssertEqualityResult.ForResult(false, x.InnerEnumerable, y.InnerEnumerable);
-
-			if (itemComparer == null)
-				return null;
-
-			return AssertEqualityResult.ForResult(
-				CompareTypedSets(
-					(ISet<object>)x.InnerEnumerable,
-					(ISet<object>)y.InnerEnumerable,
-					(IEqualityComparer<object>)itemComparer
-				),
-				x.InnerEnumerable,
-				y.InnerEnumerable
-			);
-		}
 
 #if XUNIT_NULLABLE
 		static (Type?, MethodInfo?) GetAssertEqualityComparerMetadata(IEqualityComparer itemComparer) =>

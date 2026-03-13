@@ -57,7 +57,6 @@ namespace Xunit.Sdk
 				return StringAssertEqualityComparer.Equivalent(xString, yString);
 
 			var xType = x.GetType();
-			var yType = y.GetType();
 
 			// ImmutableArray<T> defines IEquatable<ImmutableArray<T>> in a way that isn't consistent with the
 			// needs of an assertion library. https://github.com/xunit/xunit/issues/3137
