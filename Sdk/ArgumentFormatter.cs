@@ -24,6 +24,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Internal;
 
@@ -45,12 +46,16 @@ namespace Xunit.Sdk
 	{
 		static readonly Lazy<int> maxEnumerableLength = new Lazy<int>(
 			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxEnumerableLength, EnvironmentVariables.Defaults.PrintMaxEnumerableLength));
+		static readonly AsyncLocal<int?> maxEnumerableLengthOverride = new AsyncLocal<int?>();
 		static readonly Lazy<int> maxObjectDepth = new Lazy<int>(
 			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxObjectDepth, EnvironmentVariables.Defaults.PrintMaxObjectDepth));
+		static readonly AsyncLocal<int?> maxObjectDepthOverride = new AsyncLocal<int?>();
 		static readonly Lazy<int> maxObjectMemberCount = new Lazy<int>(
 			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxObjectMemberCount, EnvironmentVariables.Defaults.PrintMaxObjectMemberCount));
+		static readonly AsyncLocal<int?> maxObjectMemberCountOverride = new AsyncLocal<int?>();
 		static readonly Lazy<int> maxStringLength = new Lazy<int>(
 			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxStringLength, EnvironmentVariables.Defaults.PrintMaxStringLength));
+		static readonly AsyncLocal<int?> maxStringLengthOverride = new AsyncLocal<int?>();
 
 		internal static readonly string EllipsisInBrackets = "[" + new string((char)0x00B7, 3) + "]";
 
@@ -84,22 +89,62 @@ namespace Xunit.Sdk
 		/// <summary>
 		/// Gets the maximum number of values printed for collections before truncation.
 		/// </summary>
-		public static int MaxEnumerableLength => maxEnumerableLength.Value;
+		public static int MaxEnumerableLength
+		{
+			get
+			{
+				var overrideValue = maxEnumerableLengthOverride.Value;
+				if (overrideValue.HasValue)
+					return overrideValue.Value <= 0 ? int.MaxValue : overrideValue.Value;
+
+				return maxEnumerableLength.Value;
+			}
+		}
 
 		/// <summary>
 		/// Gets the maximum printing depth, in terms of objects before truncation.
 		/// </summary>
-		public static int MaxObjectDepth => maxObjectDepth.Value;
+		public static int MaxObjectDepth
+		{
+			get
+			{
+				var overrideValue = maxObjectDepthOverride.Value;
+				if (overrideValue.HasValue)
+					return overrideValue.Value <= 0 ? int.MaxValue : overrideValue.Value;
+
+				return maxObjectDepth.Value;
+			}
+		}
 
 		/// <summary>
 		/// Gets the maximum number of items (properties or fields) printed in an object before truncation.
 		/// </summary>
-		public static int MaxObjectMemberCount => maxObjectMemberCount.Value;
+		public static int MaxObjectMemberCount
+		{
+			get
+			{
+				var overrideValue = maxObjectMemberCountOverride.Value;
+				if (overrideValue.HasValue)
+					return overrideValue.Value <= 0 ? int.MaxValue : overrideValue.Value;
+
+				return maxObjectMemberCount.Value;
+			}
+		}
 
 		/// <summary>
 		/// Gets the maximum strength length before truncation.
 		/// </summary>
-		public static int MaxStringLength => maxStringLength.Value;
+		public static int MaxStringLength
+		{
+			get
+			{
+				var overrideValue = maxStringLengthOverride.Value;
+				if (overrideValue.HasValue)
+					return overrideValue.Value <= 0 ? int.MaxValue : overrideValue.Value;
+
+				return maxStringLength.Value;
+			}
+		}
 
 		/// <summary>
 		/// Escapes a string for printing, attempting to most closely model the value on how you would
@@ -461,6 +506,18 @@ namespace Xunit.Sdk
 #else
 			type == type.GetElementType().MakeArrayType();
 #endif
+
+		internal static void OverrideMaxEnumerableLength(int? maxLength) =>
+			maxEnumerableLengthOverride.Value = maxLength;
+
+		internal static void OverrideMaxObjectDepth(int? maxDepth) =>
+			maxObjectDepthOverride.Value = maxDepth;
+
+		internal static void OverrideMaxObjectMemberCount(int? maxCount) =>
+			maxObjectMemberCountOverride.Value = maxCount;
+
+		internal static void OverrideMaxStringLength(int? maxLength) =>
+			maxStringLengthOverride.Value = maxLength;
 
 		static bool SafeToMultiEnumerate(IEnumerable collection) =>
 			collection is Array ||
