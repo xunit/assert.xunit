@@ -348,19 +348,22 @@ namespace Xunit.Sdk
 
 		static string FormatStringValue(string value)
 		{
-#if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-			value = EscapeString(value).Replace(@"""", @"\""", StringComparison.Ordinal); // escape double quotes
-#else
-			value = EscapeString(value).Replace(@"""", @"\"""); // escape double quotes
-#endif
+			var displayed = value;
+			var ellipsis = string.Empty;
 
 			if (value.Length > MaxStringLength)
 			{
-				var displayed = value.Substring(0, MaxStringLength);
-				return string.Format(CultureInfo.CurrentCulture, "\"{0}\"{1}", displayed, Ellipsis);
+				displayed = value.Substring(0, MaxStringLength);
+				ellipsis = Ellipsis;
 			}
 
-			return string.Format(CultureInfo.CurrentCulture, "\"{0}\"", value);
+#if NET8_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+			displayed = EscapeString(displayed).Replace(@"""", @"\""", StringComparison.Ordinal); // escape double quotes
+#else
+			displayed = EscapeString(displayed).Replace(@"""", @"\"""); // escape double quotes
+#endif
+
+			return string.Format(CultureInfo.CurrentCulture, "\"{0}\"{1}", displayed, ellipsis);
 		}
 
 		static string FormatTupleValue(
