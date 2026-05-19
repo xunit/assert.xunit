@@ -269,7 +269,7 @@ namespace Xunit.Internal
 				actualRefs.Add(actual);
 
 				// Primitive types, enums and strings should just fall back to their Equals implementation
-				if (expectedType.IsPrimitive || expectedType.IsEnum || expectedType == typeof(string) || expectedType == typeof(decimal) || expectedType == typeof(Guid))
+				if (expectedType.IsPrimitive || expectedType.IsEnum || expectedType == typeof(string) || expectedType == typeof(decimal) || expectedType == typeof(Guid) || typeof(Type).IsAssignableFrom(expectedType))
 					return VerifyEquivalenceIntrinsics(expected, actual, prefix);
 
 				// DateTime and DateTimeOffset need to be compared via IComparable (because of a circular
