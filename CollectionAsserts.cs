@@ -1,5 +1,5 @@
 #pragma warning disable CA1031 // Do not catch general exception types
-#pragma warning disable CA1052 // Static holder types should be static
+#pragma warning disable CA1052 // The Assert class is not static due to extensibility
 #pragma warning disable CA1720 // Identifier contains type name
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 #pragma warning disable IDE0063 // Use simple 'using' statement

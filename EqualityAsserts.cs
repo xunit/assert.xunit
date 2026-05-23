@@ -1,4 +1,5 @@
 #pragma warning disable CA1031 // Do not catch general exception types
+#pragma warning disable CA1052 // The Assert class is not static due to extensibility
 
 #if XUNIT_NULLABLE
 #nullable enable

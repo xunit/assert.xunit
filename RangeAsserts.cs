@@ -1,4 +1,4 @@
-#pragma warning disable CA1052 // Static holder types should be static
+#pragma warning disable CA1052 // The Assert class is not static due to extensibility
 
 #if XUNIT_NULLABLE
 #nullable enable
