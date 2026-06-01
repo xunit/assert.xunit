@@ -228,10 +228,9 @@ namespace Xunit.Sdk
 			if ((expectedStart != 0 || actualStart != 0) && expectedIndex != -1 && actualIndex != -1)
 			{
 				// Try to find the correct start point so the positions will come into alignment
-				var positionDifference = expectedIndex - actualIndex;
-				var startingPosition = Math.Max(expectedStart, actualStart);
-				expectedStart = startingPosition;
-				actualStart = startingPosition - positionDifference;
+				var leftPadding = Math.Min(expectedIndex - expectedStart, actualIndex - actualStart);
+				expectedStart = Math.Min(expected?.Length ?? 0, expectedIndex - leftPadding);
+				actualStart = Math.Min(actual?.Length ?? 0, actualIndex - leftPadding);
 			}
 
 			var formattedExpected = AssertHelper.ShortenString(expected, expectedStart, expectedEnd, expectedIndex, out var expectedPointer);
