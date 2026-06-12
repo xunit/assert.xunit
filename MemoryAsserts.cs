@@ -27,7 +27,11 @@ namespace Xunit
 		public static void Contains<T>(
 			Memory<T> expectedSubMemory,
 			Memory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Contains((ReadOnlyMemory<T>)expectedSubMemory, (ReadOnlyMemory<T>)actualMemory);
 
 		/// <summary>
@@ -39,7 +43,11 @@ namespace Xunit
 		public static void Contains<T>(
 			Memory<T> expectedSubMemory,
 			ReadOnlyMemory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Contains((ReadOnlyMemory<T>)expectedSubMemory, actualMemory);
 
 		/// <summary>
@@ -51,7 +59,11 @@ namespace Xunit
 		public static void Contains<T>(
 			ReadOnlyMemory<T> expectedSubMemory,
 			Memory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Contains(expectedSubMemory, (ReadOnlyMemory<T>)actualMemory);
 
 		/// <summary>
@@ -63,7 +75,11 @@ namespace Xunit
 		public static void Contains<T>(
 			ReadOnlyMemory<T> expectedSubMemory,
 			ReadOnlyMemory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>?
+#else
 				where T : IEquatable<T>
+#endif
 		{
 			GuardArgumentNotNull(nameof(expectedSubMemory), expectedSubMemory);
 
@@ -83,7 +99,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			Memory<T> expectedSubMemory,
 			Memory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					DoesNotContain((ReadOnlyMemory<T>)expectedSubMemory, (ReadOnlyMemory<T>)actualMemory);
 
 		/// <summary>
@@ -95,7 +115,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			Memory<T> expectedSubMemory,
 			ReadOnlyMemory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					DoesNotContain((ReadOnlyMemory<T>)expectedSubMemory, actualMemory);
 
 		/// <summary>
@@ -107,7 +131,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			ReadOnlyMemory<T> expectedSubMemory,
 			Memory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					DoesNotContain(expectedSubMemory, (ReadOnlyMemory<T>)actualMemory);
 
 		/// <summary>
@@ -119,7 +147,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			ReadOnlyMemory<T> expectedSubMemory,
 			ReadOnlyMemory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>?
+#else
 				where T : IEquatable<T>
+#endif
 		{
 			GuardArgumentNotNull(nameof(expectedSubMemory), expectedSubMemory);
 
@@ -145,7 +177,11 @@ namespace Xunit
 		public static void Equal<T>(
 			Memory<T> expectedMemory,
 			Memory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Equal((ReadOnlyMemory<T>)expectedMemory, (ReadOnlyMemory<T>)actualMemory);
 
 		/// <summary>
@@ -157,7 +193,11 @@ namespace Xunit
 		public static void Equal<T>(
 			Memory<T> expectedMemory,
 			ReadOnlyMemory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Equal((ReadOnlyMemory<T>)expectedMemory, actualMemory);
 
 		/// <summary>
@@ -169,7 +209,11 @@ namespace Xunit
 		public static void Equal<T>(
 			ReadOnlyMemory<T> expectedMemory,
 			Memory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Equal(expectedMemory, (ReadOnlyMemory<T>)actualMemory);
 
 		/// <summary>
@@ -181,7 +225,11 @@ namespace Xunit
 		public static void Equal<T>(
 			ReadOnlyMemory<T> expectedMemory,
 			ReadOnlyMemory<T> actualMemory)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>?
+#else
 				where T : IEquatable<T>
+#endif
 		{
 			GuardArgumentNotNull(nameof(expectedMemory), expectedMemory);
 
