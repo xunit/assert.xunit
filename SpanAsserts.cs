@@ -27,7 +27,11 @@ namespace Xunit
 		public static void Contains<T>(
 			Span<T> expectedSubSpan,
 			Span<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Contains((ReadOnlySpan<T>)expectedSubSpan, (ReadOnlySpan<T>)actualSpan);
 
 		/// <summary>
@@ -39,7 +43,11 @@ namespace Xunit
 		public static void Contains<T>(
 			Span<T> expectedSubSpan,
 			ReadOnlySpan<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Contains((ReadOnlySpan<T>)expectedSubSpan, actualSpan);
 
 		/// <summary>
@@ -51,7 +59,11 @@ namespace Xunit
 		public static void Contains<T>(
 			ReadOnlySpan<T> expectedSubSpan,
 			Span<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Contains(expectedSubSpan, (ReadOnlySpan<T>)actualSpan);
 
 		/// <summary>
@@ -63,7 +75,11 @@ namespace Xunit
 		public static void Contains<T>(
 			ReadOnlySpan<T> expectedSubSpan,
 			ReadOnlySpan<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>?
+#else
 				where T : IEquatable<T>
+#endif
 		{
 			if (actualSpan.IndexOf(expectedSubSpan) < 0)
 				throw ContainsException.ForSubSpanNotFound(
@@ -81,7 +97,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			Span<T> expectedSubSpan,
 			Span<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					DoesNotContain((ReadOnlySpan<T>)expectedSubSpan, (ReadOnlySpan<T>)actualSpan);
 
 		/// <summary>
@@ -93,7 +113,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			Span<T> expectedSubSpan,
 			ReadOnlySpan<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					DoesNotContain((ReadOnlySpan<T>)expectedSubSpan, actualSpan);
 
 		/// <summary>
@@ -105,7 +129,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			ReadOnlySpan<T> expectedSubSpan,
 			Span<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					DoesNotContain(expectedSubSpan, (ReadOnlySpan<T>)actualSpan);
 
 		/// <summary>
@@ -117,7 +145,11 @@ namespace Xunit
 		public static void DoesNotContain<T>(
 			ReadOnlySpan<T> expectedSubSpan,
 			ReadOnlySpan<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>?
+#else
 				where T : IEquatable<T>
+#endif
 		{
 			var idx = actualSpan.IndexOf(expectedSubSpan);
 			if (idx > -1)
@@ -144,7 +176,11 @@ namespace Xunit
 		public static void Equal<T>(
 			ReadOnlySpan<T> expectedSpan,
 			T[] actualArray)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Equal(expectedSpan, actualArray.AsSpan());
 
 		/// <summary>
@@ -156,7 +192,11 @@ namespace Xunit
 		public static void Equal<T>(
 			Span<T> expectedSpan,
 			Span<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Equal((ReadOnlySpan<T>)expectedSpan, (ReadOnlySpan<T>)actualSpan);
 
 		/// <summary>
@@ -168,7 +208,11 @@ namespace Xunit
 		public static void Equal<T>(
 			Span<T> expectedSpan,
 			ReadOnlySpan<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Equal((ReadOnlySpan<T>)expectedSpan, actualSpan);
 
 		/// <summary>
@@ -180,7 +224,11 @@ namespace Xunit
 		public static void Equal<T>(
 			ReadOnlySpan<T> expectedSpan,
 			Span<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>? =>
+#else
 				where T : IEquatable<T> =>
+#endif
 					Equal(expectedSpan, (ReadOnlySpan<T>)actualSpan);
 
 		/// <summary>
@@ -192,7 +240,11 @@ namespace Xunit
 		public static void Equal<T>(
 			ReadOnlySpan<T> expectedSpan,
 			ReadOnlySpan<T> actualSpan)
+#if XUNIT_NULLABLE
+				where T : IEquatable<T>?
+#else
 				where T : IEquatable<T>
+#endif
 		{
 			if (!expectedSpan.SequenceEqual(actualSpan))
 				Equal(expectedSpan.ToArray(), actualSpan.ToArray(), new AssertEqualityComparer<T>());
