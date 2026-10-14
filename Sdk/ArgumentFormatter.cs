@@ -9,6 +9,7 @@
 #else
 // In case this is source-imported with global nullable enabled but no XUNIT_NULLABLE
 #pragma warning disable CS8600
+#pragma warning disable CS8601
 #pragma warning disable CS8602
 #pragma warning disable CS8603
 #pragma warning disable CS8604
@@ -44,6 +45,11 @@ namespace Xunit.Sdk
 #endif
 	static partial class ArgumentFormatter
 	{
+#if XUNIT_NULLABLE
+		static readonly Type? dateOnlyType = Type.GetType("System.DateOnly");
+#else
+		static readonly Type dateOnlyType = Type.GetType("System.DateOnly");
+#endif
 		static readonly Lazy<int> maxEnumerableLength = new Lazy<int>(
 			() => GetEnvironmentValue(EnvironmentVariables.PrintMaxEnumerableLength, EnvironmentVariables.Defaults.PrintMaxEnumerableLength));
 		static readonly AsyncLocal<int?> maxEnumerableLengthOverride = new AsyncLocal<int?>();
@@ -210,7 +216,9 @@ namespace Xunit.Sdk
 
 			try
 			{
-				if (value.GetType().IsEnum)
+				var type = value.GetType();
+
+				if (type.IsEnum)
 					return FormatEnumValue(value);
 
 				if (value is char c)
@@ -222,7 +230,7 @@ namespace Xunit.Sdk
 				if (value is double)
 					return FormatDoubleValue(value);
 
-				if (value is DateTime || value is DateTimeOffset)
+				if (value is DateTime || value is DateTimeOffset || type == dateOnlyType)
 					return FormatDateTimeValue(value);
 
 				if (value is string stringParameter)
@@ -235,8 +243,6 @@ namespace Xunit.Sdk
 
 				if (value is IEnumerable enumerable)
 					return FormatEnumerableValue(enumerable, depth);
-
-				var type = value.GetType();
 
 #if NET8_0_OR_GREATER
 				if (value is ITuple tuple)
