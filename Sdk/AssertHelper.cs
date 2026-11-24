@@ -87,7 +87,11 @@ namespace Xunit.Internal
 				if (expression is null || expression.Length is 0)
 					throw new ArgumentException("Null/empty expressions are not valid.", nameof(exclusionExpressions));
 
+#if NET11_0_OR_GREATER
+				var lastDotIdx = expression.LastIndexOf('.', StringComparison.Ordinal);
+#else
 				var lastDotIdx = expression.LastIndexOf('.');
+#endif
 				if (lastDotIdx == 0)
 					throw new ArgumentException(
 						string.Format(
@@ -154,10 +158,8 @@ namespace Xunit.Internal
 					if (memberExpression.Expression?.NodeType == ExpressionType.Parameter)
 						break;
 
-					memberExpression = memberExpression.Expression as MemberExpression;
-
-					if (memberExpression is null)
-						throw new ArgumentException(
+					memberExpression = memberExpression.Expression as MemberExpression
+						?? throw new ArgumentException(
 							string.Format(
 								CultureInfo.CurrentCulture,
 								"Expression '{0}' is not supported. Only property or field expressions from the lambda parameter are supported.",
